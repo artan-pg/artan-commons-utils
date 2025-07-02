@@ -1,0 +1,35 @@
+name: Question
+description: Ask a question about the library or its usage
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? Please check the README and existing issues first. If you still need help, fill out the form below.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: How do I... / Is it possible to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Any relevant code snippets, versions, or background information that might help us answer.
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Library Version
+      description: Version you are currently using (if applicable).
+      placeholder: 1.0.0
+    validations:
+      required: false
