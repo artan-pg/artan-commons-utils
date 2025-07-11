@@ -29,6 +29,17 @@ public abstract class StringUtils {
     }
 
     /**
+     * Gets a String length or {@code 0} if the String is {@code null} or
+     * {@code empty}.
+     *
+     * @param string the string to check
+     * @return String length or {@code 0} if the String is {@code null} or {@code empty}.
+     */
+    public static int length(String string) {
+        return string == null ? 0 : string.length();
+    }
+
+    /**
      * Check that the given {@code String} is neither {@code null} nor of
      * length 0.
      *
@@ -202,7 +213,7 @@ public abstract class StringUtils {
      * 	StringUtils.startsWithIgnoreCase(null, "he");    = false
      * 	StringUtils.startsWithIgnoreCase("", "he");      = false
      * 	StringUtils.startsWithIgnoreCase("Hello", null); = false
-     * 	StringUtils.startsWithIgnoreCase("Hello", "");   = true
+     * 	StringUtils.startsWithIgnoreCase("Hello", "");   = false
      * 	StringUtils.startsWithIgnoreCase("Hello", "he"); = true
      * </pre>
      *
@@ -212,7 +223,7 @@ public abstract class StringUtils {
      * @see String#startsWith
      */
     public static boolean startsWithIgnoreCase(String string, String prefix) {
-        return (string != null && prefix != null && string.length() >= prefix.length() &&
+        return (hasText(string) && hasText(prefix) && string.length() >= prefix.length() &&
                 string.regionMatches(true, 0, prefix, 0, prefix.length()));
     }
 
@@ -222,11 +233,11 @@ public abstract class StringUtils {
      *
      * <p>Example:
      * <pre>
-     * 	StringUtils.endsWithIgnoreCase(null, "Hi");   = false
-     * 	StringUtils.endsWithIgnoreCase("Hi", null);   = false
-     * 	StringUtils.endsWithIgnoreCase("", "Hi");     = false
-     * 	StringUtils.endsWithIgnoreCase("Test", "");   = true
-     * 	StringUtils.endsWithIgnoreCase("Test", "st"); = true
+     * 	StringUtils.endsWithIgnoreCase(null, "he");    = false
+     * 	StringUtils.endsWithIgnoreCase("", "he");      = false
+     * 	StringUtils.endsWithIgnoreCase("Hello", null); = false
+     * 	StringUtils.endsWithIgnoreCase("Hello", "");   = false
+     * 	StringUtils.endsWithIgnoreCase("Hello", "lo"); = true
      * </pre>
      *
      * @param string the string to check
@@ -245,13 +256,13 @@ public abstract class StringUtils {
      *
      * <p>Example:
      * <pre>
-     * 	StringUtils.substringMatch(null, "Hi", 0);     = false
-     * 	StringUtils.substringMatch("Hi", null, 0);     = false
-     * 	StringUtils.substringMatch("Hi", "H", -1);     = false
-     * 	StringUtils.substringMatch("Hello", "he", 0);  = false
-     * 	StringUtils.substringMatch("Hi", "Hello", 0);  = false
-     * 	StringUtils.substringMatch("Hello", "He", 0);  = true
-     * 	StringUtils.substringMatch("Hello", "llo", 2); = true
+     * 	StringUtils.containsAtPosition(null, "Hi", 0);     = false
+     * 	StringUtils.containsAtPosition("Hi", null, 0);     = false
+     * 	StringUtils.containsAtPosition("Hi", "H", -1);     = false
+     * 	StringUtils.containsAtPosition("Hello", "he", 0);  = false
+     * 	StringUtils.containsAtPosition("Hi", "Hello", 0);  = false
+     * 	StringUtils.containsAtPosition("Hello", "He", 0);  = true
+     * 	StringUtils.containsAtPosition("Hello", "llo", 2); = true
      * </pre>
      *
      * @param string    the original string
@@ -262,7 +273,7 @@ public abstract class StringUtils {
      */
     public static boolean containsAtPosition(String string, String substring, int index) {
         return hasText(string) && hasText(substring) && index >= 0 &&
-                (index + substring.length() < string.length()) &&
+                (index + substring.length() <= string.length()) &&
                 string.regionMatches(false, index, substring, 0, substring.length());
     }
 
@@ -286,7 +297,7 @@ public abstract class StringUtils {
      * @return {@code true}, if the given string matches the given substring
      */
     public static boolean contains(String string, String substring) {
-        return hasText(string) && hasText(substring) && (substring.length() < string.length())
+        return hasText(string) && hasText(substring) && (substring.length() <= string.length())
                 && string.contains(substring);
     }
 
@@ -308,6 +319,8 @@ public abstract class StringUtils {
      * @return {@code true}, if the given string matches the given substring
      */
     public static boolean containsWithKMPAlgorithm(String string, String substring) {
+        if (!hasText(string) || !hasText(substring)) return false;
+
         int[] lps = computeLPS(substring);
         int indexString = 0; // index for string
         int indexSubstring = 0; // index for substring
@@ -404,10 +417,8 @@ public abstract class StringUtils {
      * @see String#replace
      */
     public static String replace(String original, String pattern, String replacement) {
-        if (!hasLength(original) || !hasLength(pattern) || Objects.isNull(replacement)) {
-            return original;
-        }
-        return original.replace(pattern, replacement);
+        return (!hasLength(original) || !hasLength(pattern) || replacement == null) ?
+                original : original.replace(pattern, replacement);
     }
 
     /**
@@ -426,18 +437,16 @@ public abstract class StringUtils {
      * 	StringUtils.replaceRegex("123abc", "abc", "*");   = "123*"
      * </pre>
      *
-     * @param original   the original string to process
-     * @param regex      the pattern to be replaced
-     * @param newPattern the replacement string
+     * @param original    the original string to process
+     * @param regex       the pattern to be replaced
+     * @param replacement the replacement string
      * @return a new version of the string with the replacements made, or the {@code original} string if
      * there is no match
      * @see String#replaceAll
      */
-    public static String replaceRegex(String original, String regex, String newPattern) {
-        if (!hasLength(original) || !hasLength(regex) || Objects.isNull(newPattern)) {
-            return original;
-        }
-        return original.replaceAll(regex, newPattern);
+    public static String replaceRegex(String original, String regex, String replacement) {
+        return (!hasLength(original) || !hasLength(regex) || Objects.isNull(replacement)) ?
+                original : original.replaceAll(regex, replacement);
     }
 
     /**
@@ -449,132 +458,104 @@ public abstract class StringUtils {
      *
      * <p>Example:
      * <pre>
-     * 	StringUtils.normalizeArabicPersian(null)  = null
-     * 	StringUtils.normalizeArabicPersian("")    = ""
-     * 	StringUtils.normalizeArabicPersian("کمك")  = "کمک"
-     * 	StringUtils.normalizeArabicPersian("محمدي") = "محمدی"
+     * 	StringUtils.normalizeArabic(null)    = null
+     * 	StringUtils.normalizeArabic("")      = ""
+     * 	StringUtils.normalizeArabic("کمك")   = "کمک"
+     * 	StringUtils.normalizeArabic("محمدي") = "محمدی"
+     * </pre>
      *
-     * @param string string the string to be normalized
-     * @return the string that is normalized, or {@code null} if the string is {@code null}
+     * @param string the string to be normalized
+     * @return the string that is normalized, or {@code null} if the string is {@code null} or {@code empty}
      */
     public static String normalizeArabic(String string) {
-        if (!hasLength(string)) {
+        return (!hasLength(string)) ?
+                null : string.replace('ي', 'ی').replace('ك', 'ک').replace('ۀ', 'ه').replace('ة', 'ه');
+    }
+
+    /**
+     * Abbreviates a given string by truncating it and appending an
+     * abbreviation suffix, ensuring the total length does not exceed the
+     * specified maximum length.
+     *
+     * <p>If the input string is already shorter than or equal to the maximum
+     * length, it is returned as-is. Otherwise, the string is truncated to fit
+     * the maximum length when combined with the abbreviation suffix. If the
+     * abbreviation itself is longer than the maximum length, only the
+     * abbreviation is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     * 	StringUtils.abbreviate(null, "...", 0);           = null
+     * 	StringUtils.abbreviate("", "...", 0);             = null
+     * 	StringUtils.abbreviate("Hello World", null, 0);   = null
+     * 	StringUtils.abbreviate("Hello World", "", 0);     = null
+     * 	StringUtils.abbreviate("Hello World", "...", 8);  = "Hello..."
+     * 	StringUtils.abbreviate("Hello World", "...", 3);  = "..."
+     * 	StringUtils.abbreviate("Hello World", "...", 12); = "Hello World"
+     * </pre>
+     *
+     * @param string    the original string to abbreviate
+     * @param abbrev    the abbreviation suffix to append
+     * @param maxLength the maximum allowed length of the resulting string
+     * @return the abbreviated string, or {@code null} if either {@code string} or {@code abbrev} is empty/null.
+     * @throws IllegalArgumentException If {@code maxLength} is negative.
+     */
+    public static String abbreviate(String string, String abbrev, int maxLength) {
+        if (maxLength < 0) throw new IllegalArgumentException("maxLength cannot be negative");
+        if (!hasText(string) || !hasText(abbrev)) return null;
+        if (string.length() <= maxLength) return string;
+
+        int keepLength = maxLength - abbrev.length();
+
+        return (keepLength <= 0) ? abbrev : string.substring(0, keepLength) + abbrev;
+    }
+
+    /**
+     * Capitalizes the first character of the given string, handling Unicode
+     * characters properly.
+     *
+     * <p>This method converts the first character of the input string to title
+     * case using Unicode code points. If the string is already capitalized or
+     * empty, it returns the original string unchanged.
+     *
+     * <p>The method properly handles supplementary Unicode characters that
+     * occupy two char values (surrogate pairs).
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.capitalize(null);    = null
+     *  StringUtils.capitalize("");      = ""
+     *  StringUtils.capitalize("cat");   = "Cat"
+     *  StringUtils.capitalize("cAt");   = "CAt"
+     *  StringUtils.capitalize("'cat'"); = "'cat'"
+     * </pre>
+     *
+     * @param string the string to capitalize
+     * @return the capitalized string, or the original string if it's empty or already capitalized
+     * @see Character#toTitleCase(int)
+     * @see Character#codePointAt(CharSequence, int)
+     * @see Character#charCount(int)
+     */
+    public static String capitalize(String string) {
+        if (!hasText(string)) return string;
+
+        int length = length(string);
+
+        int firstCodepoint = string.codePointAt(0);
+        int newCodePoint = Character.toTitleCase(firstCodepoint);
+        if (firstCodepoint == newCodePoint) {
+            // already capitalized
             return string;
         }
-        return string.replace('ي', 'ی').replace('ك', 'ک').replace('ۀ', 'ه').replace('ة', 'ه');
-    }
 
-    /**
-     * Quote the given {@code String} with single quotes.
-     *
-     * <p>Example:
-     * <pre>
-     * 	StringUtils.quote(null);          = null
-     * 	StringUtils.quote("");            = null
-     * 	StringUtils.quote(" ");           = null
-     * 	StringUtils.quote("Hello World"); = "'Hello World'"
-     * </pre>
-     *
-     * @param string the input {@code String}
-     * @return the quoted {@code String}, or {@code null} if the input was {@code null}
-     * @see #hasText
-     */
-    public static String quote(String string) {
-        return (hasText(string) ? "'" + string + "'" : null);
-    }
-
-    /**
-     * If the given object is a {@code String}, it converts it to a string
-     * using single quotes, otherwise, it keeps the object in its original
-     * form.
-     *
-     * <p>Example:
-     * <pre>
-     * 	StringUtils.quoteIfString(null);          = null
-     * 	StringUtils.quoteIfString("");            = null
-     * 	StringUtils.quoteIfString(" ");           = null
-     * 	StringUtils.quoteIfString(123);           = 123
-     * 	StringUtils.quoteIfString("Hello World"); = "'Hello World'"
-     * </pre>
-     *
-     * @param object the input {@code Object}
-     * @return the quoted {@code String}, or the input object as-is if not a {@code String}
-     * @see #quote
-     */
-    public static Object quoteIfString(Object object) {
-        return (object instanceof String s ? quote(s) : object);
-    }
-
-    /**
-     * Abbreviates a String using a given replacement marker. This will turn
-     * "Now is the time for all good men" into "...is the time for..." if "..." was defined
-     * as the replacement marker.
-     *
-     * <p>Works like {@code abbreviate(String, String, int)}, but allows you to specify
-     * a "left edge" offset.  Note that this left edge is not necessarily going to
-     * be the leftmost character in the result, or the first character following the
-     * replacement marker, but it will appear somewhere in the result.
-     *
-     * <p>In no case will it return a String of length greater than {@code maxWidth}.</p>
-     *
-     * <pre>
-     * StringUtils.abbreviate(null, null, *, *)                 = null
-     * StringUtils.abbreviate("abcdefghijklmno", null, *, *)    = "abcdefghijklmno"
-     * StringUtils.abbreviate("", "...", 0, 4)                  = ""
-     * StringUtils.abbreviate("abcdefghijklmno", "---", -1, 10) = "abcdefg---"
-     * StringUtils.abbreviate("abcdefghijklmno", ",", 0, 10)    = "abcdefghi,"
-     * StringUtils.abbreviate("abcdefghijklmno", ",", 1, 10)    = "abcdefghi,"
-     * StringUtils.abbreviate("abcdefghijklmno", ",", 2, 10)    = "abcdefghi,"
-     * StringUtils.abbreviate("abcdefghijklmno", "::", 4, 10)   = "::efghij::"
-     * StringUtils.abbreviate("abcdefghijklmno", "...", 6, 10)  = "...ghij..."
-     * StringUtils.abbreviate("abcdefghijklmno", "*", 9, 10)    = "*ghijklmno"
-     * StringUtils.abbreviate("abcdefghijklmno", "'", 10, 10)   = "'ghijklmno"
-     * StringUtils.abbreviate("abcdefghijklmno", "!", 12, 10)   = "!ghijklmno"
-     * StringUtils.abbreviate("abcdefghij", "abra", 0, 4)       = IllegalArgumentException
-     * StringUtils.abbreviate("abcdefghij", "...", 5, 6)        = IllegalArgumentException
-     * </pre>
-     *
-     * @param str  the String to check, may be null
-     * @param abbrevMarker  the String used as replacement marker
-     * @param offset  left edge of source String
-     * @param maxWidth  maximum length of result String, must be at least 4
-     * @return abbreviated String, {@code null} if null String input
-     * @throws IllegalArgumentException if the width is too small
-     * @since 3.6
-     */
-    public static String abbreviate(final String str, final String abbrevMarker, int offset, final int maxWidth) {
-//		if (hasLength(str) && EMPTY.equals(abbrevMarker) && maxWidth > 0) {
-//			return substring(str, 0, maxWidth);
-//		}
-//		if (isAnyEmpty(str, abbrevMarker)) {
-//			return str;
-//		}
-        final int abbrevMarkerLength = abbrevMarker.length();
-        final int minAbbrevWidth = abbrevMarkerLength + 1;
-        final int minAbbrevWidthOffset = abbrevMarkerLength + abbrevMarkerLength + 1;
-
-        if (maxWidth < minAbbrevWidth) {
-            throw new IllegalArgumentException(String.format("Minimum abbreviation width is %d", minAbbrevWidth));
+        int[] newCodePoints = new int[length];
+        int outOffset = 0;
+        newCodePoints[outOffset++] = newCodePoint;
+        for (int inOffset = Character.charCount(firstCodepoint); inOffset < length; ) {
+            int codePoint = string.codePointAt(inOffset);
+            newCodePoints[outOffset++] = codePoint;
+            inOffset += Character.charCount(codePoint);
         }
-        final int strLen = str.length();
-        if (strLen <= maxWidth) {
-            return str;
-        }
-        if (offset > strLen) {
-            offset = strLen;
-        }
-        if (strLen - offset < maxWidth - abbrevMarkerLength) {
-            offset = strLen - (maxWidth - abbrevMarkerLength);
-        }
-        if (offset <= abbrevMarkerLength + 1) {
-            return str.substring(0, maxWidth - abbrevMarkerLength) + abbrevMarker;
-        }
-        if (maxWidth < minAbbrevWidthOffset) {
-            throw new IllegalArgumentException(String.format("Minimum abbreviation width with offset is %d", minAbbrevWidthOffset));
-        }
-        if (offset + maxWidth - abbrevMarkerLength < strLen) {
-//			return abbrevMarker + abbreviate(str.substring(offset), abbrevMarker, maxWidth - abbrevMarkerLength);
-        }
-        return abbrevMarker + str.substring(strLen - (maxWidth - abbrevMarkerLength));
+        return new String(newCodePoints, 0, outOffset);
     }
 }
