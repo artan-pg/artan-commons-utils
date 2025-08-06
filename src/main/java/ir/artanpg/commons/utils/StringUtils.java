@@ -24,6 +24,16 @@ public abstract class StringUtils {
      */
     public static final String NULL = "null";
 
+    /**
+     * Carriage return character CR ('\r', Unicode 000d).
+     */
+    public static final char CR = '\r';
+
+    /**
+     * Linefeed character LF ({@code '\n'}, Unicode 000a).
+     */
+    public static final char LF = '\n';
+
     private StringUtils() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
@@ -101,16 +111,7 @@ public abstract class StringUtils {
      * @see Character#isWhitespace
      */
     public static boolean containsWhitespace(String string) {
-        if (!hasLength(string)) {
-            return false;
-        }
-        int stringLength = string.length();
-        for (int i = 0; i < stringLength; i++) {
-            if (Character.isWhitespace(string.charAt(i))) {
-                return true;
-            }
-        }
-        return false;
+        return hasLength(string) && string.codePoints().anyMatch(Character::isWhitespace);
     }
 
     /**
@@ -251,6 +252,30 @@ public abstract class StringUtils {
     }
 
     /**
+     * Checks the given {@code String} matches the given substring.
+     *
+     * <p>Example:
+     * <pre>
+     * 	StringUtils.contains(null, "Hi");     = false
+     * 	StringUtils.contains("", "Hi");       = false
+     * 	StringUtils.contains(" ", "Hi");      = false
+     * 	StringUtils.contains("Hi", null);     = false
+     * 	StringUtils.contains("Hi", "");       = false
+     * 	StringUtils.contains("Hi", " ");      = false
+     * 	StringUtils.contains("Hello", "He");  = true
+     * 	StringUtils.contains("Hello", "llo"); = true
+     * </pre>
+     *
+     * @param string    the original string
+     * @param substring the substring to match
+     * @return {@code true}, if the given string matches the given substring
+     */
+    public static boolean contains(String string, String substring) {
+        return hasText(string) && hasText(substring) && (substring.length() <= string.length())
+                && string.contains(substring);
+    }
+
+    /**
      * Checks the given {@code String} matches the given substring at the given
      * index.
      *
@@ -278,27 +303,40 @@ public abstract class StringUtils {
     }
 
     /**
-     * Checks the given {@code String} matches the given substring.
+     * Checks if the given String contains any of the specified substrings
+     * using the {@code Aho-Corasick} algorithm for efficient multi-pattern
+     * matching with full Unicode support.
      *
      * <p>Example:
      * <pre>
-     * 	StringUtils.contains(null, "Hi");     = false
-     * 	StringUtils.contains("", "Hi");       = false
-     * 	StringUtils.contains(" ", "Hi");      = false
-     * 	StringUtils.contains("Hi", null);     = false
-     * 	StringUtils.contains("Hi", "");       = false
-     * 	StringUtils.contains("Hi", " ");      = false
-     * 	StringUtils.contains("Hello", "He");  = true
-     * 	StringUtils.contains("Hello", "llo"); = true
+     *  StringUtils.containsAny(null, "Hello");                  = false
+     *  StringUtils.containsAny("", "Hello");                    = false
+     *  StringUtils.containsAny("Hello", null);                  = false
+     *  StringUtils.containsAny("Hello", "");                    = false
+     *  StringUtils.containsAny("Hello World", "hello", "Test"); = false
+     *  StringUtils.containsAny("Hello World", "Hello", "Test"); = true
      * </pre>
      *
-     * @param string    the original string
-     * @param substring the substring to match
-     * @return {@code true}, if the given string matches the given substring
+     * @param string        the string to search in
+     * @param searchStrings the array of substrings to search for
+     * @return {@code true} if any of the substrings is found in the string
      */
-    public static boolean contains(String string, String substring) {
-        return hasText(string) && hasText(substring) && (substring.length() <= string.length())
-                && string.contains(substring);
+    public static boolean containsAny(String string, String... searchStrings) {
+        if (!hasText(string) || searchStrings == null || searchStrings.length == 0) {
+            return false;
+        }
+
+        // Initialize Aho-Corasick and add patterns
+        AhoCorasick ahoCorasick = new AhoCorasick();
+        for (String searchStr : searchStrings) {
+            if (searchStr != null && !searchStr.isEmpty()) {
+                ahoCorasick.addPattern(searchStr);
+            }
+        }
+
+        // Build failure links and search
+        ahoCorasick.buildFailureLinks();
+        return ahoCorasick.search(string);
     }
 
     /**
@@ -523,11 +561,11 @@ public abstract class StringUtils {
      *
      * <p>Examples:
      * <pre>
-     *  StringUtils.capitalize(null);    = null
-     *  StringUtils.capitalize("");      = ""
-     *  StringUtils.capitalize("cat");   = "Cat"
-     *  StringUtils.capitalize("cAt");   = "CAt"
-     *  StringUtils.capitalize("'cat'"); = "'cat'"
+     *  StringUtils.capitalize(null);      = null
+     *  StringUtils.capitalize("");        = ""
+     *  StringUtils.capitalize("hello");   = "Hello"
+     *  StringUtils.capitalize("hEllo");   = "HEllo"
+     *  StringUtils.capitalize("'Hello'"); = "'Hello'"
      * </pre>
      *
      * @param string the string to capitalize
@@ -539,8 +577,6 @@ public abstract class StringUtils {
     public static String capitalize(String string) {
         if (!hasText(string)) return string;
 
-        int length = length(string);
-
         int firstCodepoint = string.codePointAt(0);
         int newCodePoint = Character.toTitleCase(firstCodepoint);
         if (firstCodepoint == newCodePoint) {
@@ -548,14 +584,199 @@ public abstract class StringUtils {
             return string;
         }
 
-        int[] newCodePoints = new int[length];
+        StringBuilder result = new StringBuilder(string.length());
+        result.appendCodePoint(newCodePoint);
+        result.append(string.substring(Character.charCount(firstCodepoint)));
+        return result.toString();
+    }
+
+    /**
+     * Uncapitalizes a String, changing the first character to lower case as
+     * per {@link Character#toLowerCase(int)}. No other characters are changed.
+     *
+     * <p>Example:
+     * <pre>
+     *  StringUtils.uncapitalize(null);  = null
+     *  StringUtils.uncapitalize("");    = ""
+     *  StringUtils.uncapitalize("hello"); = "hello"
+     *  StringUtils.uncapitalize("Hello"); = "hello"
+     *  StringUtils.uncapitalize("HELLO"); = "hELLO"
+     * </pre>
+     *
+     * @param string the string to uncapitalize
+     * @return the uncapitalized string, {@code null} if null or empty string input
+     */
+    public static String uncapitalize(String string) {
+        if (!hasText(string)) return string;
+
+        int length = string.length();
+        int firstCodePoint = string.codePointAt(0);
+        int newCodePoint = Character.toLowerCase(firstCodePoint);
+
+        if (firstCodePoint == newCodePoint) return string;
+
         int outOffset = 0;
-        newCodePoints[outOffset++] = newCodePoint;
-        for (int inOffset = Character.charCount(firstCodepoint); inOffset < length; ) {
+        int[] newCodePoints = new int[length]; // cannot be longer than the char array
+        newCodePoints[outOffset++] = newCodePoint; // copy the first code point
+
+        for (int inOffset = Character.charCount(firstCodePoint); inOffset < length; ) {
             int codePoint = string.codePointAt(inOffset);
-            newCodePoints[outOffset++] = codePoint;
+            newCodePoints[outOffset++] = codePoint; // copy the remaining ones
             inOffset += Character.charCount(codePoint);
         }
+
         return new String(newCodePoints, 0, outOffset);
+    }
+
+    /**
+     * Removes one newline from end of a String if it's there, otherwise leave
+     * it alone.
+     *
+     * <p>A newline is &quot;{@code \n}&quot;, &quot;{@code \r}&quot;, or
+     * &quot;{@code \r\n}&quot;.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.chomp(null);            = null
+     *  StringUtils.chomp("");              = ""
+     *  StringUtils.chomp("\r");            = ""
+     *  StringUtils.chomp("\n");            = ""
+     *  StringUtils.chomp("\r\n");          = ""
+     *  StringUtils.chomp("Hello\r");       = "Hello"
+     *  StringUtils.chomp("Hello\n");       = "Hello"
+     *  StringUtils.chomp("Hello\r\n");     = "Hello"
+     *  StringUtils.chomp("Hello\r\n\r\n"); = "Hello\r\n"
+     * </pre>
+     *
+     * @param string the String to chomp a newline from
+     * @return String without newline, {@code null} if null String input
+     */
+    public static String chomp(String string) {
+        if (!hasLength(string)) return string;
+
+        int lastIdx = string.length();
+        if (lastIdx == 1) {
+            char ch = string.charAt(0);
+            if (ch == CR || ch == LF) return EMPTY;
+            return string;
+        }
+
+        char last = string.charAt(lastIdx - 1);
+        if (last == LF) {
+            if (string.charAt(lastIdx - 2) == CR) {
+                lastIdx -= 2;
+            } else {
+                lastIdx--;
+            }
+        } else if (last == CR) {
+            lastIdx--;
+        }
+
+        return lastIdx == string.length() ? string : string.substring(0, lastIdx);
+    }
+
+    /**
+     * Wraps a String with another String.
+     *
+     * <p>Example:
+     * <pre>
+     * StringUtils.wrap(null, "*");     = null
+     * StringUtils.wrap("", "*");       = ""
+     * StringUtils.wrap("Hello", null); = "Hello"
+     * StringUtils.wrap("Hello", "");   = "Hello"
+     * StringUtils.wrap("Hello", "'");  = "'Hello'"
+     * </pre>
+     *
+     * @param string   the string to be wrapper
+     * @param wrapWith the string that will wrap {@code string}
+     * @return the wrapped string, or {@code null} if null or empty String input
+     */
+    public static String wrap(String string, String wrapWith) {
+        if (!hasText(string) || !hasText(wrapWith)) return string;
+
+        return wrapWith.concat(string).concat(wrapWith);
+    }
+
+    /**
+     * Wraps a string with a string if that string is missing from the start or
+     * end of the given string.
+     *
+     * <p>Example:
+     * <pre>
+     * StringUtils.wrapIfMissing(null, "*");      = null
+     * StringUtils.wrapIfMissing("", "*");        = ""
+     * StringUtils.wrapIfMissing("Hello", null);  = ""
+     * StringUtils.wrapIfMissing("Hello", "");    = ""
+     * StringUtils.wrapIfMissing("Hello", "'");   = "'Hello'"
+     * StringUtils.wrapIfMissing("'Hello'", "'"); = "'Hello'"
+     * </pre>
+     *
+     * @param string   the string to be wrapped
+     * @param wrapWith the string that will wrap {@code string}
+     * @return the wrapped string, or {@code null} if null or empty String input
+     */
+    public static String wrapIfMissing(String string, String wrapWith) {
+        if (!hasText(string) || !hasText(wrapWith)) return string;
+
+        boolean wrapStart = !string.startsWith(wrapWith);
+        boolean wrapEnd = !string.endsWith(wrapWith);
+
+        if (!wrapStart && !wrapEnd) return string;
+
+        StringBuilder builder = new StringBuilder(string.length() + wrapWith.length() + wrapWith.length());
+
+        if (wrapStart) builder.append(wrapWith);
+
+        builder.append(string);
+
+        if (wrapEnd) builder.append(wrapWith);
+
+        return builder.toString();
+    }
+
+    /**
+     * Unwraps a given string from another string.
+     *
+     * <p>Example:
+     * <pre>
+     *  StringUtils.unwrap(null, "*");      = null
+     *  StringUtils.unwrap("", "*");        = ""
+     *  StringUtils.unwrap("Hello", null);  = ""
+     *  StringUtils.unwrap("Hello", "");    = ""
+     *  StringUtils.unwrap("Hello", "'");   = "Hello"
+     *  StringUtils.unwrap("'Hello'", "'"); = "Hello"
+     * </pre>
+     *
+     * @param string     the string to be unwrapped
+     * @param unwrapWith the string used to unwrap
+     * @return unwrapped String or the original string if it is not quoted properly with the unwrapWith
+     */
+    public static String unwrap(String string, String unwrapWith) {
+        if (!hasText(string) || !hasText(unwrapWith) || string.length() < 2 * unwrapWith.length()) return string;
+
+        return (string.startsWith(unwrapWith) && string.endsWith(unwrapWith)) ?
+                string.substring(unwrapWith.length(), string.lastIndexOf(unwrapWith)) : string;
+    }
+
+    /**
+     * Truncates a string to the specified maximum length.
+     *
+     * <p>Example:
+     * <pre>
+     *  StringUtils.truncate(null, 5);          = null
+     *  StringUtils.truncate("", 5);            = ""
+     *  StringUtils.truncate("Hello world", 5); = "Hello ..."
+     * </pre>
+     *
+     * @param string    the input string to truncate
+     * @param maxLength the maximum length of the output string
+     * @return the truncated string, or the original string if no truncation is needed
+     * @throws IllegalArgumentException if maxLength is negative
+     */
+    public static String truncate(String string, int maxLength) {
+        if (!hasText(string)) return string;
+        if (maxLength < 0) throw new IllegalArgumentException("maxWith cannot be negative");
+
+        return (string.length() > maxLength) ? string.substring(0, maxLength).trim() + " ..." : string;
     }
 }

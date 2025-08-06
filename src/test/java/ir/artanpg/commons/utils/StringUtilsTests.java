@@ -248,6 +248,49 @@ class StringUtilsTests {
 
     @ParameterizedTest
     @NullAndEmptySource
+    void contains_ShouldReturnFalse_WhenStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.contains(input, "Hello"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void contains_ShouldReturnFalse_WhenSubstringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.contains("Hello", input));
+    }
+
+    @Test
+    void contains_ShouldReturnFalse_WhenStringDoesNotContainSubstring() {
+        assertFalse(StringUtils.contains("Hello World", "Java"));
+    }
+
+    @Test
+    void contains_ShouldReturnFalse_WhenSubstringIsLongerThanString() {
+        assertFalse(StringUtils.contains("Hello", "Hello World"));
+    }
+
+
+    @Test
+    void contains_ShouldReturnTrue_WhenStringContainsSubstring() {
+        assertTrue(StringUtils.contains("HelloWorld", "ello"));
+    }
+
+    @Test
+    void contains_ShouldReturnTrue_WhenSubstringLengthEqualsStringLength() {
+        assertTrue(StringUtils.contains("Hello", "Hello"));
+    }
+
+    @Test
+    void contains_ShouldReturnTrue_ForPartialMatchAtStart() {
+        assertTrue(StringUtils.contains("Hello World", "Hello"));
+    }
+
+    @Test
+    void contains_ShouldReturnTrue_ForPartialMatchAtEnd() {
+        assertTrue(StringUtils.contains("Hello World", "World"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
     void containsAtPosition_ShouldReturnFalse_WhenStringIsNullOrEmpty(String input) {
         assertFalse(StringUtils.containsAtPosition(input, "Hello", 0));
     }
@@ -290,45 +333,26 @@ class StringUtilsTests {
 
     @ParameterizedTest
     @NullAndEmptySource
-    void contains_ShouldReturnFalse_WhenStringIsNullOrEmpty(String input) {
-        assertFalse(StringUtils.contains(input, "Hello"));
+    void containsAny_ShouldReturnFalse_WhenStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.containsAny(input, "Hello"));
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void contains_ShouldReturnFalse_WhenSubstringIsNullOrEmpty(String input) {
-        assertFalse(StringUtils.contains("Hello", input));
+    void containsAny_ShouldReturnFalse_WhenSearchStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.containsAny("Hello", input));
     }
 
     @Test
-    void contains_ShouldReturnFalse_WhenStringDoesNotContainSubstring() {
-        assertFalse(StringUtils.contains("Hello World", "Java"));
+    void containsAny_ShouldReturnFalse_WhenStringDoesNotContainSearchString() {
+        assertFalse(StringUtils.containsAny("Hello World", "hello", "world"));
     }
 
     @Test
-    void contains_ShouldReturnFalse_WhenSubstringIsLongerThanString() {
-        assertFalse(StringUtils.contains("Hello", "Hello World"));
-    }
-
-
-    @Test
-    void contains_ShouldReturnTrue_WhenStringContainsSubstring() {
-        assertTrue(StringUtils.contains("HelloWorld", "ello"));
-    }
-
-    @Test
-    void contains_ShouldReturnTrue_WhenSubstringLengthEqualsStringLength() {
-        assertTrue(StringUtils.contains("Hello", "Hello"));
-    }
-
-    @Test
-    void contains_ShouldReturnTrue_ForPartialMatchAtStart() {
-        assertTrue(StringUtils.contains("Hello World", "Hello"));
-    }
-
-    @Test
-    void contains_ShouldReturnTrue_ForPartialMatchAtEnd() {
-        assertTrue(StringUtils.contains("Hello World", "World"));
+    void containsAny_ShouldReturnTrue_WhenStringContainsSearchString() {
+        assertTrue(StringUtils.containsAny("Hello World", "Hello", "world"));
+        assertTrue(StringUtils.containsAny("Hello World", "hello", "World"));
+        assertTrue(StringUtils.containsAny("Hello World", "Hello", "world"));
     }
 
     @ParameterizedTest
@@ -540,12 +564,12 @@ class StringUtilsTests {
     }
 
     @Test
-    void capitalize_ShouldReturnCapitalizedString_WhenFirstCharacterIsNotCapitalize() {
+    void capitalize_ShouldReturnCapitalizedString_WhenFirstCharacterIsNotCapital() {
         assertEquals("Hello", StringUtils.capitalize("hello"));
     }
 
     @Test
-    void capitalize_ShouldReturnOriginalString_WhenFirstCharacterIsCapitalize() {
+    void capitalize_ShouldReturnOriginalString_WhenFirstCharacterIsCapital() {
         assertEquals("Hello", StringUtils.capitalize("Hello"));
     }
 
@@ -554,4 +578,127 @@ class StringUtilsTests {
         assertEquals("1test", StringUtils.capitalize("1test"));
     }
 
+    @ParameterizedTest
+    @NullAndEmptySource
+    void uncapitalize_ShouldReturnOriginalString_WhenInputIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.uncapitalize(input));
+    }
+
+    @Test
+    void uncapitalize_ShouldReturnUnCapitalizedString_WhenFirstCharacterIsCapital() {
+        assertEquals("hello", StringUtils.uncapitalize("Hello"));
+        assertEquals("hELLO", StringUtils.uncapitalize("HELLO"));
+    }
+
+    @Test
+    void uncapitalize_ShouldReturnOriginalString_WhenFirstCharacterIsNotCapital() {
+        assertEquals("hello", StringUtils.uncapitalize("hello"));
+    }
+
+    @Test
+    void uncapitalize_ShouldReturnOriginalString_WhenFirstCharacterIsNumberOrSpecialChars() {
+        assertEquals("1Hello", StringUtils.uncapitalize("1Hello"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void chomp_ShouldReturnOriginalString_WhenInputIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.chomp(input));
+    }
+
+    @Test
+    void chomp_ShouldReturnOriginalString_WhenNewLineCharactersAreNotAtTheEndOfTheString() {
+        assertEquals("Hello \r World", StringUtils.chomp("Hello \r World"));
+        assertEquals("Hello \n World", StringUtils.chomp("Hello \n World"));
+        assertEquals("Hello \r\n World", StringUtils.chomp("Hello \r\n World"));
+    }
+
+    @Test
+    void chomp_ShouldRemovesOneNewLineFromEndOfString_WhenEndOfTheStringHasOneOfTheNewlineCharacters() {
+        assertEquals(EMPTY, StringUtils.chomp("\r"));
+        assertEquals(EMPTY, StringUtils.chomp("\n"));
+        assertEquals(EMPTY, StringUtils.chomp("\r\n"));
+
+        assertEquals("Hello", StringUtils.chomp("Hello\r"));
+        assertEquals("Hello", StringUtils.chomp("Hello\n"));
+        assertEquals("Hello", StringUtils.chomp("Hello\r\n"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void wrap_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.wrap(input, "'"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void wrap_ShouldReturnOriginalString_WhenWrapWithStringIsNullOrEmpty(String input) {
+        assertEquals("Hello", StringUtils.wrap("Hello", input));
+    }
+
+    @Test
+    void wrap_ShouldReturnWrappedString_WhenInputAndWrapWithStringIsNotNullOrNotEmpty() {
+        assertEquals("'Hello'", StringUtils.wrap("Hello", "'"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void wrapIfMissing_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.wrapIfMissing(input, "'"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void wrapIfMissing_ShouldReturnOriginalString_WhenWrapWithStringIsNullOrEmpty(String input) {
+        assertEquals("Hello", StringUtils.wrapIfMissing("Hello", input));
+    }
+
+    @Test
+    void wrapIfMissing_ShouldReturnOriginalString_WhenTheStringIsAlreadyWrapped() {
+        assertEquals("'Hello'", StringUtils.wrapIfMissing("'Hello'", "'"));
+    }
+
+    @Test
+    void wrapIfMissing_ShouldReturnWrappedString_WhenInputAndWrapWithStringIsNotNullOrNotEmpty() {
+        assertEquals("'Hello'", StringUtils.wrapIfMissing("Hello", "'"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void unwrap_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.unwrap(input, "'"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void unwrap_ShouldReturnOriginalString_WhenUnwrapWithStringIsNullOrEmpty(String input) {
+        assertEquals("Hello", StringUtils.unwrap("Hello", input));
+    }
+
+    @Test
+    void unwrap_ShouldReturnOriginalString_WhenInputStringLengthIsLessThanUnwrapWithStringLent() {
+        assertEquals("Hello", StringUtils.unwrap("Hello", "'Hello'"));
+    }
+
+    @Test
+    void unwrap_ShouldReturnUnWrappedString_WhenInputAndUnWrapWithStringIsNotNullOrNotEmpty() {
+        assertEquals("Hello", StringUtils.unwrap("'Hello'", "'"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void truncate_ShouldReturnOriginalString_WhenInputAndUnWrapWithStringIsNotNullOrNotEmpty(String input) {
+        assertEquals(input, StringUtils.truncate(input, 5));
+    }
+
+    @Test
+    void truncate_ShouldThrowsIllegalArgumentException_WhenMaxLengthIsLessThanZero() {
+        assertThrows(IllegalArgumentException.class, () -> StringUtils.truncate("Hello world", -5));
+    }
+
+    @Test
+    void truncate_ShouldReturnTruncateString_WhenInputStringIsNotNullOrNotEmpty() {
+        assertEquals("Hello ...", StringUtils.truncate("Hello world", 5));
+        assertEquals("Hello ...", StringUtils.truncate("Hello world", 6));
+    }
 }
