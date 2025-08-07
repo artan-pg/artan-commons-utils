@@ -523,40 +523,6 @@ class StringUtilsTests {
         assertEquals("خانه", StringUtils.normalizeArabic("خانۀ"));
     }
 
-    @Test
-    void abbreviate_ShouldThrowException_WhenMaxLengthNegative() {
-        assertThrows(IllegalArgumentException.class, () -> StringUtils.abbreviate("Hello World", "...", -1));
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    void abbreviate_ShouldReturnNull_WhenStringIsNullOrEmpty(String input) {
-        assertNull(StringUtils.abbreviate(input, "...", 10));
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    void abbreviate_ShouldReturnNull_WhenAbbrevIsNullOrEmpty(String input) {
-        assertNull(StringUtils.abbreviate("Hello World", input, 10));
-    }
-
-    @Test
-    void abbreviate_ShouldReturnOriginal_WhenStringShorterThanOrEqualsMaxLength() {
-        assertEquals("Hello", StringUtils.abbreviate("Hello", "...", 12));
-        assertEquals("Hello World", StringUtils.abbreviate("Hello World", "...", 12));
-    }
-
-    @Test
-    void abbreviate_ShouldReturnAbbreviate_WhenStringLongerThanMaxLength() {
-        assertEquals("Hello...", StringUtils.abbreviate("Hello World", "...", 8));
-    }
-
-    @Test
-    void abbreviate_ShouldReturnOnlyAbbrev_WhenMaxLengthEqualsOrLessThanAbbrevLength() {
-        assertEquals("...", StringUtils.abbreviate("Hello World", "...", 2));
-        assertEquals("...", StringUtils.abbreviate("Hello World", "...", 3));
-    }
-
     @ParameterizedTest
     @NullAndEmptySource
     void capitalize_ShouldReturnOriginalString_WhenInputIsNullOrEmpty(String input) {

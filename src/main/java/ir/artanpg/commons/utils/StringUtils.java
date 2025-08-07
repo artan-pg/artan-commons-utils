@@ -78,10 +78,10 @@ public abstract class StringUtils {
      *
      * <p>Example:
      * <pre>
-     * 	StringUtils.hasText(null);      = false
-     * 	StringUtils.hasText("");        = false
-     * 	StringUtils.hasText(" ");       = false
-     * 	StringUtils.hasText("Hello");   = true
+     * 	StringUtils.hasText(null);    = false
+     * 	StringUtils.hasText("");      = false
+     * 	StringUtils.hasText(" ");     = false
+     * 	StringUtils.hasText("Hello"); = true
      * </pre>
      *
      * @param text the string to check
@@ -99,11 +99,11 @@ public abstract class StringUtils {
      *
      * <p>Example:
      * <pre>
-     * 	StringUtils.containsWhitespace(null);      = false
-     * 	StringUtils.containsWhitespace("");        = false
-     * 	StringUtils.containsWhitespace("Hello");   = false
-     * 	StringUtils.containsWhitespace(" ");       = true
-     * 	StringUtils.containsWhitespace("Hello ");  = true
+     * 	StringUtils.containsWhitespace(null);     = false
+     * 	StringUtils.containsWhitespace("");       = false
+     * 	StringUtils.containsWhitespace("Hello");  = false
+     * 	StringUtils.containsWhitespace(" ");      = true
+     * 	StringUtils.containsWhitespace("Hello "); = true
      * </pre>
      *
      * @param string the string to check
@@ -120,9 +120,9 @@ public abstract class StringUtils {
      *
      * <p>Example:
      * <pre>
-     * 	StringUtils.trimAllWhitespace(null);    = ""
-     * 	StringUtils.trimAllWhitespace(" ");     = ""
-     * 	StringUtils.trimAllWhitespace(" Hello "); = "Hello"
+     * 	StringUtils.trimAllWhitespace(null);       = ""
+     * 	StringUtils.trimAllWhitespace(" ");        = ""
+     * 	StringUtils.trimAllWhitespace(" Hello ");  = "Hello"
      * 	StringUtils.trimAllWhitespace(" Hel lo "); = "Hello"
      * </pre>
      *
@@ -131,19 +131,19 @@ public abstract class StringUtils {
      * @see Character#isWhitespace
      */
     public static String trimAllWhitespace(String string) {
-        if (!hasLength(string)) {
-            return EMPTY;
-        }
+        if (!hasLength(string)) return EMPTY;
 
         string = string.trim();
         int stringLength = string.length();
         StringBuilder stringBuilder = new StringBuilder(stringLength);
+
         for (int i = 0; i < stringLength; i++) {
             char c = string.charAt(i);
             if (!Character.isWhitespace(c)) {
                 stringBuilder.append(c);
             }
         }
+
         return stringBuilder.toString();
     }
 
@@ -165,14 +165,13 @@ public abstract class StringUtils {
      * @return the trimmed string
      */
     public static String trimLeadingCharacter(String string, char leadingCharacter) {
-        if (!hasLength(string)) {
-            return EMPTY;
-        }
+        if (!hasLength(string)) return EMPTY;
 
         int beginIndex = 0;
         while (beginIndex < string.length() && leadingCharacter == string.charAt(beginIndex)) {
             beginIndex++;
         }
+
         return string.substring(beginIndex);
     }
 
@@ -184,7 +183,7 @@ public abstract class StringUtils {
      * <pre>
      * 	StringUtils.trimTrailingCharacter(null, '#');       = ""
      * 	StringUtils.trimTrailingCharacter("", '#');         = ""
-     * 	StringUtils.trimTrailingCharacter("Hello", 'h');      = "Hello"
+     * 	StringUtils.trimTrailingCharacter("Hello", 'h');    = "Hello"
      * 	StringUtils.trimTrailingCharacter("123000", '0');   = "123"
      * 	StringUtils.trimTrailingCharacter("Hello   ", ' '); = "Hello"
      * </pre>
@@ -194,14 +193,14 @@ public abstract class StringUtils {
      * @return the trimmed string
      */
     public static String trimTrailingCharacter(String string, char trailingCharacter) {
-        if (!hasLength(string)) {
-            return EMPTY;
-        }
+        if (!hasLength(string)) return EMPTY;
 
         int endIndex = string.length() - 1;
+
         while (endIndex >= 0 && trailingCharacter == string.charAt(endIndex)) {
             endIndex--;
         }
+
         return string.substring(0, endIndex + 1);
     }
 
@@ -269,6 +268,7 @@ public abstract class StringUtils {
      * @param string    the original string
      * @param substring the substring to match
      * @return {@code true}, if the given string matches the given substring
+     * @see String#contains(CharSequence)
      */
     public static boolean contains(String string, String substring) {
         return hasText(string) && hasText(substring) && (substring.length() <= string.length())
@@ -322,16 +322,12 @@ public abstract class StringUtils {
      * @return {@code true} if any of the substrings is found in the string
      */
     public static boolean containsAny(String string, String... searchStrings) {
-        if (!hasText(string) || searchStrings == null || searchStrings.length == 0) {
-            return false;
-        }
+        if (!hasText(string) || searchStrings == null || searchStrings.length == 0) return false;
 
         // Initialize Aho-Corasick and add patterns
         AhoCorasick ahoCorasick = new AhoCorasick();
         for (String searchStr : searchStrings) {
-            if (searchStr != null && !searchStr.isEmpty()) {
-                ahoCorasick.addPattern(searchStr);
-            }
+            if (hasText(searchStr)) ahoCorasick.addPattern(searchStr);
         }
 
         // Build failure links and search
@@ -368,14 +364,10 @@ public abstract class StringUtils {
                 indexString++;
                 indexSubstring++;
             }
-            if (indexSubstring == substring.length()) {
-                return true; // Pattern found
-            } else if (indexString < string.length() && substring.charAt(indexSubstring) != string.charAt(indexString)) {
-                if (indexSubstring != 0) {
-                    indexSubstring = lps[indexSubstring - 1];
-                } else {
-                    indexString++;
-                }
+            if (indexSubstring == substring.length()) return true;
+            if (indexString < string.length() && substring.charAt(indexSubstring) != string.charAt(indexString)) {
+                indexSubstring = indexSubstring != 0 ? lps[indexSubstring - 1] : 0;
+                if (indexSubstring == 0) indexString++;
             }
         }
         return false;
@@ -384,6 +376,7 @@ public abstract class StringUtils {
     private static int[] computeLPS(String pattern) {
         int[] lps = new int[pattern.length()];
         int length = 0;
+
         for (int i = 1; i < pattern.length(); ) {
             if (pattern.charAt(i) == pattern.charAt(length)) {
                 length++;
@@ -398,6 +391,7 @@ public abstract class StringUtils {
                 }
             }
         }
+
         return lps;
     }
 
@@ -418,17 +412,17 @@ public abstract class StringUtils {
      * @return The number of non-overlapping occurrences of the {@code substring} in the {@code string}
      */
     public static int countOccurrencesOf(String string, String substring) {
-        if (!hasLength(string) || !hasLength(substring)) {
-            return 0;
-        }
+        if (!hasLength(string) || !hasLength(substring)) return 0;
 
         int count = 0;
         int pos = 0;
         int idx;
+
         while ((idx = string.indexOf(substring, pos)) != -1) {
             ++count;
             pos = idx + substring.length();
         }
+
         return count;
     }
 
@@ -496,10 +490,10 @@ public abstract class StringUtils {
      *
      * <p>Example:
      * <pre>
-     * 	StringUtils.normalizeArabic(null)    = null
-     * 	StringUtils.normalizeArabic("")      = ""
-     * 	StringUtils.normalizeArabic("کمك")   = "کمک"
-     * 	StringUtils.normalizeArabic("محمدي") = "محمدی"
+     * 	StringUtils.normalizeArabic(null);    = null
+     * 	StringUtils.normalizeArabic("");      = ""
+     * 	StringUtils.normalizeArabic("کمك");   = "کمک"
+     * 	StringUtils.normalizeArabic("محمدي"); = "محمدی"
      * </pre>
      *
      * @param string the string to be normalized
@@ -508,44 +502,6 @@ public abstract class StringUtils {
     public static String normalizeArabic(String string) {
         return (!hasLength(string)) ?
                 null : string.replace('ي', 'ی').replace('ك', 'ک').replace('ۀ', 'ه').replace('ة', 'ه');
-    }
-
-    /**
-     * Abbreviates a given string by truncating it and appending an
-     * abbreviation suffix, ensuring the total length does not exceed the
-     * specified maximum length.
-     *
-     * <p>If the input string is already shorter than or equal to the maximum
-     * length, it is returned as-is. Otherwise, the string is truncated to fit
-     * the maximum length when combined with the abbreviation suffix. If the
-     * abbreviation itself is longer than the maximum length, only the
-     * abbreviation is returned.
-     *
-     * <p>Examples:
-     * <pre>
-     * 	StringUtils.abbreviate(null, "...", 0);           = null
-     * 	StringUtils.abbreviate("", "...", 0);             = null
-     * 	StringUtils.abbreviate("Hello World", null, 0);   = null
-     * 	StringUtils.abbreviate("Hello World", "", 0);     = null
-     * 	StringUtils.abbreviate("Hello World", "...", 8);  = "Hello..."
-     * 	StringUtils.abbreviate("Hello World", "...", 3);  = "..."
-     * 	StringUtils.abbreviate("Hello World", "...", 12); = "Hello World"
-     * </pre>
-     *
-     * @param string    the original string to abbreviate
-     * @param abbrev    the abbreviation suffix to append
-     * @param maxLength the maximum allowed length of the resulting string
-     * @return the abbreviated string, or {@code null} if either {@code string} or {@code abbrev} is empty/null.
-     * @throws IllegalArgumentException If {@code maxLength} is negative.
-     */
-    public static String abbreviate(String string, String abbrev, int maxLength) {
-        if (maxLength < 0) throw new IllegalArgumentException("maxLength cannot be negative");
-        if (!hasText(string) || !hasText(abbrev)) return null;
-        if (string.length() <= maxLength) return string;
-
-        int keepLength = maxLength - abbrev.length();
-
-        return (keepLength <= 0) ? abbrev : string.substring(0, keepLength) + abbrev;
     }
 
     /**
@@ -579,14 +535,13 @@ public abstract class StringUtils {
 
         int firstCodepoint = string.codePointAt(0);
         int newCodePoint = Character.toTitleCase(firstCodepoint);
-        if (firstCodepoint == newCodePoint) {
-            // already capitalized
-            return string;
-        }
+
+        if (firstCodepoint == newCodePoint) return string;
 
         StringBuilder result = new StringBuilder(string.length());
         result.appendCodePoint(newCodePoint);
         result.append(string.substring(Character.charCount(firstCodepoint)));
+
         return result.toString();
     }
 
@@ -596,8 +551,8 @@ public abstract class StringUtils {
      *
      * <p>Example:
      * <pre>
-     *  StringUtils.uncapitalize(null);  = null
-     *  StringUtils.uncapitalize("");    = ""
+     *  StringUtils.uncapitalize(null);    = null
+     *  StringUtils.uncapitalize("");      = ""
      *  StringUtils.uncapitalize("hello"); = "hello"
      *  StringUtils.uncapitalize("Hello"); = "hello"
      *  StringUtils.uncapitalize("HELLO"); = "hELLO"
@@ -657,20 +612,11 @@ public abstract class StringUtils {
         int lastIdx = string.length();
         if (lastIdx == 1) {
             char ch = string.charAt(0);
-            if (ch == CR || ch == LF) return EMPTY;
-            return string;
+            return (ch == CR || ch == LF) ? EMPTY : string;
         }
 
         char last = string.charAt(lastIdx - 1);
-        if (last == LF) {
-            if (string.charAt(lastIdx - 2) == CR) {
-                lastIdx -= 2;
-            } else {
-                lastIdx--;
-            }
-        } else if (last == CR) {
-            lastIdx--;
-        }
+        lastIdx -= last == LF ? (string.charAt(lastIdx - 2) == CR ? 2 : 1) : last == CR ? 1 : 0;
 
         return lastIdx == string.length() ? string : string.substring(0, lastIdx);
     }
