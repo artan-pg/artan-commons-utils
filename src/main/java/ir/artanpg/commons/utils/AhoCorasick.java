@@ -38,7 +38,7 @@ class AhoCorasick {
      * @throws IllegalArgumentException if the pattern contains invalid Unicode characters
      */
     public void addPattern(String pattern) {
-        if (!validateUnicodeString(pattern))
+        if (notValidUnicodeString(pattern))
             throw new IllegalArgumentException("Pattern contains invalid Unicode characters: " + pattern);
 
         int[] codePoints = pattern.codePoints().toArray();
@@ -144,8 +144,7 @@ class AhoCorasick {
      * @throws IllegalArgumentException if the text contains invalid Unicode characters
      */
     public boolean search(String text) {
-        if (!validateUnicodeString(text))
-            throw new IllegalArgumentException("Text contains invalid Unicode characters");
+        if (notValidUnicodeString(text)) throw new IllegalArgumentException("Text contains invalid Unicode characters");
 
         TrieNode current = root;
         for (int i = 0; i < text.length(); ) {
@@ -186,20 +185,16 @@ class AhoCorasick {
      * @param string the CharSequence to validate
      * @return {@code true}, if valid
      */
-    private boolean validateUnicodeString(String string) {
-        if (string == null) return false;
-        try {
-            for (int i = 0; i < string.length(); ) {
-                int codePoint = Character.codePointAt(string, i);
-                if (!Character.isValidCodePoint(codePoint)) {
-                    return false;
-                }
-                i += Character.charCount(codePoint);
-            }
-            return true;
-        } catch (Exception e) {
-            return false;
+    private boolean notValidUnicodeString(String string) {
+        if (string == null || string.isEmpty()) return true;
+        for (int i = 0; i < string.length(); ) {
+            int codePoint = Character.codePointAt(string, i);
+
+            if (!Character.isValidCodePoint(codePoint)) return true;
+
+            i += Character.charCount(codePoint);
         }
+        return false;
     }
 
     /**

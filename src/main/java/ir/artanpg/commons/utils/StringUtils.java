@@ -250,6 +250,8 @@ public abstract class StringUtils {
      * <pre>
      *  StringUtils.contains(null, "Hello");          = false
      *  StringUtils.contains("", "Hello");            = false
+     *  StringUtils.contains("Hello", null);          = false
+     *  StringUtils.contains("Hello", "");            = false
      *  StringUtils.contains("Hello World", "Hello"); = true
      *  StringUtils.contains("Hello World", "hello"); = false
      * </pre>
@@ -259,339 +261,128 @@ public abstract class StringUtils {
      * @return {@code true}, if the String contains the search string, {@code false} if not or {@code null} string input
      */
     public static boolean contains(String string, String searchString) {
-        if (!hasLength(string)) return false;
+        if (!hasText(string)) return false;
+        if (!hasText(searchString)) return false;
 
         return string.contains(searchString);
     }
 
     /**
-     * Tests if the CharSequence contains any character in the given
-     * set of characters.
+     * Tests if the String contains any character in the given set of
+     * characters.
      *
-     * <p>A {@code null} CharSequence will return {@code false}.
-     * A {@code null} or zero length search array will return {@code false}.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.containsAny(null, *)                  = false
-     * StringUtils.containsAny("", *)                    = false
-     * StringUtils.containsAny(*, null)                  = false
-     * StringUtils.containsAny(*, [])                    = false
-     * StringUtils.containsAny("zzabyycdxx", ['z', 'a']) = true
-     * StringUtils.containsAny("zzabyycdxx", ['b', 'y']) = true
-     * StringUtils.containsAny("zzabyycdxx", ['z', 'y']) = true
-     * StringUtils.containsAny("aba", ['z'])             = false
+     *  StringUtils.containsAny(null, "Hello");                   = false
+     *  StringUtils.containsAny("", "Hello");                     = false
+     *  StringUtils.containsAny("Hello", null);                   = false
+     *  StringUtils.containsAny("Hello", "");                     = false
+     *  StringUtils.containsAny("Hello World", "hello", "world"); = false
+     *  StringUtils.containsAny("Hello World", "Hello", "World"); = true
      * </pre>
      *
-     * @param cs          the CharSequence to check, may be null
-     * @param searchChars the chars to search for, may be null
-     * @return the {@code true} if any of the chars are found,
-     * {@code false} if no match or null input
-     */
-//    public static boolean containsAny(String cs, char... searchChars) {
-//        if (isEmpty(cs) || ArrayUtils.isEmpty(searchChars)) {
-//            return false;
-//        }
-//        int csLength = cs.length();
-//        int searchLength = searchChars.length;
-//        int csLast = csLength - 1;
-//        int searchLast = searchLength - 1;
-//        for (int i = 0; i < csLength; i++) {
-//            char ch = cs.charAt(i);
-//            for (int j = 0; j < searchLength; j++) {
-//                if (searchChars[j] == ch) {
-//                    if (!Character.isHighSurrogate(ch) || j == searchLast || i < csLast && searchChars[j + 1] == cs.charAt(i + 1)) {
-//                        return true;
-//                    }
-//                }
-//            }
-//        }
-//        return false;
-//    }
-
-    /**
-     * Tests if the CharSequence contains any character in the given set of characters.
-     *
-     * <p>
-     * A {@code null} CharSequence will return {@code false}. A {@code null} search CharSequence will return
-     * {@code false}.
-     * </p>
-     *
-     * <pre>
-     * StringUtils.containsAny(null, *)               = false
-     * StringUtils.containsAny("", *)                 = false
-     * StringUtils.containsAny(*, null)               = false
-     * StringUtils.containsAny(*, "")                 = false
-     * StringUtils.containsAny("zzabyycdxx", "za")    = true
-     * StringUtils.containsAny("zzabyycdxx", "by")    = true
-     * StringUtils.containsAny("zzabyycdxx", "zy")    = true
-     * StringUtils.containsAny("zzabyycdxx", "\tx")   = true
-     * StringUtils.containsAny("zzabyycdxx", "$.#yF") = true
-     * StringUtils.containsAny("aba", "z")            = false
-     * </pre>
-     *
-     * @param cs          the CharSequence to check, may be null
-     * @param searchChars the chars to search for, may be null
+     * @param string       the string to check
+     * @param searchString the strings to search for
      * @return the {@code true} if any of the chars are found, {@code false} if no match or null input
      */
-//    public static boolean containsAny(CharSequence cs, CharSequence searchChars) {
-//        if (searchChars == null) {
-//            return false;
-//        }
-//        return containsAny(cs, CharSequenceUtils.toCharArray(searchChars));
-//    }
+    public static boolean containsAny(String string, String... searchString) {
+        if (!hasText(string)) return false;
+        if (!hasText(searchString)) return false;
 
-    /**
-     * Tests that the CharSequence does not contain certain characters.
-     *
-     * <p>A {@code null} CharSequence will return {@code true}.
-     * A {@code null} invalid character array will return {@code true}.
-     * An empty CharSequence (length()=0) always returns true.</p>
-     *
-     * <pre>
-     * StringUtils.containsNone(null, *)       = true
-     * StringUtils.containsNone(*, null)       = true
-     * StringUtils.containsNone("", *)         = true
-     * StringUtils.containsNone("ab", '')      = true
-     * StringUtils.containsNone("abab", 'xyz') = true
-     * StringUtils.containsNone("ab1", 'xyz')  = true
-     * StringUtils.containsNone("abz", 'xyz')  = false
-     * </pre>
-     *
-     * @param cs          the CharSequence to check, may be null
-     * @param searchChars an array of invalid chars, may be null
-     * @return true if it contains none of the invalid chars, or is null
-     */
-//    public static boolean containsNone(CharSequence cs, char... searchChars) {
-//        if (cs == null || searchChars == null) {
-//            return true;
-//        }
-//        int csLen = cs.length();
-//        int csLast = csLen - 1;
-//        int searchLen = searchChars.length;
-//        int searchLast = searchLen - 1;
-//        for (int i = 0; i < csLen; i++) {
-//            char ch = cs.charAt(i);
-//            for (int j = 0; j < searchLen; j++) {
-//                if (searchChars[j] == ch) {
-//                    if (!Character.isHighSurrogate(ch) || j == searchLast || i < csLast && searchChars[j + 1] == cs.charAt(i + 1)) {
-//                        return false;
-//                    }
-//                }
-//            }
-//        }
-//        return true;
-//    }
-
-    /**
-     * Tests that the CharSequence does not contain certain characters.
-     *
-     * <p>A {@code null} CharSequence will return {@code true}.
-     * A {@code null} invalid character array will return {@code true}.
-     * An empty String ("") always returns true.</p>
-     *
-     * <pre>
-     * StringUtils.containsNone(null, *)       = true
-     * StringUtils.containsNone(*, null)       = true
-     * StringUtils.containsNone("", *)         = true
-     * StringUtils.containsNone("ab", "")      = true
-     * StringUtils.containsNone("abab", "xyz") = true
-     * StringUtils.containsNone("ab1", "xyz")  = true
-     * StringUtils.containsNone("abz", "xyz")  = false
-     * </pre>
-     *
-     * @param cs           the CharSequence to check, may be null
-     * @param invalidChars a String of invalid chars, may be null
-     * @return true if it contains none of the invalid chars, or is null
-     */
-//    public static boolean containsNone(CharSequence cs, String invalidChars) {
-//        if (invalidChars == null) {
-//            return true;
-//        }
-//        return containsNone(cs, invalidChars.toCharArray());
-//    }
-
-    /**
-     * Tests whether the given CharSequence contains any whitespace characters.
-     *
-     * <p>Whitespace is defined by {@link Character#isWhitespace(char)}.</p>
-     *
-     * <pre>
-     * StringUtils.containsWhitespace(null)       = false
-     * StringUtils.containsWhitespace("")         = false
-     * StringUtils.containsWhitespace("ab")       = false
-     * StringUtils.containsWhitespace(" ab")      = true
-     * StringUtils.containsWhitespace("a b")      = true
-     * StringUtils.containsWhitespace("ab ")      = true
-     * </pre>
-     *
-     * @param seq the CharSequence to check (may be {@code null})
-     * @return {@code true} if the CharSequence is not empty and
-     * contains at least 1 (breaking) whitespace character
-     */
-    // From org.springframework.util.StringUtils, under Apache License 2.0
-    public static boolean containsWhitespace(CharSequence seq) {
-        if (isEmpty(seq)) {
-            return false;
-        }
-        int strLen = seq.length();
-        for (int i = 0; i < strLen; i++) {
-            if (Character.isWhitespace(seq.charAt(i))) {
-                return true;
+        // Initialize Aho-Corasick and add patterns
+        AhoCorasick ahoCorasick = new AhoCorasick();
+        for (String searchStr : searchString) {
+            if (hasText(searchStr)) {
+                ahoCorasick.addPattern(searchStr);
             }
         }
-        return false;
+
+        // Build failure links and search
+        ahoCorasick.buildFailureLinks();
+        return ahoCorasick.search(string);
     }
 
-    private static void convertRemainingAccentCharacters(StringBuilder decomposed) {
-        for (int i = 0; i < decomposed.length(); i++) {
-            char charAt = decomposed.charAt(i);
-            switch (charAt) {
-                case '\u0141':
-                    decomposed.setCharAt(i, 'L');
-                    break;
-                case '\u0142':
-                    decomposed.setCharAt(i, 'l');
-                    break;
-                // D with stroke
-                case '\u0110':
-                    // LATIN CAPITAL LETTER D WITH STROKE
-                    decomposed.setCharAt(i, 'D');
-                    break;
-                case '\u0111':
-                    // LATIN SMALL LETTER D WITH STROKE
-                    decomposed.setCharAt(i, 'd');
-                    break;
-                // I with bar
-                case '\u0197':
-                    decomposed.setCharAt(i, 'I');
-                    break;
-                case '\u0268':
-                    decomposed.setCharAt(i, 'i');
-                    break;
-                case '\u1D7B':
-                    decomposed.setCharAt(i, 'I');
-                    break;
-                case '\u1DA4':
-                    decomposed.setCharAt(i, 'i');
-                    break;
-                case '\u1DA7':
-                    decomposed.setCharAt(i, 'I');
-                    break;
-                // U with bar
-                case '\u0244':
-                    // LATIN CAPITAL LETTER U BAR
-                    decomposed.setCharAt(i, 'U');
-                    break;
-                case '\u0289':
-                    // LATIN SMALL LETTER U BAR
-                    decomposed.setCharAt(i, 'u');
-                    break;
-                case '\u1D7E':
-                    // LATIN SMALL CAPITAL LETTER U WITH STROKE
-                    decomposed.setCharAt(i, 'U');
-                    break;
-                case '\u1DB6':
-                    // MODIFIER LETTER SMALL U BAR
-                    decomposed.setCharAt(i, 'u');
-                    break;
-                // T with stroke
-                case '\u0166':
-                    // LATIN CAPITAL LETTER T WITH STROKE
-                    decomposed.setCharAt(i, 'T');
-                    break;
-                case '\u0167':
-                    // LATIN SMALL LETTER T WITH STROKE
-                    decomposed.setCharAt(i, 't');
-                    break;
-                default:
-                    break;
-            }
+    /**
+     * Tests whether the given String contains any whitespace characters.
+     *
+     * <p>Whitespace is defined by {@link Character#isWhitespace(char)}.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.containsWhitespace(null);          = false
+     *  StringUtils.containsWhitespace("");            = false
+     *  StringUtils.containsWhitespace("Hello");       = false
+     *  StringUtils.containsWhitespace(" Hello");      = true
+     *  StringUtils.containsWhitespace("Hello ");      = true
+     *  StringUtils.containsWhitespace("Hello World"); = true
+     * </pre>
+     *
+     * @param string the string to check
+     * @return {@code true}, if the string is not empty and contains at least 1 (breaking) whitespace character
+     */
+    public static boolean containsWhitespace(String string) {
+        if (!hasLength(string)) return false;
+
+        int strLen = string.length();
+        for (int i = 0; i < strLen; i++) {
+            if (Character.isWhitespace(string.charAt(i))) return true;
         }
+
+        return false;
     }
 
     /**
      * Counts how many times the substring appears in the larger string.
      * Note that the code only counts non-overlapping matches.
      *
-     * <p>A {@code null} or empty ("") String input returns {@code 0}.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.countMatches(null, *)        = 0
-     * StringUtils.countMatches("", *)          = 0
-     * StringUtils.countMatches("abba", null)   = 0
-     * StringUtils.countMatches("abba", "")     = 0
-     * StringUtils.countMatches("abba", "a")    = 2
-     * StringUtils.countMatches("abba", "ab")   = 1
-     * StringUtils.countMatches("abba", "xxx")  = 0
-     * StringUtils.countMatches("ababa", "aba") = 1
+     *  StringUtils.countMatches(null, "*");        = 0
+     *  StringUtils.countMatches("", "*");          = 0
+     *  StringUtils.countMatches("Hello", null);    = 0
+     *  StringUtils.countMatches("Hello", "");      = 0
+     *  StringUtils.countMatches("Hello", "l");     = 2
+     *  StringUtils.countMatches("Hello", "ll");    = 1
+     *  StringUtils.countMatches("Hello", "Hello"); = 1
+     *  StringUtils.countMatches("Hello", "hello"); = 0
      * </pre>
      *
-     * @param str the CharSequence to check, may be null
-     * @param sub the substring to count, may be null
-     * @return the number of occurrences, 0 if either CharSequence is {@code null}
+     * @param string    the string to check
+     * @param substring the substring to count
+     * @return the number of occurrences
      */
-//    public static int countMatches(CharSequence str, CharSequence sub) {
-//        if (isEmpty(str) || isEmpty(sub)) {
-//            return 0;
-//        }
-//        int count = 0;
-//        int idx = 0;
-//        while ((idx = CharSequenceUtils.indexOf(str, sub, idx)) != INDEX_NOT_FOUND) {
-//            count++;
-//            idx += sub.length();
-//        }
-//        return count;
-//    }
+    public static int countMatches(String string, String substring) {
+        if (!hasLength(string) || !hasLength(substring)) return 0;
 
-    /**
-     * Returns either the passed in CharSequence, or if the CharSequence is {@link #isBlank(CharSequence) blank} (whitespaces, empty ({@code ""}) or
-     * {@code null}), the value of {@code defaultStr}.
-     *
-     * <p>
-     * Whitespace is defined by {@link Character#isWhitespace(char)}.
-     * </p>
-     *
-     * <pre>
-     * StringUtils.defaultIfBlank(null, "NULL")  = "NULL"
-     * StringUtils.defaultIfBlank("", "NULL")    = "NULL"
-     * StringUtils.defaultIfBlank(" ", "NULL")   = "NULL"
-     * StringUtils.defaultIfBlank("bat", "NULL") = "bat"
-     * StringUtils.defaultIfBlank("", null)      = null
-     * </pre>
-     *
-     * @param <T>        the specific kind of CharSequence
-     * @param str        the CharSequence to check, may be null
-     * @param defaultStr the default CharSequence to return if {@code str} is {@link #isBlank(CharSequence) blank} (whitespaces, empty ({@code""}) or
-     *                   {@code null}); may be null
-     * @return the passed in CharSequence, or the default
-     * @see org.apache.commons.lang3.StringUtils#defaultString(String, String)
-     * @see #isBlank(CharSequence)
-     */
-    public static <T extends CharSequence> T defaultIfBlank(T str, T defaultStr) {
-        return isBlank(str) ? defaultStr : str;
+        int count = 0;
+        int idx = 0;
+
+        while ((idx = string.indexOf(substring, idx)) != INDEX_NOT_FOUND) {
+            count++;
+            idx += substring.length();
+        }
+
+        return count;
     }
 
     /**
-     * Returns either the passed in CharSequence, or if the CharSequence is
-     * empty or {@code null}, the value of {@code defaultStr}.
+     * Returns either the passed in String, or if the String is
+     * {@code null} or {@code blank}, the value of {@code defaultString}.
      *
+     * <p>Examples:
      * <pre>
-     * StringUtils.defaultIfEmpty(null, "NULL")  = "NULL"
-     * StringUtils.defaultIfEmpty("", "NULL")    = "NULL"
-     * StringUtils.defaultIfEmpty(" ", "NULL")   = " "
-     * StringUtils.defaultIfEmpty("bat", "NULL") = "bat"
-     * StringUtils.defaultIfEmpty("", null)      = null
+     *  StringUtils.defaultIfNotHasText(null, "NULL");    = "NULL"
+     *  StringUtils.defaultIfNotHasText("", "NULL");      = "NULL"
+     *  StringUtils.defaultIfNotHasText(" ", "NULL");     = "NULL"
+     *  StringUtils.defaultIfNotHasText("Hello", "NULL"); = "Hello"
      * </pre>
      *
-     * @param <T>        the specific kind of CharSequence
-     * @param str        the CharSequence to check, may be null
-     * @param defaultStr the default CharSequence to return
-     *                   if the input is empty ("") or {@code null}, may be null
-     * @return the passed in CharSequence, or the default
-     * @see org.apache.commons.lang3.StringUtils#defaultString(String, String)
+     * @param string        the string to check
+     * @param defaultString the default string to return
+     * @return the passed in String, or the default
      */
-    public static <T extends CharSequence> T defaultIfEmpty(T str, T defaultStr) {
-        return isEmpty(str) ? defaultStr : str;
+    public static String defaultIfNotHasText(String string, String defaultString) {
+        return !hasText(string) ? defaultString : string;
     }
 
     /**
@@ -714,17 +505,17 @@ public abstract class StringUtils {
      * @return the first value from {@code values} which is not blank,
      * or {@code null} if there are no non-blank values
      */
-    @SafeVarargs
-    public static <T extends CharSequence> T firstNonBlank(T... values) {
-        if (values != null) {
-            for (T val : values) {
-                if (isNotBlank(val)) {
-                    return val;
-                }
-            }
-        }
-        return null;
-    }
+//    @SafeVarargs
+//    public static <T extends CharSequence> T firstNonBlank(T... values) {
+//        if (values != null) {
+//            for (T val : values) {
+//                if (isNotBlank(val)) {
+//                    return val;
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
     /**
      * Returns the first value in the array which is not empty.
@@ -868,40 +659,6 @@ public abstract class StringUtils {
             }
         }
         return strDigits.toString();
-    }
-
-    /**
-     * Returns either the passed in CharSequence, or if the CharSequence is {@link #isBlank(CharSequence) blank} (whitespaces, empty ({@code ""}) or
-     * {@code null}), the value supplied by {@code defaultStrSupplier}.
-     *
-     * <p>
-     * Whitespace is defined by {@link Character#isWhitespace(char)}.
-     * </p>
-     *
-     * <p>
-     * Caller responsible for thread-safety and exception handling of default value supplier
-     * </p>
-     *
-     * <pre>
-     * {@code
-     * StringUtils.getIfBlank(null, () -> "NULL")   = "NULL"
-     * StringUtils.getIfBlank("", () -> "NULL")     = "NULL"
-     * StringUtils.getIfBlank(" ", () -> "NULL")    = "NULL"
-     * StringUtils.getIfBlank("bat", () -> "NULL")  = "bat"
-     * StringUtils.getIfBlank("", () -> null)       = null
-     * StringUtils.getIfBlank("", null)             = null
-     * }</pre>
-     *
-     * @param <T>             the specific kind of CharSequence
-     * @param str             the CharSequence to check, may be null
-     * @param defaultSupplier the supplier of default CharSequence to return if the input is {@link #isBlank(CharSequence) blank} (whitespaces, empty
-     *                        ({@code ""}) or {@code null}); may be null
-     * @return the passed in CharSequence, or the default
-     * @see org.apache.commons.lang3.StringUtils#defaultString(String, String)
-     * @see #isBlank(CharSequence)
-     */
-    public static <T extends CharSequence> T getIfBlank(T str, Supplier<T> defaultSupplier) {
-        return isBlank(str) ? defaultSupplier.get() : str;
     }
 
     /**
@@ -1231,17 +988,17 @@ public abstract class StringUtils {
      * @param css the CharSequences to check, may be null or empty
      * @return {@code true} if all of the CharSequences are empty or null or whitespace only
      */
-    public static boolean isAllBlank(CharSequence... css) {
-        if (css == null || css.length == 0) {
-            return true;
-        }
-        for (CharSequence cs : css) {
-            if (isNotBlank(cs)) {
-                return false;
-            }
-        }
-        return true;
-    }
+//    public static boolean isAllBlank(CharSequence... css) {
+//        if (css == null || css.length == 0) {
+//            return true;
+//        }
+//        for (CharSequence cs : css) {
+//            if (isNotBlank(cs)) {
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
 
     /**
      * Tests if all of the CharSequences are empty ("") or null.
@@ -1474,43 +1231,6 @@ public abstract class StringUtils {
     }
 
     /**
-     * Tests if any of the CharSequences are {@link #isBlank(CharSequence) blank} (whitespaces, empty ({@code ""}) or {@code null}).
-     *
-     * <p>
-     * Whitespace is defined by {@link Character#isWhitespace(char)}.
-     * </p>
-     *
-     * <pre>
-     * StringUtils.isAnyBlank((String) null)    = true
-     * StringUtils.isAnyBlank((String[]) null)  = false
-     * StringUtils.isAnyBlank(null, "foo")      = true
-     * StringUtils.isAnyBlank(null, null)       = true
-     * StringUtils.isAnyBlank("", "bar")        = true
-     * StringUtils.isAnyBlank("bob", "")        = true
-     * StringUtils.isAnyBlank("  bob  ", null)  = true
-     * StringUtils.isAnyBlank(" ", "bar")       = true
-     * StringUtils.isAnyBlank(new String[] {})  = false
-     * StringUtils.isAnyBlank(new String[]{""}) = true
-     * StringUtils.isAnyBlank("foo", "bar")     = false
-     * </pre>
-     *
-     * @param css the CharSequences to check, may be null or empty
-     * @return {@code true} if any of the CharSequences are {@link #isBlank(CharSequence) blank} (whitespaces, empty ({@code ""}) or {@code null})
-     * @see #isBlank(CharSequence)
-     */
-    public static boolean isAnyBlank(CharSequence... css) {
-        if (css == null || css.length == 0) {
-            return false;
-        }
-        for (CharSequence cs : css) {
-            if (isBlank(cs)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Tests if any of the CharSequences are empty ("") or null.
      *
      * <pre>
@@ -1573,33 +1293,6 @@ public abstract class StringUtils {
         for (int i = 0; i < sz; i++) {
             char ch = cs.charAt(i);
             if (ch >= 32 && ch < 127) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Tests if a CharSequence is empty ({@code "")}, null, or contains only whitespace as defined by {@link Character#isWhitespace(char)}.
-     *
-     * <pre>
-     * StringUtils.isBlank(null)      = true
-     * StringUtils.isBlank("")        = true
-     * StringUtils.isBlank(" ")       = true
-     * StringUtils.isBlank("bob")     = false
-     * StringUtils.isBlank("  bob  ") = false
-     * </pre>
-     *
-     * @param cs the CharSequence to check, may be null
-     * @return {@code true} if the CharSequence is null, empty or whitespace only
-     */
-    public static boolean isBlank(CharSequence cs) {
-        int strLen = length(cs);
-        if (strLen == 0) {
-            return true;
-        }
-        for (int i = 0; i < strLen; i++) {
-            if (!Character.isWhitespace(cs.charAt(i))) {
                 return false;
             }
         }
@@ -1673,32 +1366,6 @@ public abstract class StringUtils {
     }
 
     /**
-     * Tests if none of the CharSequences are empty (""), null or whitespace only.
-     *
-     * <p>Whitespace is defined by {@link Character#isWhitespace(char)}.</p>
-     *
-     * <pre>
-     * StringUtils.isNoneBlank((String) null)    = false
-     * StringUtils.isNoneBlank((String[]) null)  = true
-     * StringUtils.isNoneBlank(null, "foo")      = false
-     * StringUtils.isNoneBlank(null, null)       = false
-     * StringUtils.isNoneBlank("", "bar")        = false
-     * StringUtils.isNoneBlank("bob", "")        = false
-     * StringUtils.isNoneBlank("  bob  ", null)  = false
-     * StringUtils.isNoneBlank(" ", "bar")       = false
-     * StringUtils.isNoneBlank(new String[] {})  = true
-     * StringUtils.isNoneBlank(new String[]{""}) = false
-     * StringUtils.isNoneBlank("foo", "bar")     = true
-     * </pre>
-     *
-     * @param css the CharSequences to check, may be null or empty
-     * @return {@code true} if none of the CharSequences are empty or null or whitespace only
-     */
-    public static boolean isNoneBlank(CharSequence... css) {
-        return !isAnyBlank(css);
-    }
-
-    /**
      * Tests if none of the CharSequences are empty ("") or null.
      *
      * <pre>
@@ -1719,29 +1386,6 @@ public abstract class StringUtils {
      */
     public static boolean isNoneEmpty(CharSequence... css) {
         return !isAnyEmpty(css);
-    }
-
-    /**
-     * Tests if a CharSequence is not {@link #isBlank(CharSequence) blank} (whitespaces, empty ({@code ""}) or {@code null}).
-     *
-     * <p>
-     * Whitespace is defined by {@link Character#isWhitespace(char)}.
-     * </p>
-     *
-     * <pre>
-     * StringUtils.isNotBlank(null)      = false
-     * StringUtils.isNotBlank("")        = false
-     * StringUtils.isNotBlank(" ")       = false
-     * StringUtils.isNotBlank("bob")     = true
-     * StringUtils.isNotBlank("  bob  ") = true
-     * </pre>
-     *
-     * @param cs the CharSequence to check, may be null
-     * @return {@code true} if the CharSequence is not {@link #isBlank(CharSequence) blank} (whitespaces, empty ({@code ""}) or {@code null})
-     * @see #isBlank(CharSequence)
-     */
-    public static boolean isNotBlank(CharSequence cs) {
-        return !isBlank(cs);
     }
 
     /**
@@ -1787,6 +1431,14 @@ public abstract class StringUtils {
      */
     public static boolean hasText(String string) {
         return string != null && !string.isBlank();
+    }
+
+    public static boolean hasText(String... string) {
+        if (string == null) return false;
+        for (String str : string) {
+            if (StringUtils.hasText(str)) return true;
+        }
+        return false;
     }
 
     /**

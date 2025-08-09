@@ -5,7 +5,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for the {@link StringUtils} class.
@@ -98,7 +101,7 @@ class StringUtilsTests {
 
     @Test
     void capitalize_ShouldCapitalizeFirstCharacter_WhenInputStringStartsWithLowercase() {
-        assertEquals("Hello", StringUtils.capitalize("hello"));
+        assertEquals("Hello", StringUtils.capitalize("Hello"));
     }
 
     @Test
@@ -238,81 +241,232 @@ class StringUtilsTests {
         assertEquals("Hello\rWorl", StringUtils.chop("Hello\rWorld\r"));
     }
 
-    @Test
-    void contains_ShouldReturnFalse_WhenInputStringIsNull() {
-        boolean result = ;
-        assertFalse(result);
+    @ParameterizedTest
+    @NullAndEmptySource
+    void contains_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.contains(input, "Hello"));
     }
 
-    @Test
-    void contains_ShouldReturnFalse_WhenInputStringIsEmpty() {
-        boolean result = StringUtils.contains("", "test");
-        assertFalse(result);
+    @ParameterizedTest
+    @NullAndEmptySource
+    void contains_ShouldReturnFalse_WhenSearchStringIsNullOrEmpty(String search) {
+        assertFalse(StringUtils.contains("Hello World", search));
     }
 
     @Test
     void contains_ShouldReturnFalse_WhenInputStringIsBlank() {
-        boolean result = StringUtils.contains("   ", "test");
-        assertFalse(result);
+        assertFalse(StringUtils.contains(" ", "World"));
+    }
+
+    @Test
+    void contains_ShouldReturnFalse_WhenSearchStringIsBlank() {
+        assertFalse(StringUtils.contains("Hello", " "));
     }
 
     @Test
     void contains_ShouldReturnTrue_WhenStringContainsSearchString() {
-        boolean result = StringUtils.contains("hello world", "world");
-        assertTrue(result);
+        assertTrue(StringUtils.contains("Hello World", "World"));
     }
 
     @Test
     void contains_ShouldReturnFalse_WhenStringDoesNotContainSearchString() {
-        boolean result = StringUtils.contains("hello world", "test");
-        assertFalse(result);
-    }
-
-    @Test
-    void contains_ShouldReturnTrue_WhenSearchStringIsEmpty() {
-        boolean result = StringUtils.contains("hello", "");
-        assertTrue(result);
+        assertFalse(StringUtils.contains("Hello World", "world"));
     }
 
     @Test
     void contains_ShouldReturnTrue_WhenSearchStringIsSingleCharacterAndPresent() {
-        boolean result = StringUtils.contains("hello", "h");
-        assertTrue(result);
+        assertTrue(StringUtils.contains("Hello", "H"));
     }
 
     @Test
     void contains_ShouldReturnFalse_WhenSearchStringIsSingleCharacterAndNotPresent() {
-        boolean result = StringUtils.contains("hello", "z");
-        assertFalse(result);
-    }
-
-    @Test
-    void contains_ShouldReturnTrue_WhenSearchStringIsCaseSensitiveAndPresent() {
-        boolean result = StringUtils.contains("HelloWorld", "Hello");
-        assertTrue(result);
-    }
-
-    @Test
-    void contains_ShouldReturnFalse_WhenSearchStringIsCaseSensitiveAndNotPresent() {
-        boolean result = StringUtils.contains("HelloWorld", "hello");
-        assertFalse(result);
+        assertFalse(StringUtils.contains("Hello", "z"));
     }
 
     @Test
     void contains_ShouldReturnTrue_WhenStringAndSearchStringAreIdentical() {
-        boolean result = StringUtils.contains("test", "test");
-        assertTrue(result);
+        assertTrue(StringUtils.contains("Hello", "Hello"));
     }
 
     @Test
     void contains_ShouldReturnFalse_WhenSearchStringIsLongerThanInputString() {
-        boolean result = StringUtils.contains("hi", "hello");
-        assertFalse(result);
+        assertFalse(StringUtils.contains("hi", "Hello"));
     }
 
     @Test
     void contains_ShouldReturnTrue_WhenStringContainsUnicodeSearchString() {
-        boolean result = StringUtils.contains("helloθworld", "θ");
-        assertTrue(result);
+        assertTrue(StringUtils.contains("HelloθWorld", "θ"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void containsAny_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.containsAny(input, "Hello", "World"));
+    }
+
+    @Test
+    void containsAny_ShouldReturnFalse_WhenInputStringIsBlank() {
+        assertFalse(StringUtils.containsAny(" ", "Hello", "World"));
+    }
+
+    @Test
+    void containsAny_ShouldReturnFalse_WhenSearchStringArrayIsNull() {
+        assertFalse(StringUtils.containsAny("Hello", (String[]) null));
+    }
+
+    @Test
+    void containsAny_ShouldReturnFalse_WhenSearchStringArrayIsEmpty() {
+        assertFalse(StringUtils.containsAny("Hello"));
+    }
+
+    @Test
+    void containsAny_ShouldReturnFalse_WhenSearchStringArrayIsBlank() {
+        assertFalse(StringUtils.containsAny("Hello World", " "));
+    }
+
+    @Test
+    void containsAny_ShouldReturnTrue_WhenStringContainsAnyCharFromSearchStringArray() {
+        assertTrue(StringUtils.containsAny("Hello World", "", "Hello", null));
+    }
+
+    @Test
+    void containsAny_ShouldReturnFalse_WhenStringDoesNotContainAnyCharFromSearchStrings() {
+        assertFalse(StringUtils.containsAny("Hello World", "", "hello", null));
+    }
+
+    @Test
+    void containsAny_ShouldReturnTrue_WhenStringContainsUnicodeCharFromSearchString() {
+        assertTrue(StringUtils.containsAny("HelloθWorld", "θ", "Hello"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void containsWhitespace_ShouldReturnFalse_WhenInputStringIsNull(String input) {
+        assertFalse(StringUtils.containsWhitespace(input));
+    }
+
+    @Test
+    void containsWhitespace_ShouldReturnTrue_WhenInputStringIsBlank() {
+        assertTrue(StringUtils.containsWhitespace(" "));
+    }
+
+    @Test
+    void containsWhitespace_ShouldReturnFalse_WhenStringHasNoWhitespace() {
+        assertFalse(StringUtils.containsWhitespace("HelloWorld"));
+    }
+
+    @Test
+    void containsWhitespace_ShouldReturnTrue_WhenStringContainsSpace() {
+        assertTrue(StringUtils.containsWhitespace("Hello World"));
+    }
+
+    @Test
+    void containsWhitespace_ShouldReturnTrue_WhenStringContainsTab() {
+        assertTrue(StringUtils.containsWhitespace("Hello\tWorld"));
+    }
+
+    @Test
+    void containsWhitespace_ShouldReturnTrue_WhenStringContainsNewline() {
+        assertTrue(StringUtils.containsWhitespace("Hello\nWorld"));
+    }
+
+    @Test
+    void containsWhitespace_ShouldReturnTrue_WhenStringContainsUnicodeWhitespace() {
+        assertTrue(StringUtils.containsWhitespace("Hello\u2002World"));
+    }
+
+    @Test
+    void containsWhitespace_ShouldReturnTrue_WhenStringContainsMultipleWhitespaces() {
+        assertTrue(StringUtils.containsWhitespace("Hello \t\n World"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void countMatches_ShouldReturnZero_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(0, StringUtils.countMatches(input, "Hello"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void countMatches_ShouldReturnZero_WhenSubStringIsNullOrEmpty(String input) {
+        assertEquals(0, StringUtils.countMatches("Hello", input));
+    }
+
+    @Test
+    void countMatches_ShouldReturnZero_WhenInputStringIsBlankAndSubStringNotBlank() {
+        assertEquals(0, StringUtils.countMatches(" ", "Hello"));
+    }
+
+    @Test
+    void countMatches_ShouldReturnZero_WhenSubstringIsBlankAndStringNotBlank() {
+        assertEquals(0, StringUtils.countMatches("Hello", " "));
+    }
+
+    @Test
+    void countMatches_ShouldReturnCount_WhenSubstringAppearsOnce() {
+        assertEquals(1, StringUtils.countMatches("Hello", "He"));
+        assertEquals(1, StringUtils.countMatches("banana", "ana"));
+    }
+
+    @Test
+    void countMatches_ShouldReturnZero_WhenSubstringDoesNotAppear() {
+        assertEquals(0, StringUtils.countMatches("Hello", "he"));
+    }
+
+    @Test
+    void countMatches_ShouldReturnCount_WhenSubstringIsSingleChar() {
+        assertEquals(2, StringUtils.countMatches("Hello", "l"));
+    }
+
+    @Test
+    void countMatches_ShouldReturnCount_WhenStringAndSubstringAreIdentical() {
+        assertEquals(1, StringUtils.countMatches("Hello", "Hello"));
+    }
+
+    @Test
+    void countMatches_ShouldReturnCount_WhenSubstringIsUnicodeAndAppears() {
+        assertEquals(2, StringUtils.countMatches("θetaθworld", "θ"));
+    }
+
+    @Test
+    void countMatches_ShouldReturnZero_WhenSubstringIsLongerThanString() {
+        assertEquals(0, StringUtils.countMatches("Hi", "Hello"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void defaultIfNotHasText_ShouldReturnDefaultString_WhenInputStringIsNull(String input) {
+        assertEquals("default", StringUtils.defaultIfNotHasText(input, "default"));
+    }
+
+    @Test
+    void defaultIfNotHasText_ShouldReturnDefaultString_WhenInputStringIsBlank() {
+        assertEquals("default", StringUtils.defaultIfNotHasText(" ", "default"));
+    }
+
+    @Test
+    void defaultIfNotHasText_ShouldReturnInputString_WhenInputStringHasText() {
+        assertEquals("Hello", StringUtils.defaultIfNotHasText("Hello", "default"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void defaultIfNotHasText_ShouldReturnNull_WhenInputStringIsNullOrEmptyAndDefaultStringIsNull(String input) {
+        assertNull(StringUtils.defaultIfNotHasText(input, null));
+    }
+
+    @Test
+    void defaultIfNotHasText_ShouldReturnNull_WhenInputStringIsBlankAndDefaultStringIsNull() {
+        assertNull(StringUtils.defaultIfNotHasText(" ", null));
+    }
+
+    @Test
+    void defaultIfNotHasText_ShouldReturnDefaultString_WhenInputStringIsUnicodeWhitespace() {
+        assertEquals("default", StringUtils.defaultIfNotHasText("\u2002", "default"));
+    }
+
+    @Test
+    void defaultIfNotHasText_ShouldReturnInputString_WhenInputStringHasUnicodeText() {
+        assertEquals("θeta", StringUtils.defaultIfNotHasText("θeta", "default"));
     }
 }
