@@ -435,7 +435,39 @@ class StringUtilsTests {
 
     @ParameterizedTest
     @NullAndEmptySource
-    void defaultIfNotHasText_ShouldReturnDefaultString_WhenInputStringIsNull(String input) {
+    void defaultIfNotHasLength_ShouldReturnDefaultString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals("default", StringUtils.defaultIfNotHasLength(input, "default"));
+    }
+
+    @Test
+    void defaultIfNotHasLength_ShouldReturnOriginalString_WhenInputStringHasLength() {
+        assertEquals(" ", StringUtils.defaultIfNotHasLength(" ", "default"));
+        assertEquals("Hello", StringUtils.defaultIfNotHasLength("Hello", "default"));
+    }
+
+    @Test
+    void defaultIfNotHasLength_ShouldReturnNull_WhenInputStringIsNullAndDefaultStringIsNull() {
+        assertNull(StringUtils.defaultIfNotHasLength(null, null));
+    }
+
+    @Test
+    void defaultIfNotHasLength_ShouldReturnEmptyString_WhenInputStringIsNullAndDefaultStringIsEmpty() {
+        assertEquals("", StringUtils.defaultIfNotHasLength(null, ""));
+    }
+
+    @Test
+    void defaultIfNotHasLength_ShouldReturnOriginalString_WhenInputStringIsUnicodeWhitespace() {
+        assertEquals("\u2002", StringUtils.defaultIfNotHasLength("\u2002", "default"));
+    }
+
+    @Test
+    void defaultIfNotHasLength_ShouldReturnOriginalString_WhenInputStringHasUnicodeText() {
+        assertEquals("θeta", StringUtils.defaultIfNotHasLength("θeta", "default"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void defaultIfNotHasText_ShouldReturnDefaultString_WhenInputStringIsNullOrEmpty(String input) {
         assertEquals("default", StringUtils.defaultIfNotHasText(input, "default"));
     }
 
@@ -445,7 +477,7 @@ class StringUtilsTests {
     }
 
     @Test
-    void defaultIfNotHasText_ShouldReturnInputString_WhenInputStringHasText() {
+    void defaultIfNotHasText_ShouldReturnOriginalString_WhenInputStringHasText() {
         assertEquals("Hello", StringUtils.defaultIfNotHasText("Hello", "default"));
     }
 
@@ -466,7 +498,122 @@ class StringUtilsTests {
     }
 
     @Test
-    void defaultIfNotHasText_ShouldReturnInputString_WhenInputStringHasUnicodeText() {
+    void defaultIfNotHasText_ShouldReturnOriginalString_WhenInputStringHasUnicodeText() {
         assertEquals("θeta", StringUtils.defaultIfNotHasText("θeta", "default"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void deleteWhitespace_ShouldReturnNull_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.deleteWhitespace(input));
+    }
+
+    @Test
+    void deleteWhitespace_ShouldReturnEmptyString_WhenInputStringIsBlank() {
+        assertEquals("", StringUtils.deleteWhitespace(" "));
+    }
+
+    @Test
+    void deleteWhitespace_ShouldReturnEmptyString_WhenInputStringContainsOnlyNewlines() {
+        assertEquals("", StringUtils.deleteWhitespace("\n\r\n"));
+    }
+
+    @Test
+    void deleteWhitespace_ShouldReturnOriginalString_WhenInputStringHasNoWhitespace() {
+        assertEquals("Hello", StringUtils.deleteWhitespace("Hello"));
+    }
+
+    @Test
+    void deleteWhitespace_ShouldRemoveAllWhitespace_WhenInputStringContainsWhitespace() {
+        assertEquals("Hello", StringUtils.deleteWhitespace(" H e l l o "));
+    }
+
+    @Test
+    void deleteWhitespace_ShouldRemoveMixedWhitespace_WhenInputStringContainsTabsAndSpaces() {
+        assertEquals("Hello", StringUtils.deleteWhitespace("H\t e\nl l\to"));
+    }
+
+    @Test
+    void deleteWhitespace_ShouldHandleUnicodeWhitespace_WhenInputStringContainsUnicodeWhitespace() {
+        assertEquals("Hello", StringUtils.deleteWhitespace("H\u2000e\u2003l l o"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void difference_ShouldReturnEmptyString_WhenBothStringsAreNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.difference(input, input));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void difference_ShouldReturnString2_WhenString1IsNullOrEmpty(String input) {
+        assertEquals("Hello", StringUtils.difference(input, "Hello"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void difference_ShouldReturnString1_WhenString2IsNullOrEmpty(String input) {
+        assertEquals("Hello", StringUtils.difference("Hello", input));
+    }
+
+    @Test
+    void difference_ShouldReturnEmptyString_WhenStringsAreIdentical() {
+        assertEquals("", StringUtils.difference("Hello", "Hello"));
+    }
+
+    @Test
+    void difference_ShouldReturnSubstringFromDifference_WhenStringsDiffer() {
+        assertEquals("World", StringUtils.difference("Hello", "HelloWorld"));
+    }
+
+    @Test
+    void difference_ShouldReturnString2_WhenStringsDifferFromStart() {
+        assertEquals("World", StringUtils.difference("Hello", "World"));
+    }
+
+    @Test
+    void difference_ShouldHandleUnicodeCharacters_WhenStringsDifferWithUnicode() {
+        assertEquals("ẞHello", StringUtils.difference("ßest", "ẞHello"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void firstHasText_ShouldReturnNull_WhenInputArrayIsNull(String input) {
+        assertNull(StringUtils.firstHasText(input));
+    }
+
+    @Test
+    void firstHasText_ShouldReturnNull_WhenAllStringsAreNull() {
+        assertNull(StringUtils.firstHasText(null, null, null));
+    }
+
+    @Test
+    void firstHasText_ShouldReturnNull_WhenAllStringsAreEmpty() {
+        assertNull(StringUtils.firstHasText("", "", ""));
+    }
+
+    @Test
+    void firstHasText_ShouldReturnNull_WhenAllStringsAreNullOrBlank() {
+        assertNull(StringUtils.firstHasText("   ", " ", "\t", null));
+    }
+
+    @Test
+    void firstHasText_ShouldReturnFirstNonBlankString_WhenArrayContainsValidString() {
+        assertEquals("Hello", StringUtils.firstHasText(null, "", "   ", "Hello", "World"));
+    }
+
+    @Test
+    void firstHasText_ShouldReturnFirstNonBlankString_WhenArrayStartsWithValidString() {
+        assertEquals("Hello", StringUtils.firstHasText("Hello", "world", ""));
+    }
+
+    @Test
+    void firstHasText_ShouldReturnSingleValidString_WhenArrayHasOneNonBlankString() {
+        assertEquals("Hello", StringUtils.firstHasText("Hello"));
+    }
+
+    @Test
+    void firstHasText_ShouldReturnUnicodeString_WhenFirstNonBlankStringIsUnicode() {
+        assertEquals("ẞHello", StringUtils.firstHasText("   ", null, "ẞHello", "World"));
     }
 }

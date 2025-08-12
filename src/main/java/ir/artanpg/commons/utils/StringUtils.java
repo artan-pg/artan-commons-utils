@@ -1,7 +1,6 @@
 package ir.artanpg.commons.utils;
 
 import java.lang.reflect.Array;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -46,7 +45,7 @@ public abstract class StringUtils {
     /**
      * This is a 3 character version of an ellipsis.
      */
-    private static final String ELLIPSIS3 = "...";
+    public static final String ELLIPSIS3 = "...";
 
     /**
      * The maximum size to which the padding constant(s) can expand.
@@ -367,6 +366,27 @@ public abstract class StringUtils {
 
     /**
      * Returns either the passed in String, or if the String is
+     * {@code null} or {@code empty}, the value of {@code defaultString}.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.defaultIfNotHasLength(null, "NULL");    = "NULL"
+     *  StringUtils.defaultIfNotHasLength("", "NULL");      = "NULL"
+     *  StringUtils.defaultIfNotHasLength(" ", "NULL");     = " "
+     *  StringUtils.defaultIfNotHasLength("Hello", "NULL"); = "Hello"
+     * </pre>
+     *
+     * @param string        the string to check
+     * @param defaultString the default string to return
+     * @return the passed in String, or the default string
+     * @see #hasLength(String)
+     */
+    public static String defaultIfNotHasLength(String string, String defaultString) {
+        return !hasLength(string) ? defaultString : string;
+    }
+
+    /**
+     * Returns either the passed in String, or if the String is
      * {@code null} or {@code blank}, the value of {@code defaultString}.
      *
      * <p>Examples:
@@ -379,198 +399,101 @@ public abstract class StringUtils {
      *
      * @param string        the string to check
      * @param defaultString the default string to return
-     * @return the passed in String, or the default
+     * @return the passed in String, or the default string
+     * @see #hasText(String)
      */
     public static String defaultIfNotHasText(String string, String defaultString) {
         return !hasText(string) ? defaultString : string;
     }
 
     /**
-     * Returns either the passed in String,
-     * or if the String is {@code null}, an empty String ("").
-     *
-     * <pre>
-     * StringUtils.defaultString(null)  = ""
-     * StringUtils.defaultString("")    = ""
-     * StringUtils.defaultString("bat") = "bat"
-     * </pre>
-     *
-     * @param str the String to check, may be null
-     * @return the passed in String, or the empty String if it
-     * was {@code null}
-     * @see Objects#toString(Object, String)
-     * @see String#valueOf(Object)
-     */
-    public static String defaultString(String str) {
-        return Objects.toString(str, EMPTY);
-    }
-
-    /**
      * Deletes all whitespaces from a String as defined by
      * {@link Character#isWhitespace(char)}.
      *
+     * <p>Examples:
      * <pre>
-     * StringUtils.deleteWhitespace(null)         = null
-     * StringUtils.deleteWhitespace("")           = ""
-     * StringUtils.deleteWhitespace("abc")        = "abc"
-     * StringUtils.deleteWhitespace("   ab  c  ") = "abc"
+     * StringUtils.deleteWhitespace(null);            = null
+     * StringUtils.deleteWhitespace("");              = ""
+     * StringUtils.deleteWhitespace(" ");             = ""
+     * StringUtils.deleteWhitespace("Hello");         = "Hello"
+     * StringUtils.deleteWhitespace(" Hello World "); = "HelloWorld"
      * </pre>
      *
-     * @param str the String to delete whitespace from, may be null
+     * @param string the String to delete whitespace from, may be null
      * @return the String without whitespaces, {@code null} if null String input
      */
-    public static String deleteWhitespace(String str) {
-        if (isEmpty(str)) {
-            return str;
-        }
-        int sz = str.length();
-        char[] chs = new char[sz];
+    public static String deleteWhitespace(String string) {
+        if (!hasLength(string)) return string;
+
+        int stringLength = string.length();
+        char[] chs = new char[stringLength];
         int count = 0;
-        for (int i = 0; i < sz; i++) {
-            if (!Character.isWhitespace(str.charAt(i))) {
-                chs[count++] = str.charAt(i);
-            }
+
+        for (int i = 0; i < stringLength; i++) {
+            if (!Character.isWhitespace(string.charAt(i))) chs[count++] = string.charAt(i);
         }
-        if (count == sz) {
-            return str;
-        }
-        if (count == 0) {
-            return EMPTY;
-        }
-        return new String(chs, 0, count);
+
+        return (count == stringLength) ? string : (count == 0) ? EMPTY : new String(chs, 0, count);
     }
 
     /**
      * Compares two Strings, and returns the portion where they differ.
-     * More precisely, return the remainder of the second String,
-     * starting from where it's different from the first. This means that
-     * the difference between "abc" and "ab" is the empty String and not "c".
      *
-     * <p>For example,
-     * {@code difference("i am a machine", "i am a robot") -> "robot"}.</p>
+     * <p>More precisely, return the remainder of the second String, starting
+     * from where it's different from the first.
      *
+     * <p>Examples:
      * <pre>
-     * StringUtils.difference(null, null)       = null
-     * StringUtils.difference("", "")           = ""
-     * StringUtils.difference("", "abc")        = "abc"
-     * StringUtils.difference("abc", "")        = ""
-     * StringUtils.difference("abc", "abc")     = ""
-     * StringUtils.difference("abc", "ab")      = ""
-     * StringUtils.difference("ab", "abxyz")    = "xyz"
-     * StringUtils.difference("abcde", "abxyz") = "xyz"
-     * StringUtils.difference("abcde", "xyz")   = "xyz"
+     *  StringUtils.difference(null, null);             = null
+     *  StringUtils.difference("", "");                 = ""
+     *  StringUtils.difference(null, "Hello");          = "Hello"
+     *  StringUtils.difference("", "Hello");            = "Hello"
+     *  StringUtils.difference("Hello", null);          = "Hello"
+     *  StringUtils.difference("Hello", "");            = "Hello"
+     *  StringUtils.difference("Hello", "Hello");       = ""
+     *  StringUtils.difference("Hello World", "Hello"); = ""
+     *  StringUtils.difference("Hello", "Hello World"); = " World"
      * </pre>
      *
-     * @param str1 the first String, may be null
-     * @param str2 the second String, may be null
-     * @return the portion of str2 where it differs from str1; returns the
-     * empty String if they are equal
-     * @see #indexOfDifference(CharSequence, CharSequence)
+     * @param string1 the first string
+     * @param string2 the second string
+     * @return the portion of string2 where it differs from string1; returns the empty String if they are equal
+     * @see #indexOfDifference(String, String)
      */
-    public static String difference(String str1, String str2) {
-        if (str1 == null) {
-            return str2;
-        }
-        if (str2 == null) {
-            return str1;
-        }
-        int at = indexOfDifference(str1, str2);
-        if (at == INDEX_NOT_FOUND) {
-            return EMPTY;
-        }
-        return str2.substring(at);
+    public static String difference(String string1, String string2) {
+        if (!hasLength(string1)) return string2;
+        if (!hasLength(string2)) return string1;
+
+        int at = indexOfDifference(string1, string2);
+        return (at == INDEX_NOT_FOUND) ? EMPTY : string2.substring(at);
     }
 
     /**
-     * Returns the first value in the array which is not empty (""),
-     * {@code null} or whitespace only.
+     * Returns the first value in the array which is not {@code empty},
+     * {@code null} or {@code whitespace} only.
      *
-     * <p>Whitespace is defined by {@link Character#isWhitespace(char)}.</p>
+     * <p>If all strings are blank or the array is {@code null} or
+     * {@code empty} then {@code null} is returned.
      *
-     * <p>If all values are blank or the array is {@code null}
-     * or empty then {@code null} is returned.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.firstNonBlank(null, null, null)     = null
-     * StringUtils.firstNonBlank(null, "", " ")        = null
-     * StringUtils.firstNonBlank("abc")                = "abc"
-     * StringUtils.firstNonBlank(null, "xyz")          = "xyz"
-     * StringUtils.firstNonBlank(null, "", " ", "xyz") = "xyz"
-     * StringUtils.firstNonBlank(null, "xyz", "abc")   = "xyz"
-     * StringUtils.firstNonBlank()                     = null
+     *  StringUtils.firstHasText();                       = null
+     *  StringUtils.firstHasText(null, null, null);       = null
+     *  StringUtils.firstHasText(null, "", " ");          = null
+     *  StringUtils.firstHasText(null, "Hello");          = "Hello"
+     *  StringUtils.firstHasText(null, "", " ", "Hello"); = "Hello"
      * </pre>
      *
-     * @param <T>    the specific kind of CharSequence
-     * @param values the values to test, may be {@code null} or empty
-     * @return the first value from {@code values} which is not blank,
-     * or {@code null} if there are no non-blank values
+     * @param strings the strings to test
+     * @return the first value from strings which is not blank
      */
-//    @SafeVarargs
-//    public static <T extends CharSequence> T firstNonBlank(T... values) {
-//        if (values != null) {
-//            for (T val : values) {
-//                if (isNotBlank(val)) {
-//                    return val;
-//                }
-//            }
-//        }
-//        return null;
-//    }
-
-    /**
-     * Returns the first value in the array which is not empty.
-     *
-     * <p>If all values are empty or the array is {@code null}
-     * or empty then {@code null} is returned.</p>
-     *
-     * <pre>
-     * StringUtils.firstNonEmpty(null, null, null)   = null
-     * StringUtils.firstNonEmpty(null, null, "")     = null
-     * StringUtils.firstNonEmpty(null, "", " ")      = " "
-     * StringUtils.firstNonEmpty("abc")              = "abc"
-     * StringUtils.firstNonEmpty(null, "xyz")        = "xyz"
-     * StringUtils.firstNonEmpty("", "xyz")          = "xyz"
-     * StringUtils.firstNonEmpty(null, "xyz", "abc") = "xyz"
-     * StringUtils.firstNonEmpty()                   = null
-     * </pre>
-     *
-     * @param <T>    the specific kind of CharSequence
-     * @param values the values to test, may be {@code null} or empty
-     * @return the first value from {@code values} which is not empty,
-     * or {@code null} if there are no non-empty values
-     */
-//    @SafeVarargs
-//    public static <T extends CharSequence> T firstNonEmpty(T... values) {
-//        if (values != null) {
-//            for (T val : values) {
-//                if (hasLength(val)) {
-//                    return val;
-//                }
-//            }
-//        }
-//        return null;
-//    }
-
-    /**
-     * Calls {@link String#getBytes(Charset)} in a null-safe manner.
-     *
-     * @param string  input string
-     * @param charset The {@link Charset} to encode the {@link String}. If null, then use the default Charset.
-     * @return The empty byte[] if {@code string} is null, the result of {@link String#getBytes(Charset)} otherwise.
-     * @see String#getBytes(Charset)
-     */
-    public static byte[] getBytes(String string, Charset charset) {
-        return string == null ? new byte[]{} : string.getBytes(toCharset(charset));
-    }
-
-    /**
-     * Returns the given {@code charset} or the default Charset if {@code charset} is null.
-     *
-     * @param charset a Charset or null.
-     * @return the given {@code charset} or the default Charset if {@code charset} is null.
-     */
-    static Charset toCharset(Charset charset) {
-        return charset == null ? Charset.defaultCharset() : charset;
+    public static String firstHasText(String... strings) {
+        if (strings != null) {
+            for (String string : strings) {
+                if (hasText(string)) return string;
+            }
+        }
+        return null;
     }
 
     /**
@@ -687,6 +610,102 @@ public abstract class StringUtils {
      */
     public static <T extends CharSequence> T getIfEmpty(T str, Supplier<T> defaultSupplier) {
         return isEmpty(str) ? defaultSupplier.get() : str;
+    }
+
+    /**
+     * Check that the given {@code String} is neither {@code null} nor of
+     * length 0.
+     *
+     * <p>Examples:
+     * <pre>
+     * 	StringUtils.hasLength(null);    = false
+     * 	StringUtils.hasLength("");      = false
+     * 	StringUtils.hasLength(" ");     = true
+     * 	StringUtils.hasLength("Hello"); = true
+     * </pre>
+     *
+     * @param string the string to check
+     * @return {@code true}, if the string is not {@code null} and has length
+     * @see #hasText(String)
+     */
+    public static boolean hasLength(String string) {
+        return string != null && !string.isEmpty();
+    }
+
+    /**
+     * Checks if at least one of the provided strings has a non-zero length.
+     *
+     * <p>A string is considered to have length if it is not null and not empty
+     * after trimming.
+     *
+     * <p>Examples:
+     * <pre>
+     * 	StringUtils.hasLength(null);        = false
+     * 	StringUtils.hasLength("", "");      = false
+     * 	StringUtils.hasLength(" ", "");     = true
+     * 	StringUtils.hasLength("Hello", ""); = true
+     * </pre>
+     *
+     * @param strings the string to check
+     * @return {@code true}, if at least one string has a non-zero length
+     * @see #hasText(String)
+     */
+    public static boolean hasLength(String... strings) {
+        if (strings == null) return false;
+        for (String string : strings) {
+            if (StringUtils.hasLength(string)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check whether the given String contains actual <em>text</em>.
+     *
+     * <p><strong>Note: </strong>More specifically, this method returns
+     * {@code true} if the string is not {@code null}, its length is greater
+     * than 0, and it contains at least one non-whitespace character.
+     *
+     * <p>Examples:
+     * <pre>
+     * 	StringUtils.hasText(null);    = false
+     * 	StringUtils.hasText("");      = false
+     * 	StringUtils.hasText(" ");     = false
+     * 	StringUtils.hasText("Hello"); = true
+     * </pre>
+     *
+     * @param string the string to check
+     * @return {@code true}, if the string is not {@code null}, its length is greater than 0, and it does not
+     * contain whitespace only
+     * @see String#isBlank()
+     */
+    public static boolean hasText(String string) {
+        return string != null && !string.isBlank();
+    }
+
+    /**
+     * Checks if at least one of the provided strings contains visible,
+     * non-whitespace text.
+     *
+     * <p>A string is considered to have text if it is not null, not empty, and
+     * contains at least one non-whitespace character.
+     *
+     * <p>Examples:
+     * <pre>
+     * 	StringUtils.hasText(null);        = false
+     * 	StringUtils.hasText("", "");      = false
+     * 	StringUtils.hasText(" ", "");     = false
+     * 	StringUtils.hasText("Hello", ""); = true
+     * </pre>
+     *
+     * @param string the strings to check
+     * @return {@code true} if at least one string contains non-whitespace text
+     */
+    public static boolean hasText(String... string) {
+        if (string == null) return false;
+        for (String str : string) {
+            if (StringUtils.hasText(str)) return true;
+        }
+        return false;
     }
 
     /**
@@ -949,7 +968,7 @@ public abstract class StringUtils {
      * @return the index where cs1 and cs2 begin to differ; -1 if they are equal
      * indexOfDifference(CharSequence, CharSequence)
      */
-    public static int indexOfDifference(CharSequence cs1, CharSequence cs2) {
+    public static int indexOfDifference(String cs1, String cs2) {
         if (cs1 == cs2) {
             return INDEX_NOT_FOUND;
         }
@@ -1386,59 +1405,6 @@ public abstract class StringUtils {
      */
     public static boolean isNoneEmpty(CharSequence... css) {
         return !isAnyEmpty(css);
-    }
-
-    /**
-     * Check that the given {@code String} is neither {@code null} nor of
-     * length 0.
-     *
-     * <p>Example:
-     * <pre>
-     * 	StringUtils.hasLength(null);    = false
-     * 	StringUtils.hasLength("");      = false
-     * 	StringUtils.hasLength(" ");     = true
-     * 	StringUtils.hasLength("Hello"); = true
-     * </pre>
-     *
-     * @param text the string to check
-     * @return {@code true}, if the string is not {@code null} and has length
-     * @see #hasText(String)
-     */
-    public static boolean hasLength(String text) {
-        return text != null && !text.isEmpty();
-    }
-
-
-    /**
-     * Check whether the given {@code String} contains actual <em>text</em>.
-     *
-     * <p><strong>Note: </strong>More specifically, this method returns
-     * {@code true} if the string is not {@code null}, its length is greater
-     * than 0, and it contains at least one non-whitespace character.
-     *
-     * <p>Example:
-     * <pre>
-     * 	StringUtils.hasText(null);    = false
-     * 	StringUtils.hasText("");      = false
-     * 	StringUtils.hasText(" ");     = false
-     * 	StringUtils.hasText("Hello"); = true
-     * </pre>
-     *
-     * @param string the string to check
-     * @return {@code true}, if the string is not {@code null}, its length is greater than 0, and it does not
-     * contain whitespace only
-     * @see String#isBlank()
-     */
-    public static boolean hasText(String string) {
-        return string != null && !string.isBlank();
-    }
-
-    public static boolean hasText(String... string) {
-        if (string == null) return false;
-        for (String str : string) {
-            if (StringUtils.hasText(str)) return true;
-        }
-        return false;
     }
 
     /**
@@ -4687,18 +4653,6 @@ public abstract class StringUtils {
             return new int[]{};
         }
         return cs.toString().codePoints().toArray();
-    }
-
-    /**
-     * Converts a {@code byte[]} to a String using the specified character encoding.
-     *
-     * @param bytes   the byte array to read from
-     * @param charset the encoding to use, if null then use the platform default
-     * @return a new String
-     * @throws NullPointerException if {@code bytes} is null
-     */
-    public static String toEncodedString(byte[] bytes, Charset charset) {
-        return new String(bytes, toCharset(charset));
     }
 
     /**
