@@ -616,4 +616,198 @@ class StringUtilsTests {
     void firstHasText_ShouldReturnUnicodeString_WhenFirstNonBlankStringIsUnicode() {
         assertEquals("ẞHello", StringUtils.firstHasText("   ", null, "ẞHello", "World"));
     }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void getDigits_ShouldReturnEmptyString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals("", StringUtils.getDigits(input));
+    }
+
+    @Test
+    void getDigits_ShouldReturnEmptyString_WhenInputStringIsBlank() {
+        assertEquals("", StringUtils.getDigits(" "));
+    }
+
+    @Test
+    void getDigits_ShouldReturnEmptyString_WhenInputStringHasNoDigits() {
+        assertEquals("", StringUtils.getDigits("Hello"));
+    }
+
+    @Test
+    void getDigits_ShouldReturnDigitsOnly_WhenInputStringContainsDigitsAndLetters() {
+        assertEquals("123", StringUtils.getDigits("H1e2l3lo"));
+    }
+
+    @Test
+    void getDigits_ShouldReturnDigitsOnly_WhenInputStringContainsOnlyDigits() {
+        assertEquals("123", StringUtils.getDigits("123"));
+        assertEquals("123", StringUtils.getDigits(" 1 2 3 "));
+    }
+
+    @SuppressWarnings("UnnecessaryUnicodeEscape")
+    @Test
+    void getDigits_ShouldReturnUnicodeDigitOnly_WhenInputStringContainsDigitUnicode() {
+        assertEquals("\u0967\u0968\u0969", StringUtils.getDigits("\u0967\u0968\u0969"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void hasLength_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.hasLength(input));
+    }
+
+    @Test
+    void hasLength_ShouldReturnTrue_WhenInputStringIsBlank() {
+        assertTrue(StringUtils.hasLength(" "));
+    }
+
+    @Test
+    void hasLength_ShouldReturnTrue_WhenInputStringHasNonWhitespaceCharacters() {
+        assertTrue(StringUtils.hasLength("Hello"));
+    }
+
+    @Test
+    void hasLength_ShouldReturnTrue_WhenInputStringIsSingleCharacter() {
+        assertTrue(StringUtils.hasLength("a"));
+    }
+
+    @Test
+    void hasLength_ShouldReturnTrue_WhenInputStringContainsWhitespaceAndText() {
+        assertTrue(StringUtils.hasLength(" Hello "));
+    }
+
+    @Test
+    void hasLength_ShouldReturnTrue_WhenInputStringIsUnicode() {
+        assertTrue(StringUtils.hasLength("ẞHello"));
+    }
+
+    @Test
+    void hasLength_ShouldReturnFalse_WhenAllStringsAreNull() {
+        assertFalse(StringUtils.hasLength(null, null, null));
+    }
+
+    @Test
+    void hasLength_ShouldReturnFalse_WhenAllStringsAreEmpty() {
+        assertFalse(StringUtils.hasLength("", "", ""));
+    }
+
+    @Test
+    void hasLength_ShouldReturnTrue_WhenAtLeastOneStringIsBlank() {
+        assertTrue(StringUtils.hasLength(" ", "", null));
+    }
+
+    @Test
+    void hasLength_ShouldReturnTrue_WhenAtLeastOneStringHasNonWhitespaceCharacters() {
+        assertTrue(StringUtils.hasLength(null, "", "Hello"));
+    }
+
+    @Test
+    void hasLength_ShouldReturnTrue_WhenStringIsUnicode() {
+        assertTrue(StringUtils.hasLength(null, "ẞHello", ""));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void hasLengthAll_ShouldReturnFalse_WhenInputArrayIsNullOrEmpty(String... input) {
+        assertFalse(StringUtils.hasLengthAll(input));
+    }
+
+    @Test
+    void hasLengthAll_ShouldReturnFalse_WhenAnyStringIsNullOrEmpty() {
+        assertFalse(StringUtils.hasLengthAll("Hello", null, "World"));
+        assertFalse(StringUtils.hasLengthAll("Hello", "", "World"));
+    }
+
+    @Test
+    void hasLengthAll_ShouldReturnTrue_WhenAllStringsAreBlank() {
+        assertTrue(StringUtils.hasLengthAll("   ", " ", "\t"));
+    }
+
+    @Test
+    void hasLengthAll_ShouldReturnTrue_WhenAllStringsHaveNonWhitespaceCharacters() {
+        assertTrue(StringUtils.hasLengthAll("Hello", "World"));
+    }
+
+    @Test
+    void hasLengthAll_ShouldReturnTrue_WhenAllStringsAreUnicode() {
+        assertTrue(StringUtils.hasLengthAll("ẞHello", "üser"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void hasText_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.hasText(input));
+    }
+
+    @Test
+    void hasText_ShouldReturnFalse_WhenInputStringIsBlank() {
+        assertFalse(StringUtils.hasText(" "));
+    }
+
+    @Test
+    void hasText_ShouldReturnTrue_WhenInputStringHasNonWhitespaceCharacters() {
+        assertTrue(StringUtils.hasText("Hello"));
+    }
+
+    @Test
+    void hasText_ShouldReturnTrue_WhenInputStringContainsWhitespaceAndText() {
+        assertTrue(StringUtils.hasText(" Hello "));
+    }
+
+    @Test
+    void hasText_ShouldReturnTrue_WhenInputStringIsUnicode() {
+        assertTrue(StringUtils.hasText("ẞHello"));
+    }
+
+    @Test
+    void hasText_ShouldReturnFalse_WhenAllStringsAreNull() {
+        assertFalse(StringUtils.hasText(null, null, null));
+    }
+
+    @Test
+    void hasText_ShouldReturnFalse_WhenAllStringsAreEmpty() {
+        assertFalse(StringUtils.hasText("", "", ""));
+    }
+
+    @Test
+    void hasText_ShouldReturnFalse_WhenAllStringsAreBlank() {
+        assertFalse(StringUtils.hasText("   ", " ", "\t"));
+    }
+
+    @Test
+    void hasText_ShouldReturnTrue_WhenAtLeastOneStringHasNonWhitespaceCharacters() {
+        assertTrue(StringUtils.hasText(null, "", "Hello"));
+    }
+
+    @Test
+    void hasText_ShouldReturnTrue_WhenStringIsUnicode() {
+        assertTrue(StringUtils.hasText(null, "ẞHello", ""));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void hasTextAll_ShouldReturnFalse_WhenInputArrayIsNullOrEmpty(String... input) {
+        assertFalse(StringUtils.hasTextAll(input));
+    }
+
+    @Test
+    void hasTextAll_ShouldReturnFalse_WhenAnyStringIsNullOrEmpty() {
+        assertFalse(StringUtils.hasTextAll("Hello", null, "World"));
+        assertFalse(StringUtils.hasTextAll("Hello", "", "World"));
+    }
+
+    @Test
+    void hasTextAll_ShouldReturnFalse_WhenAnyStringIsBlank() {
+        assertFalse(StringUtils.hasTextAll("Hello", " ", "World"));
+    }
+
+    @Test
+    void hasTextAll_ShouldReturnTrue_WhenAllStringsHaveNonWhitespaceCharacters() {
+        assertTrue(StringUtils.hasTextAll("Hello", "World"));
+    }
+
+    @Test
+    void hasTextAll_ShouldReturnTrue_WhenAllStringsAreUnicode() {
+        assertTrue(StringUtils.hasTextAll("ẞHello", "üser"));
+    }
 }

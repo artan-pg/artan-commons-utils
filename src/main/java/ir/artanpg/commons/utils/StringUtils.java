@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 /**
@@ -458,7 +457,6 @@ public abstract class StringUtils {
      * @param string1 the first string
      * @param string2 the second string
      * @return the portion of string2 where it differs from string1; returns the empty String if they are equal
-     * @see #indexOfDifference(String, String)
      */
     public static String difference(String string1, String string2) {
         if (!hasLength(string1)) return string2;
@@ -466,6 +464,18 @@ public abstract class StringUtils {
 
         int at = indexOfDifference(string1, string2);
         return (at == INDEX_NOT_FOUND) ? EMPTY : string2.substring(at);
+    }
+
+    static int indexOfDifference(String string1, String string2) {
+        if (Objects.equals(string1, string2)) return INDEX_NOT_FOUND;
+        if (string1 == null || string2 == null) return 0;
+
+        int i;
+        for (i = 0; i < string1.length() && i < string2.length(); ++i) {
+            if (string1.charAt(i) != string2.charAt(i)) break;
+        }
+
+        return (i < string2.length() || i < string1.length()) ? i : INDEX_NOT_FOUND;
     }
 
     /**
@@ -497,119 +507,38 @@ public abstract class StringUtils {
     }
 
     /**
-     * Compares all Strings in an array and returns the initial sequence of
-     * characters that is common to all of them.
+     * Extracts and returns all digit characters from the input string.
      *
-     * <p>For example,
-     * {@code getCommonPrefix(new String[] {"i am a machine", "i am a robot"}) -&gt; "i am a "}</p>
+     * <p>If the input string is null, empty, or contains no digits, an empty
+     * string will be returned.
      *
+     * <p>Examples:
      * <pre>
-     * StringUtils.getCommonPrefix(null)                             = ""
-     * StringUtils.getCommonPrefix(new String[] {})                  = ""
-     * StringUtils.getCommonPrefix(new String[] {"abc"})             = "abc"
-     * StringUtils.getCommonPrefix(new String[] {null, null})        = ""
-     * StringUtils.getCommonPrefix(new String[] {"", ""})            = ""
-     * StringUtils.getCommonPrefix(new String[] {"", null})          = ""
-     * StringUtils.getCommonPrefix(new String[] {"abc", null, null}) = ""
-     * StringUtils.getCommonPrefix(new String[] {null, null, "abc"}) = ""
-     * StringUtils.getCommonPrefix(new String[] {"", "abc"})         = ""
-     * StringUtils.getCommonPrefix(new String[] {"abc", ""})         = ""
-     * StringUtils.getCommonPrefix(new String[] {"abc", "abc"})      = "abc"
-     * StringUtils.getCommonPrefix(new String[] {"abc", "a"})        = "a"
-     * StringUtils.getCommonPrefix(new String[] {"ab", "abxyz"})     = "ab"
-     * StringUtils.getCommonPrefix(new String[] {"abcde", "abxyz"})  = "ab"
-     * StringUtils.getCommonPrefix(new String[] {"abcde", "xyz"})    = ""
-     * StringUtils.getCommonPrefix(new String[] {"xyz", "abcde"})    = ""
-     * StringUtils.getCommonPrefix(new String[] {"i am a machine", "i am a robot"}) = "i am a "
+     *  StringUtils.getDigits(null);       = ""
+     *  StringUtils.getDigits("");         = ""
+     *  StringUtils.getDigits(" ");        = ""
+     *  StringUtils.getDigits("123");      = "123"
+     *  StringUtils.getDigits("Hello");    = ""
+     *  StringUtils.getDigits("Hello123"); = "123"
      * </pre>
      *
-     * @param strs array of String objects, entries may be null
-     * @return the initial sequence of characters that are common to all Strings
-     * in the array; empty String if the array is null, the elements are all null
-     * or if there is no common prefix.
+     * @param string the input string from which to extract digits
+     * @return a string containing only the digit characters from the input string
+     * @see #hasText(String)
      */
-    public static String getCommonPrefix(String... strs) {
-        if (strs == null || strs.length == 0) {
-            return EMPTY;
-        }
-        int smallestIndexOfDiff = indexOfDifference(strs);
-        if (smallestIndexOfDiff == INDEX_NOT_FOUND) {
-            // all strings were identical
-            if (strs[0] == null) {
-                return EMPTY;
-            }
-            return strs[0];
-        }
-        if (smallestIndexOfDiff == 0) {
-            // there were no common initial characters
-            return EMPTY;
-        }
-        // we found a common initial character sequence
-        return strs[0].substring(0, smallestIndexOfDiff);
-    }
+    public static String getDigits(String string) {
+        if (!hasText(string)) return EMPTY;
 
-    /**
-     * Checks if a String {@code str} contains Unicode digits,
-     * if yes then concatenate all the digits in {@code str} and return it as a String.
-     *
-     * <p>An empty ("") String will be returned if no digits found in {@code str}.</p>
-     *
-     * <pre>
-     * StringUtils.getDigits(null)                 = null
-     * StringUtils.getDigits("")                   = ""
-     * StringUtils.getDigits("abc")                = ""
-     * StringUtils.getDigits("1000$")              = "1000"
-     * StringUtils.getDigits("1123~45")            = "112345"
-     * StringUtils.getDigits("(541) 754-3010")     = "5417543010"
-     * StringUtils.getDigits("\u0967\u0968\u0969") = "\u0967\u0968\u0969"
-     * </pre>
-     *
-     * @param str the String to extract digits from, may be null
-     * @return String with only digits,
-     * or an empty ("") String if no digits found,
-     * or {@code null} String if {@code str} is null
-     */
-    public static String getDigits(String str) {
-        if (isEmpty(str)) {
-            return str;
-        }
-        int sz = str.length();
-        StringBuilder strDigits = new StringBuilder(sz);
-        for (int i = 0; i < sz; i++) {
-            char tempChar = str.charAt(i);
-            if (Character.isDigit(tempChar)) {
-                strDigits.append(tempChar);
-            }
-        }
-        return strDigits.toString();
-    }
+        char tempChar;
+        int length = string.length();
+        StringBuilder builder = new StringBuilder(length);
 
-    /**
-     * Returns either the passed in CharSequence, or if the CharSequence is
-     * empty or {@code null}, the value supplied by {@code defaultStrSupplier}.
-     *
-     * <p>Caller responsible for thread-safety and exception handling of default value supplier</p>
-     *
-     * <pre>
-     * {@code
-     * StringUtils.getIfEmpty(null, () -> "NULL")    = "NULL"
-     * StringUtils.getIfEmpty("", () -> "NULL")      = "NULL"
-     * StringUtils.getIfEmpty(" ", () -> "NULL")     = " "
-     * StringUtils.getIfEmpty("bat", () -> "NULL")   = "bat"
-     * StringUtils.getIfEmpty("", () -> null)        = null
-     * StringUtils.getIfEmpty("", null)              = null
-     * }
-     * </pre>
-     *
-     * @param <T>             the specific kind of CharSequence
-     * @param str             the CharSequence to check, may be null
-     * @param defaultSupplier the supplier of default CharSequence to return
-     *                        if the input is empty ("") or {@code null}, may be null
-     * @return the passed in CharSequence, or the default
-     * @see org.apache.commons.lang3.StringUtils#defaultString(String, String)
-     */
-    public static <T extends CharSequence> T getIfEmpty(T str, Supplier<T> defaultSupplier) {
-        return isEmpty(str) ? defaultSupplier.get() : str;
+        for (int i = 0; i < length; i++) {
+            tempChar = string.charAt(i);
+            if (Character.isDigit(tempChar)) builder.append(tempChar);
+        }
+
+        return builder.toString();
     }
 
     /**
@@ -652,10 +581,38 @@ public abstract class StringUtils {
      */
     public static boolean hasLength(String... strings) {
         if (strings == null) return false;
+
         for (String string : strings) {
             if (StringUtils.hasLength(string)) return true;
         }
+
         return false;
+    }
+
+    /**
+     * Checks if all provided strings have length, meaning they are neither
+     * {@code null} nor {@code empty}.
+     *
+     * <p>Examples:
+     * <pre>
+     * 	StringUtils.hasLengthAll(null);         = false
+     * 	StringUtils.hasLengthAll("", "");       = false
+     * 	StringUtils.hasLengthAll(" ", "");      = false
+     * 	StringUtils.hasLengthAll("Hello", "");  = false
+     * 	StringUtils.hasLengthAll("Hello", " "); = true
+     * </pre>
+     *
+     * @param strings the array of strings to check
+     * @return {@code true}, if all strings have length
+     */
+    public static boolean hasLengthAll(String... strings) {
+        if (strings == null || strings.length == 0) return false;
+
+        for (String string : strings) {
+            if (!StringUtils.hasLength(string)) return false;
+        }
+
+        return true;
     }
 
     /**
@@ -686,8 +643,8 @@ public abstract class StringUtils {
      * Checks if at least one of the provided strings contains visible,
      * non-whitespace text.
      *
-     * <p>A string is considered to have text if it is not null, not empty, and
-     * contains at least one non-whitespace character.
+     * <p>A strings are considered to have text if it is not {@code null},
+     * not {@code empty}, and contains at least one non-whitespace character.
      *
      * <p>Examples:
      * <pre>
@@ -697,355 +654,43 @@ public abstract class StringUtils {
      * 	StringUtils.hasText("Hello", ""); = true
      * </pre>
      *
-     * @param string the strings to check
-     * @return {@code true} if at least one string contains non-whitespace text
+     * @param strings the strings to check
+     * @return {@code true} if at least one strings contains non-whitespace text
      */
-    public static boolean hasText(String... string) {
-        if (string == null) return false;
-        for (String str : string) {
-            if (StringUtils.hasText(str)) return true;
+    public static boolean hasText(String... strings) {
+        if (strings == null) return false;
+
+        for (String string : strings) {
+            if (StringUtils.hasText(string)) return true;
         }
+
         return false;
     }
 
     /**
-     * Find the first index of any of a set of potential substrings.
+     * Checks if all provided strings have text, meaning they are neither
+     * {@code null}, {@code empty}, nor consist only of whitespace.
      *
-     * <p>A {@code null} CharSequence will return {@code -1}.
-     * A {@code null} or zero length search array will return {@code -1}.
-     * A {@code null} search array entry will be ignored, but a search
-     * array containing "" will return {@code 0} if {@code str} is not
-     * null. This method uses {@link String#indexOf(String)} if possible.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.indexOfAny(null, *)                      = -1
-     * StringUtils.indexOfAny(*, null)                      = -1
-     * StringUtils.indexOfAny(*, [])                        = -1
-     * StringUtils.indexOfAny("zzabyycdxx", ["ab", "cd"])   = 2
-     * StringUtils.indexOfAny("zzabyycdxx", ["cd", "ab"])   = 2
-     * StringUtils.indexOfAny("zzabyycdxx", ["mn", "op"])   = -1
-     * StringUtils.indexOfAny("zzabyycdxx", ["zab", "aby"]) = 1
-     * StringUtils.indexOfAny("zzabyycdxx", [""])           = 0
-     * StringUtils.indexOfAny("", [""])                     = 0
-     * StringUtils.indexOfAny("", ["a"])                    = -1
+     * 	StringUtils.hasTextAll(null);              = false
+     * 	StringUtils.hasTextAll("", "");            = false
+     * 	StringUtils.hasTextAll(" ", "");           = false
+     * 	StringUtils.hasTextAll("Hello", "");       = false
+     * 	StringUtils.hasTextAll("Hello", " ");      = false
+     * 	StringUtils.hasTextAll("Hello", " World"); = true
      * </pre>
      *
-     * @param str        the CharSequence to check, may be null
-     * @param searchStrs the CharSequences to search for, may be null
-     * @return the first index of any of the searchStrs in str, -1 if no match
+     * @param strings the array of strings to check
+     * @return {@code true} if all strings have text
      */
-//    public static int indexOfAny(CharSequence str, CharSequence... searchStrs) {
-//        if (str == null || searchStrs == null) {
-//            return INDEX_NOT_FOUND;
-//        }
-//
-//        // String's can't have a MAX_VALUEth index.
-//        int ret = Integer.MAX_VALUE;
-//
-//        int tmp;
-//        for (CharSequence search : searchStrs) {
-//            if (search == null) {
-//                continue;
-//            }
-//            tmp = CharSequenceUtils.indexOf(str, search, 0);
-//            if (tmp == INDEX_NOT_FOUND) {
-//                continue;
-//            }
-//
-//            if (tmp < ret) {
-//                ret = tmp;
-//            }
-//        }
-//
-//        return ret == Integer.MAX_VALUE ? INDEX_NOT_FOUND : ret;
-//    }
+    public static boolean hasTextAll(String... strings) {
+        if (strings == null || strings.length == 0) return false;
 
-    /**
-     * Search a CharSequence to find the first index of any
-     * character in the given set of characters.
-     *
-     * <p>A {@code null} String will return {@code -1}.
-     * A {@code null} search string will return {@code -1}.</p>
-     *
-     * <pre>
-     * StringUtils.indexOfAny(null, *)            = -1
-     * StringUtils.indexOfAny("", *)              = -1
-     * StringUtils.indexOfAny(*, null)            = -1
-     * StringUtils.indexOfAny(*, "")              = -1
-     * StringUtils.indexOfAny("zzabyycdxx", "za") = 0
-     * StringUtils.indexOfAny("zzabyycdxx", "by") = 3
-     * StringUtils.indexOfAny("aba", "z")         = -1
-     * </pre>
-     *
-     * @param cs          the CharSequence to check, may be null
-     * @param searchChars the chars to search for, may be null
-     * @return the index of any of the chars, -1 if no match or null input
-     */
-//    public static int indexOfAny(CharSequence cs, String searchChars) {
-//        if (isEmpty(cs) || isEmpty(searchChars)) {
-//            return INDEX_NOT_FOUND;
-//        }
-//        return indexOfAny(cs, searchChars.toCharArray());
-//    }
-
-    /**
-     * Searches a CharSequence to find the first index of any
-     * character not in the given set of characters, i.e.,
-     * find index i of first char in cs such that (cs.codePointAt(i) ∉ { x ∈ codepoints(searchChars) })
-     *
-     * <p>A {@code null} CharSequence will return {@code -1}.
-     * A {@code null} or zero length search array will return {@code -1}.</p>
-     *
-     * <pre>
-     * StringUtils.indexOfAnyBut(null, *)                              = -1
-     * StringUtils.indexOfAnyBut("", *)                                = -1
-     * StringUtils.indexOfAnyBut(*, null)                              = -1
-     * StringUtils.indexOfAnyBut(*, [])                                = -1
-     * StringUtils.indexOfAnyBut("zzabyycdxx", new char[] {'z', 'a'} ) = 3
-     * StringUtils.indexOfAnyBut("aba", new char[] {'z'} )             = 0
-     * StringUtils.indexOfAnyBut("aba", new char[] {'a', 'b'} )        = -1
-     *
-     * </pre>
-     *
-     * @param cs          the CharSequence to check, may be null
-     * @param searchChars the chars to search for, may be null
-     * @return the index of any of the chars, -1 if no match or null input
-     */
-//    public static int indexOfAnyBut(CharSequence cs, char... searchChars) {
-//        if (isEmpty(cs) || ArrayUtils.isEmpty(searchChars)) {
-//            return INDEX_NOT_FOUND;
-//        }
-//        return indexOfAnyBut(cs, CharBuffer.wrap(searchChars));
-//    }
-
-    /**
-     * Search a CharSequence to find the first index of any
-     * character not in the given set of characters, i.e.,
-     * find index i of first char in seq such that (seq.codePointAt(i) ∉ { x ∈ codepoints(searchChars) })
-     *
-     * <p>A {@code null} CharSequence will return {@code -1}.
-     * A {@code null} or empty search string will return {@code -1}.</p>
-     *
-     * <pre>
-     * StringUtils.indexOfAnyBut(null, *)            = -1
-     * StringUtils.indexOfAnyBut("", *)              = -1
-     * StringUtils.indexOfAnyBut(*, null)            = -1
-     * StringUtils.indexOfAnyBut(*, "")              = -1
-     * StringUtils.indexOfAnyBut("zzabyycdxx", "za") = 3
-     * StringUtils.indexOfAnyBut("zzabyycdxx", "")   = -1
-     * StringUtils.indexOfAnyBut("aba", "ab")        = -1
-     * </pre>
-     *
-     * @param seq         the CharSequence to check, may be null
-     * @param searchChars the chars to search for, may be null
-     * @return the index of any of the chars, -1 if no match or null input
-     */
-//    public static int indexOfAnyBut(CharSequence seq, CharSequence searchChars) {
-//        if (isEmpty(seq) || isEmpty(searchChars)) {
-//            return INDEX_NOT_FOUND;
-//        }
-//        Set<Integer> searchSetCodePoints = searchChars.codePoints()
-//                .boxed().collect(Collectors.toSet());
-//        // advance character index from one interpreted codepoint to the next
-//        for (int curSeqCharIdx = 0; curSeqCharIdx < seq.length(); ) {
-//            int curSeqCodePoint = Character.codePointAt(seq, curSeqCharIdx);
-//            if (!searchSetCodePoints.contains(curSeqCodePoint)) {
-//                return curSeqCharIdx;
-//            }
-//            curSeqCharIdx += Character.charCount(curSeqCodePoint); // skip indices to paired low-surrogates
-//        }
-//        return INDEX_NOT_FOUND;
-//    }
-
-    /**
-     * Compares all CharSequences in an array and returns the index at which the
-     * CharSequences begin to differ.
-     *
-     * <p>For example,
-     * {@code indexOfDifference(new String[] {"i am a machine", "i am a robot"}) -> 7}</p>
-     *
-     * <pre>
-     * StringUtils.indexOfDifference(null)                             = -1
-     * StringUtils.indexOfDifference(new String[] {})                  = -1
-     * StringUtils.indexOfDifference(new String[] {"abc"})             = -1
-     * StringUtils.indexOfDifference(new String[] {null, null})        = -1
-     * StringUtils.indexOfDifference(new String[] {"", ""})            = -1
-     * StringUtils.indexOfDifference(new String[] {"", null})          = 0
-     * StringUtils.indexOfDifference(new String[] {"abc", null, null}) = 0
-     * StringUtils.indexOfDifference(new String[] {null, null, "abc"}) = 0
-     * StringUtils.indexOfDifference(new String[] {"", "abc"})         = 0
-     * StringUtils.indexOfDifference(new String[] {"abc", ""})         = 0
-     * StringUtils.indexOfDifference(new String[] {"abc", "abc"})      = -1
-     * StringUtils.indexOfDifference(new String[] {"abc", "a"})        = 1
-     * StringUtils.indexOfDifference(new String[] {"ab", "abxyz"})     = 2
-     * StringUtils.indexOfDifference(new String[] {"abcde", "abxyz"})  = 2
-     * StringUtils.indexOfDifference(new String[] {"abcde", "xyz"})    = 0
-     * StringUtils.indexOfDifference(new String[] {"xyz", "abcde"})    = 0
-     * StringUtils.indexOfDifference(new String[] {"i am a machine", "i am a robot"}) = 7
-     * </pre>
-     *
-     * @param css array of CharSequences, entries may be null
-     * @return the index where the strings begin to differ; -1 if they are all equal
-     */
-    public static int indexOfDifference(CharSequence... css) {
-        if (css == null || css.length <= 1) {
-            return INDEX_NOT_FOUND;
-        }
-        boolean anyStringNull = false;
-        boolean allStringsNull = true;
-        int arrayLen = css.length;
-        int shortestStrLen = Integer.MAX_VALUE;
-        int longestStrLen = 0;
-
-        // find the min and max string lengths; this avoids checking to make
-        // sure we are not exceeding the length of the string each time through
-        // the bottom loop.
-        for (CharSequence cs : css) {
-            if (cs == null) {
-                anyStringNull = true;
-                shortestStrLen = 0;
-            } else {
-                allStringsNull = false;
-                shortestStrLen = Math.min(cs.length(), shortestStrLen);
-                longestStrLen = Math.max(cs.length(), longestStrLen);
-            }
+        for (String string : strings) {
+            if (!StringUtils.hasText(string)) return false;
         }
 
-        // handle lists containing all nulls or all empty strings
-        if (allStringsNull || longestStrLen == 0 && !anyStringNull) {
-            return INDEX_NOT_FOUND;
-        }
-
-        // handle lists containing some nulls or some empty strings
-        if (shortestStrLen == 0) {
-            return 0;
-        }
-
-        // find the position with the first difference across all strings
-        int firstDiff = -1;
-        for (int stringPos = 0; stringPos < shortestStrLen; stringPos++) {
-            char comparisonChar = css[0].charAt(stringPos);
-            for (int arrayPos = 1; arrayPos < arrayLen; arrayPos++) {
-                if (css[arrayPos].charAt(stringPos) != comparisonChar) {
-                    firstDiff = stringPos;
-                    break;
-                }
-            }
-            if (firstDiff != -1) {
-                break;
-            }
-        }
-
-        if (firstDiff == -1 && shortestStrLen != longestStrLen) {
-            // we compared all of the characters up to the length of the
-            // shortest string and didn't find a match, but the string lengths
-            // vary, so return the length of the shortest string.
-            return shortestStrLen;
-        }
-        return firstDiff;
-    }
-
-    /**
-     * Compares two CharSequences, and returns the index at which the
-     * CharSequences begin to differ.
-     *
-     * <p>For example,
-     * {@code indexOfDifference("i am a machine", "i am a robot") -> 7}</p>
-     *
-     * <pre>
-     * StringUtils.indexOfDifference(null, null)       = -1
-     * StringUtils.indexOfDifference("", "")           = -1
-     * StringUtils.indexOfDifference("", "abc")        = 0
-     * StringUtils.indexOfDifference("abc", "")        = 0
-     * StringUtils.indexOfDifference("abc", "abc")     = -1
-     * StringUtils.indexOfDifference("ab", "abxyz")    = 2
-     * StringUtils.indexOfDifference("abcde", "abxyz") = 2
-     * StringUtils.indexOfDifference("abcde", "xyz")   = 0
-     * </pre>
-     *
-     * @param cs1 the first CharSequence, may be null
-     * @param cs2 the second CharSequence, may be null
-     * @return the index where cs1 and cs2 begin to differ; -1 if they are equal
-     * indexOfDifference(CharSequence, CharSequence)
-     */
-    public static int indexOfDifference(String cs1, String cs2) {
-        if (cs1 == cs2) {
-            return INDEX_NOT_FOUND;
-        }
-        if (cs1 == null || cs2 == null) {
-            return 0;
-        }
-        int i;
-        for (i = 0; i < cs1.length() && i < cs2.length(); ++i) {
-            if (cs1.charAt(i) != cs2.charAt(i)) {
-                break;
-            }
-        }
-        if (i < cs2.length() || i < cs1.length()) {
-            return i;
-        }
-        return INDEX_NOT_FOUND;
-    }
-
-    /**
-     * Tests if all of the CharSequences are empty (""), null or whitespace only.
-     *
-     * <p>Whitespace is defined by {@link Character#isWhitespace(char)}.</p>
-     *
-     * <pre>
-     * StringUtils.isAllBlank(null)             = true
-     * StringUtils.isAllBlank(null, "foo")      = false
-     * StringUtils.isAllBlank(null, null)       = true
-     * StringUtils.isAllBlank("", "bar")        = false
-     * StringUtils.isAllBlank("bob", "")        = false
-     * StringUtils.isAllBlank("  bob  ", null)  = false
-     * StringUtils.isAllBlank(" ", "bar")       = false
-     * StringUtils.isAllBlank("foo", "bar")     = false
-     * StringUtils.isAllBlank(new String[] {})  = true
-     * </pre>
-     *
-     * @param css the CharSequences to check, may be null or empty
-     * @return {@code true} if all of the CharSequences are empty or null or whitespace only
-     */
-//    public static boolean isAllBlank(CharSequence... css) {
-//        if (css == null || css.length == 0) {
-//            return true;
-//        }
-//        for (CharSequence cs : css) {
-//            if (isNotBlank(cs)) {
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
-
-    /**
-     * Tests if all of the CharSequences are empty ("") or null.
-     *
-     * <pre>
-     * StringUtils.isAllEmpty(null)             = true
-     * StringUtils.isAllEmpty(null, "")         = true
-     * StringUtils.isAllEmpty(new String[] {})  = true
-     * StringUtils.isAllEmpty(null, "foo")      = false
-     * StringUtils.isAllEmpty("", "bar")        = false
-     * StringUtils.isAllEmpty("bob", "")        = false
-     * StringUtils.isAllEmpty("  bob  ", null)  = false
-     * StringUtils.isAllEmpty(" ", "bar")       = false
-     * StringUtils.isAllEmpty("foo", "bar")     = false
-     * </pre>
-     *
-     * @param css the CharSequences to check, may be null or empty
-     * @return {@code true} if all of the CharSequences are empty or null
-     */
-    public static boolean isAllEmpty(String... css) {
-        if (css == null || css.length == 0) {
-            return true;
-        }
-        for (String cs : css) {
-            if (hasLength(cs)) {
-                return false;
-            }
-        }
         return true;
     }
 
