@@ -810,4 +810,285 @@ class StringUtilsTests {
     void hasTextAll_ShouldReturnTrue_WhenAllStringsAreUnicode() {
         assertTrue(StringUtils.hasTextAll("ẞHello", "üser"));
     }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void isAllLowerCase_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.isAllLowerCase(input));
+    }
+
+    @Test
+    void isAllLowerCase_ShouldReturnFalse_WhenInputStringIsBlank() {
+        assertFalse(StringUtils.isAllLowerCase(" "));
+    }
+
+    @Test
+    void isAllLowerCase_ShouldReturnFalse_WhenInputStringContainsUpperCaseLetters() {
+        assertFalse(StringUtils.isAllLowerCase("WeLlo"));
+    }
+
+    @Test
+    void isAllLowerCase_ShouldReturnFalse_WhenInputStringContainsDigitsAndSpecialCharacters() {
+        assertFalse(StringUtils.isAllLowerCase("hell0"));
+    }
+
+    @Test
+    void isAllLowerCase_ShouldReturnFalse_WhenInputStringContainsSpecialCharacters() {
+        assertFalse(StringUtils.isAllLowerCase("hel@lo"));
+    }
+
+    @Test
+    void isAllLowerCase_ShouldReturnFalse_WhenInputStringContainsUnicodeUpperCaseLetters() {
+        assertFalse(StringUtils.isAllLowerCase("ẞüñ"));
+    }
+
+    @Test
+    void isAllLowerCase_ShouldReturnTrue_WhenInputStringContainsOnlyLowerCaseLetters() {
+        assertTrue(StringUtils.isAllLowerCase("hello"));
+    }
+
+    @Test
+    void isAllLowerCase_ShouldReturnTrue_WhenInputStringIsSingleLowerCaseLetter() {
+        assertTrue(StringUtils.isAllLowerCase("a"));
+    }
+
+    @Test
+    void isAllLowerCase_ShouldReturnTrue_WhenInputStringIsUnicodeLowerCaseLetters() {
+        assertTrue(StringUtils.isAllLowerCase("üñ"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void isAllUpperCase_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.isAllUpperCase(input));
+    }
+
+    @Test
+    void isAllUpperCase_ShouldReturnFalse_WhenInputStringIsBlank() {
+        assertFalse(StringUtils.isAllUpperCase(" "));
+    }
+
+    @Test
+    void isAllUpperCase_ShouldReturnFalse_WhenInputStringContainsLowerCaseLetters() {
+        assertFalse(StringUtils.isAllUpperCase("HElLO"));
+    }
+
+    @Test
+    void isAllUpperCase_ShouldReturnFalse_WhenInputStringContainsDigits() {
+        assertFalse(StringUtils.isAllUpperCase("HELL0"));
+    }
+
+    @Test
+    void isAllUpperCase_ShouldReturnFalse_WhenInputStringContainsSpecialCharacters() {
+        assertFalse(StringUtils.isAllUpperCase("HEL@LO"));
+    }
+
+    @Test
+    void isAllUpperCase_ShouldReturnFalse_WhenInputStringContainsUnicodeLowerCaseLetters() {
+        assertFalse(StringUtils.isAllUpperCase("ẞüÑ"));
+    }
+
+    @Test
+    void isAllUpperCase_ShouldReturnTrue_WhenInputStringContainsOnlyUpperCaseLetters() {
+        assertTrue(StringUtils.isAllUpperCase("HELLO"));
+    }
+
+    @Test
+    void isAllUpperCase_ShouldReturnTrue_WhenInputStringIsSingleUpperCaseLetter() {
+        assertTrue(StringUtils.isAllUpperCase("A"));
+    }
+
+    @Test
+    void isAllUpperCase_ShouldReturnTrue_WhenInputStringIsUnicodeUpperCaseLetters() {
+        assertTrue(StringUtils.isAllUpperCase("ẞÜÑ"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void isAlpha_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.isAlpha(input));
+    }
+
+    @Test
+    void isAlpha_ShouldReturnFalse_WhenInputStringIsBlank() {
+        assertFalse(StringUtils.isAlpha(" "));
+    }
+
+    @Test
+    void isAlpha_ShouldReturnFalse_WhenInputStringContainsDigits() {
+        assertFalse(StringUtils.isAlpha("Hell0"));
+    }
+
+    @Test
+    void isAlpha_ShouldReturnFalse_WhenInputStringContainsWhitespace() {
+        assertFalse(StringUtils.isAlpha("Hel lo"));
+    }
+
+    @Test
+    void isAlpha_ShouldReturnFalse_WhenInputStringContainsSpecialCharacters() {
+        assertFalse(StringUtils.isAlpha("Hel@lo"));
+    }
+
+    @Test
+    void isAlpha_ShouldReturnFalse_WhenInputStringContainsUnicodeNonLetters() {
+        assertFalse(StringUtils.isAlpha("ẞüñ1"));
+    }
+
+    @Test
+    void isAlpha_ShouldReturnTrue_WhenInputStringContainsOnlyLetters() {
+        assertTrue(StringUtils.isAlpha("Hello"));
+    }
+
+    @Test
+    void isAlpha_ShouldReturnTrue_WhenInputStringIsSingleLetter() {
+        assertTrue(StringUtils.isAlpha("a"));
+    }
+
+    @Test
+    void isAlpha_ShouldReturnTrue_WhenInputStringIsUnicodeLetters() {
+        assertTrue(StringUtils.isAlpha("ẞüñ"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void isAlphanumeric_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.isAlphanumeric(input));
+    }
+
+    @Test
+    void isAlphanumeric_ShouldReturnFalse_WhenInputStringIsBlank() {
+        assertFalse(StringUtils.isAlphanumeric(" "));
+    }
+
+    @Test
+    void isAlphanumeric_ShouldReturnFalse_WhenInputStringContainsWhitespace() {
+        assertFalse(StringUtils.isAlphanumeric("Hel lo"));
+    }
+
+    @Test
+    void isAlphanumeric_ShouldReturnFalse_WhenInputStringContainsSpecialCharacters() {
+        assertFalse(StringUtils.isAlphanumeric("Hel@lo"));
+    }
+
+    @Test
+    void isAlphanumeric_ShouldReturnFalse_WhenInputStringContainsUnicodeNonAlphanumeric() {
+        assertFalse(StringUtils.isAlphanumeric("ẞüñ@"));
+    }
+
+    @Test
+    void isAlphanumeric_ShouldReturnTrue_WhenInputStringContainsOnlyLetters() {
+        assertTrue(StringUtils.isAlphanumeric("Hello"));
+    }
+
+    @Test
+    void isAlphanumeric_ShouldReturnTrue_WhenInputStringContainsOnlyDigits() {
+        assertTrue(StringUtils.isAlphanumeric("123"));
+    }
+
+    @Test
+    void isAlphanumeric_ShouldReturnTrue_WhenInputStringContainsLettersAndDigits() {
+        assertTrue(StringUtils.isAlphanumeric("Hello123"));
+    }
+
+    @Test
+    void isAlphanumeric_ShouldReturnTrue_WhenInputStringIsSingleAlphanumericCharacter() {
+        assertTrue(StringUtils.isAlphanumeric("a"));
+    }
+
+    @Test
+    void isAlphanumeric_ShouldReturnTrue_WhenInputStringIsUnicodeLettersAndDigits() {
+        assertTrue(StringUtils.isAlphanumeric("ẞüñ123"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void isAlphanumericSpace_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.isAlphanumericSpace(input));
+    }
+
+    @Test
+    void isAlphanumericSpace_ShouldReturnFalse_WhenInputStringContainsSpecialCharacters() {
+        assertFalse(StringUtils.isAlphanumericSpace("hel@lo"));
+    }
+
+    @Test
+    void isAlphanumericSpace_ShouldReturnFalse_WhenInputStringContainsUnicodeNonAlphanumeric() {
+        assertFalse(StringUtils.isAlphanumericSpace("ẞüñ@"));
+    }
+
+    @Test
+    void isAlphanumericSpace_ShouldReturnTrue_WhenInputStringIsBlank() {
+        assertTrue(StringUtils.isAlphanumericSpace(" "));
+    }
+
+    @Test
+    void isAlphanumericSpace_ShouldReturnTrue_WhenInputStringContainsOnlyLetters() {
+        assertTrue(StringUtils.isAlphanumericSpace("Hello"));
+    }
+
+    @Test
+    void isAlphanumericSpace_ShouldReturnTrue_WhenInputStringContainsOnlyDigits() {
+        assertTrue(StringUtils.isAlphanumericSpace("123"));
+    }
+
+    @Test
+    void isAlphanumericSpace_ShouldReturnTrue_WhenInputStringContainsLettersDigitsAndSpaces() {
+        assertTrue(StringUtils.isAlphanumericSpace("Hello 123"));
+    }
+
+    @Test
+    void isAlphanumericSpace_ShouldReturnTrue_WhenInputStringIsSingleLetterOrDigit() {
+        assertTrue(StringUtils.isAlphanumericSpace("a"));
+    }
+
+    @Test
+    void isAlphanumericSpace_ShouldReturnTrue_WhenInputStringIsUnicodeLettersAndDigits() {
+        assertTrue(StringUtils.isAlphanumericSpace("ẞüñ123"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void isAlphaSpace_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.isAlphaSpace(input));
+    }
+
+    @Test
+    void isAlphaSpace_ShouldReturnFalse_WhenInputStringContainsDigits() {
+        assertFalse(StringUtils.isAlphaSpace("Hell0"));
+    }
+
+    @Test
+    void isAlphaSpace_ShouldReturnFalse_WhenInputStringContainsSpecialCharacters() {
+        assertFalse(StringUtils.isAlphaSpace("hel@lo"));
+    }
+
+    @Test
+    void isAlphaSpace_ShouldReturnFalse_WhenInputStringContainsUnicodeNonLetters() {
+        assertFalse(StringUtils.isAlphaSpace("ẞüñ1"));
+    }
+
+    @Test
+    void isAlphaSpace_ShouldReturnTrue_WhenInputStringIsSingleSpace() {
+        assertTrue(StringUtils.isAlphaSpace(" "));
+    }
+
+    @Test
+    void isAlphaSpace_ShouldReturnTrue_WhenInputStringContainsOnlyLetters() {
+        assertTrue(StringUtils.isAlphaSpace("hello"));
+    }
+
+    @Test
+    void isAlphaSpace_ShouldReturnTrue_WhenInputStringContainsLettersAndSpaces() {
+        assertTrue(StringUtils.isAlphaSpace("Hel lo"));
+    }
+
+    @Test
+    void isAlphaSpace_ShouldReturnTrue_WhenInputStringIsSingleLetter() {
+        assertTrue(StringUtils.isAlphaSpace("a"));
+    }
+
+    @Test
+    void isAlphaSpace_ShouldReturnTrue_WhenInputStringIsUnicodeLetters() {
+        assertTrue(StringUtils.isAlphaSpace("ẞüñ"));
+    }
 }

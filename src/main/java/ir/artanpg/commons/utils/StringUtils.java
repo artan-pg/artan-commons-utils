@@ -114,7 +114,7 @@ public abstract class StringUtils {
      */
     public static String abbreviate(String string, String abbrevMarker, int maxWidth) {
         if (hasText(string) && EMPTY.equals(abbrevMarker) && maxWidth > 0) return substring(string, 0, maxWidth);
-        if (isAnyEmpty(string, abbrevMarker)) return string;
+        if (!hasLengthAll(string, abbrevMarker)) return string;
 
         int abbrevMarkerLength = abbrevMarker.length();
         int minAbbrevWidth = abbrevMarkerLength + 1;
@@ -695,234 +695,175 @@ public abstract class StringUtils {
     }
 
     /**
-     * Tests if the CharSequence contains only lowercase characters.
+     * Tests if the String contains only lowercase characters.
      *
-     * <p>{@code null} will return {@code false}.
-     * An empty CharSequence (length()=0) will return {@code false}.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.isAllLowerCase(null)   = false
-     * StringUtils.isAllLowerCase("")     = false
-     * StringUtils.isAllLowerCase("  ")   = false
-     * StringUtils.isAllLowerCase("abc")  = true
-     * StringUtils.isAllLowerCase("abC")  = false
-     * StringUtils.isAllLowerCase("ab c") = false
-     * StringUtils.isAllLowerCase("ab1c") = false
-     * StringUtils.isAllLowerCase("ab/c") = false
+     *  StringUtils.isAllLowerCase(null);      = false
+     *  StringUtils.isAllLowerCase("");        = false
+     *  StringUtils.isAllLowerCase(" ");       = false
+     *  StringUtils.isAllLowerCase("Hello");   = false
+     *  StringUtils.isAllLowerCase("Hello ");  = false
+     *  StringUtils.isAllLowerCase("Hello 1"); = false
+     *  StringUtils.isAllLowerCase("Hello,");  = false
+     *  StringUtils.isAllLowerCase("hello");   = true
      * </pre>
      *
-     * @param cs the CharSequence to check, may be null
-     * @return {@code true} if only contains lowercase characters, and is non-null
+     * @param string the string to check
+     * @return {@code true}, if only contains lowercase characters
      */
-    public static boolean isAllLowerCase(CharSequence cs) {
-        if (isEmpty(cs)) {
-            return false;
+    public static boolean isAllLowerCase(String string) {
+        if (!hasText(string)) return false;
+
+        int length = string.length();
+        for (int i = 0; i < length; i++) {
+            if (!Character.isLowerCase(string.charAt(i))) return false;
         }
-        int sz = cs.length();
-        for (int i = 0; i < sz; i++) {
-            if (!Character.isLowerCase(cs.charAt(i))) {
-                return false;
-            }
-        }
+
         return true;
     }
 
     /**
-     * Tests if the CharSequence contains only uppercase characters.
+     * Tests if the String contains only uppercase characters.
      *
-     * <p>{@code null} will return {@code false}.
-     * An empty String (length()=0) will return {@code false}.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.isAllUpperCase(null)   = false
-     * StringUtils.isAllUpperCase("")     = false
-     * StringUtils.isAllUpperCase("  ")   = false
-     * StringUtils.isAllUpperCase("ABC")  = true
-     * StringUtils.isAllUpperCase("aBC")  = false
-     * StringUtils.isAllUpperCase("A C")  = false
-     * StringUtils.isAllUpperCase("A1C")  = false
-     * StringUtils.isAllUpperCase("A/C")  = false
+     *  StringUtils.isAllUpperCase(null);      = false
+     *  StringUtils.isAllUpperCase("");        = false
+     *  StringUtils.isAllUpperCase(" ");       = false
+     *  StringUtils.isAllUpperCase("Hello");   = false
+     *  StringUtils.isAllUpperCase("Hello ");  = false
+     *  StringUtils.isAllUpperCase("Hello 1"); = false
+     *  StringUtils.isAllUpperCase("Hello,");  = false
+     *  StringUtils.isAllUpperCase("HELLO");   = true
      * </pre>
      *
-     * @param cs the CharSequence to check, may be null
-     * @return {@code true} if only contains uppercase characters, and is non-null
+     * @param string the string to check
+     * @return {@code true}, if only contains uppercase characters
      */
-    public static boolean isAllUpperCase(CharSequence cs) {
-        if (isEmpty(cs)) {
-            return false;
+    public static boolean isAllUpperCase(String string) {
+        if (!hasText(string)) return false;
+
+        int length = string.length();
+        for (int i = 0; i < length; i++) {
+            if (!Character.isUpperCase(string.charAt(i))) return false;
         }
-        int sz = cs.length();
-        for (int i = 0; i < sz; i++) {
-            if (!Character.isUpperCase(cs.charAt(i))) {
-                return false;
-            }
-        }
+
         return true;
     }
 
     /**
-     * Tests if the CharSequence contains only Unicode letters.
+     * Tests if the String contains only Unicode letters.
      *
-     * <p>{@code null} will return {@code false}.
-     * An empty CharSequence (length()=0) will return {@code false}.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.isAlpha(null)   = false
-     * StringUtils.isAlpha("")     = false
-     * StringUtils.isAlpha("  ")   = false
-     * StringUtils.isAlpha("abc")  = true
-     * StringUtils.isAlpha("ab2c") = false
-     * StringUtils.isAlpha("ab-c") = false
+     *  StringUtils.isAlpha(null);     = false
+     *  StringUtils.isAlpha("");       = false
+     *  StringUtils.isAlpha(" ");      = false
+     *  StringUtils.isAlpha("Hello1"); = false
+     *  StringUtils.isAlpha("Hello,"); = false
+     *  StringUtils.isAlpha("Hello");  = true
      * </pre>
      *
-     * @param cs the CharSequence to check, may be null
-     * @return {@code true} if only contains letters, and is non-null
+     * @param string the string to check
+     * @return {@code true}, if only contains letters
      */
-    public static boolean isAlpha(CharSequence cs) {
-        if (isEmpty(cs)) {
-            return false;
+    public static boolean isAlpha(String string) {
+        if (!hasText(string)) return false;
+
+        int length = string.length();
+        for (int i = 0; i < length; i++) {
+            if (!Character.isLetter(string.charAt(i))) return false;
         }
-        int sz = cs.length();
-        for (int i = 0; i < sz; i++) {
-            if (!Character.isLetter(cs.charAt(i))) {
-                return false;
-            }
-        }
+
         return true;
     }
 
     /**
-     * Tests if the CharSequence contains only Unicode letters or digits.
+     * Tests if the String contains only Unicode letters or digits.
      *
-     * <p>{@code null} will return {@code false}.
-     * An empty CharSequence (length()=0) will return {@code false}.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.isAlphanumeric(null)   = false
-     * StringUtils.isAlphanumeric("")     = false
-     * StringUtils.isAlphanumeric("  ")   = false
-     * StringUtils.isAlphanumeric("abc")  = true
-     * StringUtils.isAlphanumeric("ab c") = false
-     * StringUtils.isAlphanumeric("ab2c") = true
-     * StringUtils.isAlphanumeric("ab-c") = false
+     *  StringUtils.isAlphanumeric(null);     = false
+     *  StringUtils.isAlphanumeric("");       = false
+     *  StringUtils.isAlphanumeric(" ");      = false
+     *  StringUtils.isAlphanumeric("Hello "); = false
+     *  StringUtils.isAlphanumeric("Hello,"); = false
+     *  StringUtils.isAlphanumeric("Hello");  = true
+     *  StringUtils.isAlphanumeric("Hello1"); = true
      * </pre>
      *
-     * @param cs the CharSequence to check, may be null
-     * @return {@code true} if only contains letters or digits,
-     * and is non-null
+     * @param string the string to check
+     * @return {@code true}, if only contains letters or digits
      */
-    public static boolean isAlphanumeric(CharSequence cs) {
-        if (isEmpty(cs)) {
-            return false;
+    public static boolean isAlphanumeric(String string) {
+        if (!hasText(string)) return false;
+
+        int length = string.length();
+
+        for (int i = 0; i < length; i++) {
+            if (!Character.isLetterOrDigit(string.charAt(i))) return false;
         }
-        int sz = cs.length();
-        for (int i = 0; i < sz; i++) {
-            if (!Character.isLetterOrDigit(cs.charAt(i))) {
-                return false;
-            }
-        }
+
         return true;
     }
 
     /**
-     * Tests if the CharSequence contains only Unicode letters, digits
-     * or space ({@code ' '}).
+     * Tests if the String contains only Unicode letters, digits or space.
      *
-     * <p>{@code null} will return {@code false}.
-     * An empty CharSequence (length()=0) will return {@code true}.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.isAlphanumericSpace(null)   = false
-     * StringUtils.isAlphanumericSpace("")     = true
-     * StringUtils.isAlphanumericSpace("  ")   = true
-     * StringUtils.isAlphanumericSpace("abc")  = true
-     * StringUtils.isAlphanumericSpace("ab c") = true
-     * StringUtils.isAlphanumericSpace("ab2c") = true
-     * StringUtils.isAlphanumericSpace("ab-c") = false
+     *  StringUtils.isAlphanumericSpace(null);      = false
+     *  StringUtils.isAlphanumericSpace("");        = false
+     *  StringUtils.isAlphanumericSpace("Hello,");  = false
+     *  StringUtils.isAlphanumericSpace(" ");       = true
+     *  StringUtils.isAlphanumericSpace("Hello");   = true
+     *  StringUtils.isAlphanumericSpace("Hello ");  = true
+     *  StringUtils.isAlphanumericSpace("Hello 1"); = true
      * </pre>
      *
-     * @param cs the CharSequence to check, may be null
-     * @return {@code true} if only contains letters, digits or space,
-     * and is non-null
+     * @param string the string to check
+     * @return {@code true}, if only contains letters, digits or space
      */
-    public static boolean isAlphanumericSpace(CharSequence cs) {
-        if (cs == null) {
-            return false;
+    public static boolean isAlphanumericSpace(String string) {
+        if (!hasLength(string)) return false;
+
+        int length = string.length();
+        for (int i = 0; i < length; i++) {
+            char nowChar = string.charAt(i);
+            if (nowChar != ' ' && !Character.isLetterOrDigit(nowChar)) return false;
         }
-        int sz = cs.length();
-        for (int i = 0; i < sz; i++) {
-            char nowChar = cs.charAt(i);
-            if (nowChar != ' ' && !Character.isLetterOrDigit(nowChar)) {
-                return false;
-            }
-        }
+
         return true;
     }
 
     /**
-     * Tests if the CharSequence contains only Unicode letters and
-     * space (' ').
+     * Tests if the String contains only Unicode letters and space.
      *
-     * <p>{@code null} will return {@code false}
-     * An empty CharSequence (length()=0) will return {@code true}.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.isAlphaSpace(null)   = false
-     * StringUtils.isAlphaSpace("")     = true
-     * StringUtils.isAlphaSpace("  ")   = true
-     * StringUtils.isAlphaSpace("abc")  = true
-     * StringUtils.isAlphaSpace("ab c") = true
-     * StringUtils.isAlphaSpace("ab2c") = false
-     * StringUtils.isAlphaSpace("ab-c") = false
+     *  StringUtils.isAlphaSpace(null);     = false
+     *  StringUtils.isAlphaSpace("");       = false
+     *  StringUtils.isAlphaSpace("Hello1"); = false
+     *  StringUtils.isAlphaSpace("Hello,"); = false
+     *  StringUtils.isAlphaSpace(" ");      = true
+     *  StringUtils.isAlphaSpace("Hello");  = true
+     *  StringUtils.isAlphaSpace("Hello "); = true
      * </pre>
      *
-     * @param cs the CharSequence to check, may be null
-     * @return {@code true} if only contains letters and space,
-     * and is non-null
+     * @param string the string to check
+     * @return {@code true}, if only contains letters and space
      */
-    public static boolean isAlphaSpace(CharSequence cs) {
-        if (cs == null) {
-            return false;
-        }
-        int sz = cs.length();
-        for (int i = 0; i < sz; i++) {
-            char nowChar = cs.charAt(i);
-            if (nowChar != ' ' && !Character.isLetter(nowChar)) {
-                return false;
-            }
-        }
-        return true;
-    }
+    public static boolean isAlphaSpace(String string) {
+        if (!hasLength(string)) return false;
 
-    /**
-     * Tests if any of the CharSequences are empty ("") or null.
-     *
-     * <pre>
-     * StringUtils.isAnyEmpty((String) null)    = true
-     * StringUtils.isAnyEmpty((String[]) null)  = false
-     * StringUtils.isAnyEmpty(null, "foo")      = true
-     * StringUtils.isAnyEmpty("", "bar")        = true
-     * StringUtils.isAnyEmpty("bob", "")        = true
-     * StringUtils.isAnyEmpty("  bob  ", null)  = true
-     * StringUtils.isAnyEmpty(" ", "bar")       = false
-     * StringUtils.isAnyEmpty("foo", "bar")     = false
-     * StringUtils.isAnyEmpty(new String[]{})   = false
-     * StringUtils.isAnyEmpty(new String[]{""}) = true
-     * </pre>
-     *
-     * @param css the CharSequences to check, may be null or empty
-     * @return {@code true} if any of the CharSequences are empty or null
-     */
-    public static boolean isAnyEmpty(CharSequence... css) {
-        if (css == null || css.length == 0) {
-            return false;
+        int length = string.length();
+        for (int i = 0; i < length; i++) {
+            char nowChar = string.charAt(i);
+            if (nowChar != ' ' && !Character.isLetter(nowChar)) return false;
         }
-        for (CharSequence cs : css) {
-            if (isEmpty(cs)) {
-                return true;
-            }
-        }
-        return false;
+
+        return true;
     }
 
     /**
@@ -1027,29 +968,6 @@ public abstract class StringUtils {
             }
         }
         return false;
-    }
-
-    /**
-     * Tests if none of the CharSequences are empty ("") or null.
-     *
-     * <pre>
-     * StringUtils.isNoneEmpty((String) null)    = false
-     * StringUtils.isNoneEmpty((String[]) null)  = true
-     * StringUtils.isNoneEmpty(null, "foo")      = false
-     * StringUtils.isNoneEmpty("", "bar")        = false
-     * StringUtils.isNoneEmpty("bob", "")        = false
-     * StringUtils.isNoneEmpty("  bob  ", null)  = false
-     * StringUtils.isNoneEmpty(new String[] {})  = true
-     * StringUtils.isNoneEmpty(new String[]{""}) = false
-     * StringUtils.isNoneEmpty(" ", "bar")       = true
-     * StringUtils.isNoneEmpty("foo", "bar")     = true
-     * </pre>
-     *
-     * @param css the CharSequences to check, may be null or empty
-     * @return {@code true} if none of the CharSequences are empty or null
-     */
-    public static boolean isNoneEmpty(CharSequence... css) {
-        return !isAnyEmpty(css);
     }
 
     /**
