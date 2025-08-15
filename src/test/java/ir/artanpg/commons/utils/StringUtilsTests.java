@@ -3,6 +3,7 @@ package ir.artanpg.commons.utils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -54,11 +55,13 @@ class StringUtilsTests {
     @Test
     void abbreviate_ShouldThrowIllegalArgumentException_WhenMaxWidthIsLessThanMinAbbrevWidth() {
         assertThrowsExactly(
-                IllegalArgumentException.class, () -> StringUtils.abbreviate("Hello", 3),
+                IllegalArgumentException.class,
+                () -> StringUtils.abbreviate("Hello", 3),
                 "Minimum abbreviation width is 4");
 
         assertThrowsExactly(
-                IllegalArgumentException.class, () -> StringUtils.abbreviate("Hello", "...", 3),
+                IllegalArgumentException.class,
+                () -> StringUtils.abbreviate("Hello", "...", 3),
                 "Minimum abbreviation width is 4");
     }
 
@@ -1090,5 +1093,434 @@ class StringUtilsTests {
     @Test
     void isAlphaSpace_ShouldReturnTrue_WhenInputStringIsUnicodeLetters() {
         assertTrue(StringUtils.isAlphaSpace("ẞüñ"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void isNumeric_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.isNumeric(input));
+    }
+
+    @Test
+    void isNumeric_ShouldReturnFalse_WhenInputStringIsBlank() {
+        assertFalse(StringUtils.isNumeric(" "));
+    }
+
+    @Test
+    void isNumeric_ShouldReturnFalse_WhenInputStringContainsLetters() {
+        assertFalse(StringUtils.isNumeric("12a34"));
+    }
+
+    @Test
+    void isNumeric_ShouldReturnFalse_WhenInputStringHasMultipleDecimalPoints() {
+        assertFalse(StringUtils.isNumeric("12.34.56"));
+    }
+
+    @Test
+    void isNumeric_ShouldReturnFalse_WhenInputStringHasOnlyPlusSign() {
+        assertFalse(StringUtils.isNumeric("+"));
+    }
+
+    @Test
+    void isNumeric_ShouldReturnFalse_WhenInputStringHasOnlyMinusSign() {
+        assertFalse(StringUtils.isNumeric("-"));
+    }
+
+    @Test
+    void isNumeric_ShouldReturnFalse_WhenInputStringHasOnlyDecimalPoint() {
+        assertFalse(StringUtils.isNumeric("."));
+    }
+
+    @Test
+    void isNumeric_ShouldReturnFalse_WhenInputStringHasDecimalPointAtEnd() {
+        assertFalse(StringUtils.isNumeric("12."));
+    }
+
+    @Test
+    void isNumeric_ShouldReturnFalse_WhenInputStringContainsWhitespace() {
+        assertFalse(StringUtils.isNumeric("12 34"));
+    }
+
+    @Test
+    void isNumeric_ShouldReturnFalse_WhenInputStringContainsSpecialCharacters() {
+        assertFalse(StringUtils.isNumeric("12@34"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"123", "+123", "۱۲۳", "+۱۲۳"})
+    void isNumeric_ShouldReturnTrue_WhenInputStringIsPositiveInteger(String input) {
+        assertTrue(StringUtils.isNumeric(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"-123", "-۱۲۳"})
+    void isNumeric_ShouldReturnTrue_WhenInputStringIsNegativeInteger(String input) {
+        assertTrue(StringUtils.isNumeric(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"12.34", "+12.34", "۱۲.۳۴", "+۱۲.۳۴"})
+    void isNumeric_ShouldReturnTrue_WhenInputStringIsPositiveDecimal(String input) {
+        assertTrue(StringUtils.isNumeric(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"-12.34", "-۱۲.۳۴"})
+    void isNumeric_ShouldReturnTrue_WhenInputStringIsNegativeDecimal(String input) {
+        assertTrue(StringUtils.isNumeric(input));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void isNumericSpace_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.isNumericSpace(input));
+    }
+
+    @Test
+    void isNumericSpace_ShouldReturnFalse_WhenInputStringIsBlank() {
+        assertFalse(StringUtils.isNumericSpace(" "));
+    }
+
+    @Test
+    void isNumericSpace_ShouldReturnFalse_WhenInputStringContainsLetters() {
+        assertFalse(StringUtils.isNumericSpace("12a34"));
+    }
+
+    @Test
+    void isNumericSpace_ShouldReturnFalse_WhenInputStringContainsSpecialCharacters() {
+        assertFalse(StringUtils.isNumericSpace("12@34"));
+    }
+
+    @Test
+    void isNumericSpace_ShouldReturnFalse_WhenInputStringContainsUnicodeNonDigits() {
+        assertFalse(StringUtils.isNumericSpace("12ẞ34"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"123", "۱۲۳"})
+    void isNumericSpace_ShouldReturnTrue_WhenInputStringContainsOnlyDigits(String input) {
+        assertTrue(StringUtils.isNumericSpace(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"12 34", "  12 34  ", "۱۲ ۳۴", "  ۱۲ ۳۴  "})
+    void isNumericSpace_ShouldReturnTrue_WhenInputStringContainsDigitsAndSpaces(String input) {
+        assertTrue(StringUtils.isNumericSpace(input));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void isWhitespace_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.isWhitespace(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Hello", " Hello ", "123", " 123 ", "@", " @ ", "ẞüñ", " ẞüñ "})
+    void isWhitespace_ShouldReturnFalse_WhenInputStringContainsCharacter(String input) {
+        assertFalse(StringUtils.isWhitespace(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {" ", "  ", "\t\n\r", "\u2000\u2003"})
+    void isWhitespace_ShouldReturnTrue_WhenInputStringIsSpace(String input) {
+        assertTrue(StringUtils.isWhitespace(input));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void left_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.left(input, 3));
+    }
+
+    @Test
+    void left_ShouldThrowIllegalArgumentException_WhenLengthIsNegative() {
+        assertThrowsExactly(
+                IllegalArgumentException.class,
+                () -> StringUtils.left("Hello", -1),
+                "Length must be positive");
+    }
+
+    @Test
+    void left_ShouldReturnOriginalString_WhenLengthIsEqualToStringLength() {
+        assertEquals("Hello", StringUtils.left("Hello", 5));
+    }
+
+    @Test
+    void left_ShouldReturnOriginalString_WhenLengthIsGreaterThanStringLength() {
+        assertEquals("Hello", StringUtils.left("Hello", 10));
+    }
+
+    @Test
+    void left_ShouldReturnSubstring_WhenLengthIsLessThanStringLength() {
+        assertEquals("Hel", StringUtils.left("Hello", 3));
+    }
+
+    @Test
+    void left_ShouldReturnEmptyString_WhenLengthIsZero() {
+        assertEquals("", StringUtils.left("Hello", 0));
+    }
+
+    @Test
+    void left_ShouldReturnOriginalString_WhenInputStringIsSingleCharacter() {
+        assertEquals("a", StringUtils.left("a", 1));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void length_ShouldReturnZero_WhenInputStringIsNull(String input) {
+        assertEquals(0, StringUtils.length(input));
+    }
+
+    @Test
+    void length_ShouldReturnCorrectLength_WhenInputStringIsNonEmpty() {
+        assertEquals(1, StringUtils.length(" "));
+        assertEquals(5, StringUtils.length("Hello"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void mid_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.mid(input, 1, 3));
+    }
+
+    @Test
+    void mid_ShouldThrowIllegalArgumentException_WhenLengthIsNegative() {
+        assertThrowsExactly(
+                IllegalArgumentException.class,
+                () -> StringUtils.mid("hello", 1, -1),
+                "Length must be positive");
+    }
+
+    @Test
+    void mid_ShouldThrowIllegalArgumentException_WhenPositionIsNegative() {
+        assertThrowsExactly(
+                IllegalArgumentException.class,
+                () -> StringUtils.mid("hello", -1, 3), "Position must be positive");
+    }
+
+    @Test
+    void mid_ShouldReturnEmptyString_WhenPositionIsBeyondStringLength() {
+        assertEquals("", StringUtils.mid("Hello", 6, 3));
+    }
+
+    @Test
+    void mid_ShouldReturnEmptyString_WhenLengthIsZero() {
+        assertEquals("", StringUtils.mid("Hello", 1, 0));
+    }
+
+    @Test
+    void mid_ShouldReturnSubstring_WhenPositionAndLengthAreValid() {
+        assertEquals("ell", StringUtils.mid("Hello", 1, 3));
+    }
+
+    @Test
+    void mid_ShouldReturnRemainingString_WhenLengthExceedsRemainingString() {
+        assertEquals("lo", StringUtils.mid("Hello", 3, 5));
+    }
+
+    @Test
+    void mid_ShouldReturnSubstring_WhenPositionIsZeroAndLengthIsValid() {
+        assertEquals("He", StringUtils.mid("Hello", 0, 2));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void normalizeSpace_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.normalizeSpace(input));
+    }
+
+    @Test
+    void normalizeSpace_ShouldReturnEmptyString_WhenInputStringIsBlank() {
+        assertEquals("", StringUtils.normalizeSpace(" "));
+    }
+
+    @Test
+    void normalizeSpace_ShouldReturnEmptyString_WhenInputStringHasOnlyUnicodeWhitespace() {
+        assertEquals("", StringUtils.normalizeSpace("\u2000\u2003"));
+    }
+
+    @Test
+    void normalizeSpace_ShouldReturnOriginalString_WhenInputStringHasNoWhitespace() {
+        assertEquals("Hello", StringUtils.normalizeSpace("Hello"));
+    }
+
+    @Test
+    void normalizeSpace_ShouldNormalizeMultipleSpaces_WhenInputStringHasMultipleSpaces() {
+        assertEquals("Hello World", StringUtils.normalizeSpace("  Hello   World  "));
+    }
+
+    @Test
+    void normalizeSpace_ShouldNormalizeMixedWhitespace_WhenInputStringHasTabsAndNewlines() {
+        assertEquals("Hello World", StringUtils.normalizeSpace("Hello\t\nWorld"));
+    }
+
+    @Test
+    void normalizeSpace_ShouldReplaceNonBreakingSpace_WhenInputStringHasUnicodeNonBreakingSpace() {
+        assertEquals("Hello World", StringUtils.normalizeSpace("Hello\u00A0World"));
+    }
+
+    @Test
+    void normalizeSpace_ShouldReturnSingleWord_WhenInputStringIsSingleWordWithSurroundingSpaces() {
+        assertEquals("Hello", StringUtils.normalizeSpace("  Hello  "));
+    }
+
+    @Test
+    void normalizeSpace_ShouldReturnUnicodeString_WhenInputStringHasUnicodeCharacters() {
+        assertEquals("ẞüñ World", StringUtils.normalizeSpace("ẞüñ   World"));
+    }
+
+    @Test
+    void overlay_ShouldReturnNull_WhenInputStringIsNull() {
+        assertNull(StringUtils.overlay(null, "Hello", 1, 2));
+    }
+
+    @Test
+    void overlay_ShouldThrowIllegalArgumentException_WhenPositionIsNegative() {
+        assertThrowsExactly(
+                IllegalArgumentException.class,
+                () -> StringUtils.overlay("hello", "test", -1, 2),
+                "Length must be positive");
+    }
+
+    @Test
+    void overlay_ShouldThrowIllegalArgumentException_WhenLengthIsNegative() {
+        assertThrowsExactly(
+                IllegalArgumentException.class,
+                () -> StringUtils.overlay("hello", "test", 1, -2),
+                "Position must be positive");
+    }
+
+    @Test
+    void overlay_ShouldReturnOverlay_WhenInputStringIsEmpty() {
+        assertEquals("Hello", StringUtils.overlay("", "Hello", 0, 0));
+    }
+
+    @Test
+    void overlay_ShouldReplaceSegment_WhenPositionAndLengthAreValid() {
+        assertEquals("Hetesto", StringUtils.overlay("Hello", "test", 2, 4));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void overlay_ShouldReplaceWithEmpty_WhenOverlayIsNullOrEmpty(String input) {
+        assertEquals("Heo", StringUtils.overlay("Hello", input, 2, 4));
+    }
+
+    @Test
+    void overlay_ShouldAdjustPosition_WhenPositionExceedsStringLength() {
+        assertEquals("He World", StringUtils.overlay("Hello", " World", 10, 2));
+    }
+
+    @Test
+    void overlay_ShouldAdjustLength_WhenLengthExceedsStringLength() {
+        assertEquals("He World", StringUtils.overlay("Hello", " World", 2, 10));
+    }
+
+    @Test
+    void overlay_ShouldSwapPositionAndLength_WhenPositionIsGreaterThanLength() {
+        assertEquals("Hetesto", StringUtils.overlay("Hello", "test", 4, 2));
+    }
+
+    @Test
+    void overlay_ShouldReturnOverlayAtStart_WhenPositionIsZero() {
+        assertEquals("World llo", StringUtils.overlay("Hello", "World ", 0, 2));
+    }
+
+    @Test
+    void overlay_ShouldReturnUnicodeString_WhenInputContainsUnicodeCharacters() {
+        assertEquals("ẞütestñ", StringUtils.overlay("ẞüñ", "test", 2, 2));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void remove_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.remove(input, 'a'));
+    }
+
+    @Test
+    void remove_ShouldReturnOriginalString_WhenCharacterNotFound() {
+        assertEquals("Hello", StringUtils.remove("Hello", 'x'));
+    }
+
+    @Test
+    void remove_ShouldRemoveAllOccurrences_WhenCharacterExists() {
+        assertEquals("Heo", StringUtils.remove("Hello", 'l'));
+    }
+
+    @Test
+    void remove_ShouldRemoveAllOccurrences_WhenCharacterIsWhitespace() {
+        assertEquals("Hello", StringUtils.remove("H e l l o", ' '));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void removeStart_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.removeStart(input, 'a'));
+    }
+
+    @Test
+    void removeStart_ShouldReturnSubstring_WhenFirstCharacterMatches() {
+        assertEquals("ello", StringUtils.removeStart("Hello", 'H'));
+    }
+
+    @Test
+    void removeStart_ShouldReturnOriginalString_WhenFirstCharacterDoesNotMatch() {
+        assertEquals("Hello", StringUtils.removeStart("Hello", 'x'));
+    }
+
+    @Test
+    void removeStart_ShouldReturnEmptyString_WhenSingleCharacterMatches() {
+        assertEquals("", StringUtils.removeStart("a", 'a'));
+    }
+
+    @Test
+    void removeStart_ShouldReturnSubstring_WhenFirstCharacterIsWhitespaceAndMatches() {
+        assertEquals("Hello", StringUtils.removeStart(" Hello", ' '));
+    }
+
+    @Test
+    void removeStart_ShouldRemoveUnicodeCharacter_WhenFirstCharacterIsUnicodeAndMatches() {
+        assertEquals("üñ", StringUtils.removeStart("ẞüñ", 'ẞ'));
+    }
+
+    @Test
+    void removeStart_ShouldReturnOriginalString_WhenFirstCharacterIsUnicodeAndDoesNotMatch() {
+        assertEquals("ẞüñ", StringUtils.removeStart("ẞüñ", 'ü'));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void removeEnd_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.removeEnd(input, 'a'));
+    }
+
+    @Test
+    void removeEnd_ShouldReturnSubstring_WhenLastCharacterMatches() {
+        assertEquals("Hell", StringUtils.removeEnd("Hello", 'o'));
+    }
+
+    @Test
+    void removeEnd_ShouldReturnOriginalString_WhenLastCharacterDoesNotMatch() {
+        assertEquals("Hello", StringUtils.removeEnd("Hello", 'x'));
+    }
+
+    @Test
+    void removeEnd_ShouldReturnEmptyString_WhenSingleCharacterMatches() {
+        assertEquals("", StringUtils.removeEnd("a", 'a'));
+    }
+
+    @Test
+    void removeEnd_ShouldReturnSubstring_WhenLastCharacterIsWhitespaceAndMatches() {
+        assertEquals("Hello", StringUtils.removeEnd("Hello ", ' '));
+    }
+
+    @Test
+    void removeEnd_ShouldRemoveUnicodeCharacter_WhenFirstCharacterIsUnicodeAndMatches() {
+        assertEquals("ẞü", StringUtils.removeEnd("ẞüñ", 'ñ'));
+    }
+
+    @Test
+    void removeEnd_ShouldReturnOriginalString_WhenFirstCharacterIsUnicodeAndDoesNotMatch() {
+        assertEquals("ẞüñ", StringUtils.removeEnd("ẞüñ", 'ü'));
     }
 }
