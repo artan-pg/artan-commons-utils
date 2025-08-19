@@ -1,11 +1,13 @@
 package ir.artanpg.commons.utils;
 
-import java.lang.reflect.Array;
+import org.springframework.lang.Nullable;
+
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Provides utility methods for {@link String} instances.
@@ -40,7 +42,12 @@ public abstract class StringUtils {
     public static final char LF = '\n';
 
     /**
-     * This is a 3 character version of an ellipsis.
+     * The Unicode non-breaking space character (U+00A0), which prevents line breaks at its position.
+     */
+    public static final char NON_BREAKING_SPACE = '\u00A0';
+
+    /**
+     * This is a 3-character version of an ellipsis.
      */
     public static final String ELLIPSIS3 = "...";
 
@@ -474,6 +481,39 @@ public abstract class StringUtils {
         }
 
         return (i < string2.length() || i < string1.length()) ? i : INDEX_NOT_FOUND;
+    }
+
+    /**
+     * Test if the given {@code String} ends with the specified suffix,
+     * ignoring upper/lower case.
+     *
+     * <p>A {@code null}, {@code empty} or a {@code blank} input string will
+     * return the {@code false}.
+     *
+     * <p>A {@code null}, {@code empty} or a {@code blank} prefix will return
+     * the {@code false}.
+     *
+     * <p>If nothing is found, the {@code false} is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.endsWithIgnoreCase(null, "pre");              = false
+     *  StringUtils.endsWithIgnoreCase("Hello", null);            = false
+     *  StringUtils.endsWithIgnoreCase("", "pre");                = false
+     *  StringUtils.endsWithIgnoreCase("Hello", "");              = false
+     *  StringUtils.endsWithIgnoreCase(" ", "pre");               = false
+     *  StringUtils.endsWithIgnoreCase("Hello", " ");             = false
+     *  StringUtils.endsWithIgnoreCase("Hello prefix", "prefix"); = true
+     *  StringUtils.endsWithIgnoreCase("Hello PREFIX", "prefix"); = true
+     * </pre>
+     *
+     * @param string the string to check
+     * @param suffix the suffix to look for
+     * @see String#endsWith(String)
+     */
+    public static boolean endsWithIgnoreCase(String string, String suffix) {
+        return (hasTextAll(string, suffix) && string.length() >= suffix.length() &&
+                string.regionMatches(true, string.length() - suffix.length(), suffix, 0, suffix.length()));
     }
 
     /**
@@ -1086,7 +1126,7 @@ public abstract class StringUtils {
         char ch;
         for (int i = 0; i < string.length(); i++) {
             ch = string.charAt(i);
-            if (Character.isWhitespace(ch) || ch == '\u00A0') {
+            if (Character.isWhitespace(ch) || ch == NON_BREAKING_SPACE) {
                 if (!lastWasWhitespace) {
                     builder.append(SPACE);
                     lastWasWhitespace = true;
@@ -1118,18 +1158,18 @@ public abstract class StringUtils {
      *
      * <p>Examples:
      * <pre>
-     * StringUtils.overlay(null, "", 0, 0);          = null
-     * StringUtils.overlay("", "Hello", 0, 0);       = "Hello"
-     * StringUtils.overlay("Hello", null, 2, 4);     = "Heo"
-     * StringUtils.overlay("Hello", "", 2, 4);       = "Heo"
-     * StringUtils.overlay("Hello", "", 4, 2);       = "Heo"
-     * StringUtils.overlay("Hello", " ", 2, 4);      = "He o"
-     * StringUtils.overlay("Hello", "Hello", -2, 3); = IllegalArgumentException
-     * StringUtils.overlay("Hello", "Hello", 2, -3); = IllegalArgumentException
+     *  StringUtils.overlay(null, "", 0, 0);          = null
+     *  StringUtils.overlay("", "Hello", 0, 0);       = "Hello"
+     *  StringUtils.overlay("Hello", null, 2, 4);     = "Heo"
+     *  StringUtils.overlay("Hello", "", 2, 4);       = "Heo"
+     *  StringUtils.overlay("Hello", "", 4, 2);       = "Heo"
+     *  StringUtils.overlay("Hello", " ", 2, 4);      = "He o"
+     *  StringUtils.overlay("Hello", "Hello", -2, 3); = IllegalArgumentException
+     *  StringUtils.overlay("Hello", "Hello", 2, -3); = IllegalArgumentException
      * </pre>
      *
-     * @param string   the input string to process; may be null
-     * @param overlay  the string to overlay onto the input string; may be null (treated as empty string)
+     * @param string   the input string to process
+     * @param overlay  the string to overlay onto the input string
      * @param position the starting index (0-based) where the overlay begins; must be non-negative
      * @param length   the number of characters to replace in the input string; must be non-negative
      * @return the resulting string with the specified segment replaced by the overlay string,
@@ -1156,6 +1196,69 @@ public abstract class StringUtils {
         }
 
         return string.substring(0, position) + overlay + string.substring(length);
+    }
+
+    /**
+     * Replaces all occurrences of a specified pattern in the input string with
+     * a replacement string.
+     *
+     * <p>A {@code null}, {@code empty} or a {@code blank} input string or old
+     * pattern will or
+     * return the {@code empty} list.
+     * <p>If the input string or old pattern is {@code null}, {@code empty}, or
+     * a {@code blank} if the replacement is {@code null}, the original string is returned
+     * unchanged.
+     *
+     * <p>If the pattern is not found, the original string is returned.
+     * This method is case-sensitive and uses a {@link StringBuilder} for
+     * efficient string construction.
+     *
+     *
+     * <p>A {@code null} or an {@code empty} open/close will return the
+     * {@code empty} list.
+     *
+     * <p>If nothing is found, the {@code empty} list is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.replace(null, "old", "new");             = null
+     *  StringUtils.replace("", "old", "new");               = null
+     *  StringUtils.replace("abcabc", "bc", "x");            = "axax"
+     *  StringUtils.replace("hello", "x", "y");              = "hello"
+     *  StringUtils.replace("hello", null, "new");           = "hello"
+     *  StringUtils.replace("hello world", "world", "grok"); = "hello grok"
+     * </pre>
+     *
+     * @param string     the input string to process
+     * @param oldPattern the pattern to search for and replace
+     * @param newPattern the replacement string
+     * @return the input string with all occurrences of {@code oldPattern} replaced by {@code newPattern},
+     * or the original string if invalid inputs or pattern not found
+     */
+    public static String replace(String string, String oldPattern, String newPattern) {
+        if (!hasText(string, oldPattern) || newPattern == null) return string;
+
+        int index = string.indexOf(oldPattern);
+        if (index == -1) return string;
+
+        int capacity = string.length();
+        if (newPattern.length() > oldPattern.length()) {
+            capacity += 16;
+        }
+        StringBuilder stringBuilder = new StringBuilder(capacity);
+
+        int position = 0;  // our position in the old string
+        int oldPatternLength = oldPattern.length();
+        while (index >= 0) {
+            stringBuilder.append(string, position, index);
+            stringBuilder.append(newPattern);
+            position = index + oldPatternLength;
+            index = string.indexOf(oldPattern, position);
+        }
+
+        // append any characters to the right of a match
+        stringBuilder.append(string, position, string.length());
+        return stringBuilder.toString();
     }
 
     /**
@@ -1233,599 +1336,434 @@ public abstract class StringUtils {
     /**
      * Reverses a String as per {@link StringBuilder#reverse()}.
      *
-     * <p>A {@code null} String returns {@code null}.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.reverse(null)  = null
-     * StringUtils.reverse("")    = ""
-     * StringUtils.reverse("bat") = "tab"
+     *  StringUtils.reverse(null);    = null
+     *  StringUtils.reverse("");      = ""
+     *  StringUtils.reverse(" ");     = " "
+     *  StringUtils.reverse("Hello"); = "olleH"
      * </pre>
      *
-     * @param string the String to reverse, may be null
-     * @return the reversed String, {@code null} if null String input
+     * @param string the string to reverse
+     * @return the reversed string
      */
     public static String reverse(String string) {
         return (!hasText(string)) ? string : new StringBuilder(string).reverse().toString();
     }
 
     /**
-     * Gets the rightmost {@code len} characters of a String.
+     * Returns the rightmost substring of the specified string with the given
+     * {@code length}.
      *
-     * <p>If {@code len} characters are not available, or the String
-     * is {@code null}, the String will be returned without an
-     * exception. An empty String is returned if len is negative.</p>
+     * <p>If the string is {@code null}, {@code empty}, or shorter than or
+     * equal to the specified {@code length}, the original string is returned
+     * unchanged.
      *
+     * <p>If the length is negative, an {@link IllegalArgumentException} is
+     * thrown.
+     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.right(null, *)    = null
-     * StringUtils.right(*, -ve)     = ""
-     * StringUtils.right("", *)      = ""
-     * StringUtils.right("abc", 0)   = ""
-     * StringUtils.right("abc", 2)   = "bc"
-     * StringUtils.right("abc", 4)   = "abc"
+     *  StringUtils.right(null, 0);     = null
+     *  StringUtils.right("", 0);       = ""
+     *  StringUtils.right("Hello", 0);  = ""
+     *  StringUtils.right("Hello", 2);  = "lo"
+     *  StringUtils.right("Hello", 5);  = "Hello"
+     *  StringUtils.right("Hello", -1); = IllegalArgumentException
      * </pre>
      *
-     * @param str the String to get the rightmost characters from, may be null
-     * @param len the length of the required String
-     * @return the rightmost characters, {@code null} if null String input
+     * @param string the input string to process
+     * @param length the number of characters to return from the end of the string
+     * @return the rightmost substring of the specified length
+     * @throws IllegalArgumentException if the length is negative
      */
-    public static String right(String str, int len) {
-        if (str == null) {
-            return null;
-        }
-        if (len < 0) {
-            return EMPTY;
-        }
-        if (str.length() <= len) {
-            return str;
-        }
-        return str.substring(str.length() - len);
+    public static String right(String string, int length) {
+        if (length < 0) throw new IllegalArgumentException("Length must be positive");
+        return (!hasLength(string) || string.length() <= length) ? string : string.substring(string.length() - length);
     }
 
     /**
-     * Strips whitespace from the start and end of a String.
+     * Test if the given {@code String} starts with the specified prefix,
+     * ignoring upper/lower case.
      *
-     * <p>This is similar to {@link #trim(String)} but removes whitespace.
-     * Whitespace is defined by {@link Character#isWhitespace(char)}.</p>
+     * <p>A {@code null}, {@code empty} or a {@code blank} input string will
+     * return the {@code false}.
      *
-     * <p>A {@code null} input String returns {@code null}.</p>
+     * <p>A {@code null}, {@code empty} or a {@code blank} prefix will return
+     * the {@code false}.
      *
+     * <p>If nothing is found, the {@code false} is returned.
+     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.strip(null)     = null
-     * StringUtils.strip("")       = ""
-     * StringUtils.strip("   ")    = ""
-     * StringUtils.strip("abc")    = "abc"
-     * StringUtils.strip("  abc")  = "abc"
-     * StringUtils.strip("abc  ")  = "abc"
-     * StringUtils.strip(" abc ")  = "abc"
-     * StringUtils.strip(" ab c ") = "ab c"
+     *  StringUtils.startsWithIgnoreCase(null, "pre");              = false
+     *  StringUtils.startsWithIgnoreCase("Hello", null);            = false
+     *  StringUtils.startsWithIgnoreCase("", "pre");                = false
+     *  StringUtils.startsWithIgnoreCase("Hello", "");              = false
+     *  StringUtils.startsWithIgnoreCase(" ", "pre");               = false
+     *  StringUtils.startsWithIgnoreCase("Hello", " ");             = false
+     *  StringUtils.startsWithIgnoreCase("prefix Hello", "prefix"); = true
+     *  StringUtils.startsWithIgnoreCase("PREFIX Hello", "prefix"); = true
      * </pre>
      *
-     * @param str the String to remove whitespace from, may be null
-     * @return the stripped String, {@code null} if null String input
+     * @param string the string to check
+     * @param prefix the prefix to look for
+     * @see String#startsWith(String)
      */
-    public static String strip(String str) {
-        return strip(str, null);
+    public static boolean startsWithIgnoreCase(String string, String prefix) {
+        return (hasTextAll(string, prefix) && string.length() >= prefix.length() &&
+                string.regionMatches(true, 0, prefix, 0, prefix.length()));
     }
 
     /**
-     * Strips any of a set of characters from the start and end of a String.
-     * This is similar to {@link String#trim()} but allows the characters
-     * to be stripped to be controlled.
+     * Strips whitespace from the {@code start} and {@code end} of a String.
      *
      * <p>A {@code null} input String returns {@code null}.
-     * An empty string ("") input returns the empty string.</p>
      *
-     * <p>If the stripChars String is {@code null}, whitespace is
-     * stripped as defined by {@link Character#isWhitespace(char)}.
-     * Alternatively use {@link #strip(String)}.</p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.strip(null, *)          = null
-     * StringUtils.strip("", *)            = ""
-     * StringUtils.strip("abc", null)      = "abc"
-     * StringUtils.strip("  abc", null)    = "abc"
-     * StringUtils.strip("abc  ", null)    = "abc"
-     * StringUtils.strip(" abc ", null)    = "abc"
-     * StringUtils.strip("  abcyx", "xyz") = "  abc"
+     *  StringUtils.strip(null);      = null
+     *  StringUtils.strip("");        = ""
+     *  StringUtils.strip("   ");     = ""
+     *  StringUtils.strip("Hello");   = "Hello"
+     *  StringUtils.strip("  Hello"); = "Hello"
+     *  StringUtils.strip("Hello  "); = "Hello"
+     *  StringUtils.strip(" Hello "); = "Hello"
      * </pre>
      *
-     * @param str        the String to remove characters from, may be null
-     * @param stripChars the characters to remove, null treated as whitespace
-     * @return the stripped String, {@code null} if null String input
+     * @param string the string to remove whitespace from
+     * @return the stripped string
      */
-    public static String strip(String str, String stripChars) {
-        str = stripStart(str, stripChars);
-        return stripEnd(str, stripChars);
+    public static String strip(String string) {
+        return strip(string, null);
     }
 
     /**
-     * Strips whitespace from the start and end of every String in an array.
-     * Whitespace is defined by {@link Character#isWhitespace(char)}.
+     * Strips any of a set of characters from the {@code start} and {@code end}
+     * of a String.
+     * This is similar to {@link String#trim()} but allows the characters to be
+     * stripped to be controlled.
      *
-     * <p>A new array is returned each time, except for length zero.
-     * A {@code null} array will return {@code null}.
-     * An empty array will return itself.
-     * A {@code null} array entry will be ignored.</p>
+     * <p>A {@code null} input String returns {@code null}, or an {@code empty}
+     * input String returns the {@code empty} string.
      *
+     * <p>If the stripChars String is {@code null} or {@code empty}, whitespace
+     * is stripped as defined by {@link Character#isWhitespace(char)}.
+     * Alternatively use {@link #strip(String)}.
+     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.stripAll(null)             = null
-     * StringUtils.stripAll([])               = []
-     * StringUtils.stripAll(["abc", "  abc"]) = ["abc", "abc"]
-     * StringUtils.stripAll(["abc  ", null])  = ["abc", null]
+     *  StringUtils.strip(null, null);      = null
+     *  StringUtils.strip("", null);        = ""
+     *  StringUtils.strip("Hello", null);   = "Hello"
+     *  StringUtils.strip("Hello", "");     = "Hello"
+     *  StringUtils.strip("  Hello", null); = "Hello"
+     *  StringUtils.strip("  Hello", "");   = "Hello"
+     *  StringUtils.strip("Hello  ", null); = "Hello"
+     *  StringUtils.strip("Hello  ", "");   = "Hello"
+     *  StringUtils.strip(" Hello ", null); = "Hello"
+     *  StringUtils.strip(" Hello ", "");   = "Hello"
+     *  StringUtils.strip("  Hello", "He"); = " "llo"
      * </pre>
      *
-     * @param strs the array to remove whitespace from, may be null
-     * @return the stripped Strings, {@code null} if null array input
+     * @param string     the string to remove characters from
+     * @param stripChars the characters to remove, {@code null} or {@code empty} treated as whitespace
+     * @return the stripped string
      */
-    public static String[] stripAll(String... strs) {
-        return stripAll(strs, null);
+    public static String strip(String string, String stripChars) {
+        string = stripStart(string, stripChars);
+        return stripEnd(string, stripChars);
     }
 
     /**
-     * Strips any of a set of characters from the start and end of every
-     * String in an array.
-     * <p>Whitespace is defined by {@link Character#isWhitespace(char)}.</p>
+     * Strips any of a set of characters from the {@code start} of a String.
      *
-     * <p>A new array is returned each time, except for length zero.
-     * A {@code null} array will return {@code null}.
-     * An empty array will return itself.
-     * A {@code null} array entry will be ignored.
-     * A {@code null} stripChars will strip whitespace as defined by
-     * {@link Character#isWhitespace(char)}.</p>
+     * <p>A {@code null} input String returns {@code null}, or an {@code empty}
+     * input String returns the {@code empty} string.
      *
+     * <p>If the stripChars String is {@code null} or {@code empty}, whitespace
+     * is stripped as defined by {@link Character#isWhitespace(char)}.
+     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.stripAll(null, *)                = null
-     * StringUtils.stripAll([], *)                  = []
-     * StringUtils.stripAll(["abc", "  abc"], null) = ["abc", "abc"]
-     * StringUtils.stripAll(["abc  ", null], null)  = ["abc", null]
-     * StringUtils.stripAll(["abc  ", null], "yz")  = ["abc  ", null]
-     * StringUtils.stripAll(["yabcz", null], "yz")  = ["abc", null]
+     *  StringUtils.stripStart(null, null);      = null
+     *  StringUtils.stripStart("", null);        = ""
+     *  StringUtils.stripStart("Hello", null);   = "Hello"
+     *  StringUtils.stripStart("Hello", "");     = "Hello"
+     *  StringUtils.stripStart("  Hello", null); = "Hello"
+     *  StringUtils.stripStart("  Hello", "");   = "Hello"
+     *  StringUtils.stripStart("Hello  ", "He"); = "llo  "
      * </pre>
      *
-     * @param strs       the array to remove characters from, may be null
-     * @param stripChars the characters to remove, null treated as whitespace
-     * @return the stripped Strings, {@code null} if null array input
+     * @param string     the string to remove characters from
+     * @param stripChars the characters to remove, {@code null} or {@code empty} treated as whitespace
+     * @return the stripped String
      */
-    public static String[] stripAll(String[] strs, String stripChars) {
-        int strsLen = strs != null ? Array.getLength(strs) : 0;
-        if (strsLen == 0) {
-            return strs;
-        }
-        String[] newArr = new String[strsLen];
-        Arrays.setAll(newArr, i -> strip(strs[i], stripChars));
-        return newArr;
-    }
+    public static String stripStart(String string, String stripChars) {
+        if (!hasLength(string)) return string;
 
-    /**
-     * Strips any of a set of characters from the end of a String.
-     *
-     * <p>A {@code null} input String returns {@code null}.
-     * An empty string ("") input returns the empty string.</p>
-     *
-     * <p>If the stripChars String is {@code null}, whitespace is
-     * stripped as defined by {@link Character#isWhitespace(char)}.</p>
-     *
-     * <pre>
-     * StringUtils.stripEnd(null, *)          = null
-     * StringUtils.stripEnd("", *)            = ""
-     * StringUtils.stripEnd("abc", "")        = "abc"
-     * StringUtils.stripEnd("abc", null)      = "abc"
-     * StringUtils.stripEnd("  abc", null)    = "  abc"
-     * StringUtils.stripEnd("abc  ", null)    = "abc"
-     * StringUtils.stripEnd(" abc ", null)    = " abc"
-     * StringUtils.stripEnd("  abcyx", "xyz") = "  abc"
-     * StringUtils.stripEnd("120.00", ".0")   = "12"
-     * </pre>
-     *
-     * @param str        the String to remove characters from, may be null
-     * @param stripChars the set of characters to remove, null treated as whitespace
-     * @return the stripped String, {@code null} if null String input
-     */
-    public static String stripEnd(String str, String stripChars) {
-        int end = length(str);
-        if (end == 0) {
-            return str;
-        }
-
-        if (stripChars == null) {
-            while (end != 0 && Character.isWhitespace(str.charAt(end - 1))) {
-                end--;
-            }
-        } else if (stripChars.isEmpty()) {
-            return str;
-        } else {
-            while (end != 0 && stripChars.indexOf(str.charAt(end - 1)) != INDEX_NOT_FOUND) {
-                end--;
-            }
-        }
-        return str.substring(0, end);
-    }
-
-    /**
-     * Strips any of a set of characters from the start of a String.
-     *
-     * <p>A {@code null} input String returns {@code null}.
-     * An empty string ("") input returns the empty string.</p>
-     *
-     * <p>If the stripChars String is {@code null}, whitespace is
-     * stripped as defined by {@link Character#isWhitespace(char)}.</p>
-     *
-     * <pre>
-     * StringUtils.stripStart(null, *)          = null
-     * StringUtils.stripStart("", *)            = ""
-     * StringUtils.stripStart("abc", "")        = "abc"
-     * StringUtils.stripStart("abc", null)      = "abc"
-     * StringUtils.stripStart("  abc", null)    = "abc"
-     * StringUtils.stripStart("abc  ", null)    = "abc  "
-     * StringUtils.stripStart(" abc ", null)    = "abc "
-     * StringUtils.stripStart("yxabc  ", "xyz") = "abc  "
-     * </pre>
-     *
-     * @param str        the String to remove characters from, may be null
-     * @param stripChars the characters to remove, null treated as whitespace
-     * @return the stripped String, {@code null} if null String input
-     */
-    public static String stripStart(String str, String stripChars) {
-        int strLen = length(str);
-        if (strLen == 0) {
-            return str;
-        }
         int start = 0;
-        if (stripChars == null) {
-            while (start != strLen && Character.isWhitespace(str.charAt(start))) {
+        int length = string.length();
+        if (!hasLength(stripChars)) {
+            while (start < length &&
+                    (Character.isWhitespace(string.charAt(start)) || string.charAt(start) == NON_BREAKING_SPACE)) {
                 start++;
             }
-        } else if (stripChars.isEmpty()) {
-            return str;
         } else {
-            while (start != strLen && stripChars.indexOf(str.charAt(start)) != INDEX_NOT_FOUND) {
+            Set<Character> charsToStrip = stripChars.chars().mapToObj(ch -> (char) ch).collect(Collectors.toSet());
+            while (start < length && charsToStrip.contains(string.charAt(start))) {
                 start++;
             }
         }
-        return str.substring(start);
+
+        return string.substring(start);
+    }
+
+    /**
+     * Strips any of a set of characters from the {@code end} of a String.
+     *
+     * <p>A {@code null} input String returns {@code null}, or an {@code empty}
+     * input String returns the empty string.
+     *
+     * <p>If the stripChars String is {@code null} or {@code empty}, whitespace
+     * is stripped as defined by {@link Character#isWhitespace(char)}.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.stripEnd(null, null);      = null
+     *  StringUtils.stripEnd("", null);        = ""
+     *  StringUtils.stripEnd("Hello", null);   = "Hello"
+     *  StringUtils.stripEnd("Hello", "");     = "Hello"
+     *  StringUtils.stripEnd("Hello  ", null); = "Hello"
+     *  StringUtils.stripEnd("Hello  ", "");   = "Hello"
+     *  StringUtils.stripEnd("Hello", "llo");  = "He"
+     * </pre>
+     *
+     * @param string     the string to remove characters from
+     * @param stripChars the characters to remove, {@code null} or {@code empty} treated as whitespace
+     * @return the stripped string
+     */
+    public static String stripEnd(String string, String stripChars) {
+        if (!hasLength(string)) return string;
+
+        int length = string.length();
+        if (!hasLength(stripChars)) {
+            while (length > 0 &&
+                    (Character.isWhitespace(string.charAt(length - 1)) || string.charAt(length - 1) == NON_BREAKING_SPACE)) {
+                length--;
+            }
+        } else {
+            Set<Character> chars = stripChars.chars().mapToObj(ch -> (char) ch).collect(Collectors.toSet());
+            while (length >= chars.size() &&
+                    chars.contains(string.charAt(length - 1)) || chars.contains(NON_BREAKING_SPACE)) {
+                length--;
+            }
+        }
+
+        return string.substring(0, length);
     }
 
     /**
      * Gets the substring after the first occurrence of a separator.
      * The separator is not returned.
      *
-     * <p>A {@code null} string input will return {@code null}.
-     * An empty ("") string input will return the empty string.
-     * A {@code null} separator will return the empty string if the
-     * input string is not {@code null}.</p>
+     * <p>A {@code null}, {@code empty} or a {@code blank} input string will
+     * return the {@code empty} string.
      *
-     * <p>If nothing is found, the empty string is returned.</p>
+     * <p>A {@code null} or an {@code empty} separator will return the
+     * {@code Original} string.
      *
+     * <p>If nothing is found, the {@code empty} string is returned.
+     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.substringAfter(null, *)      = null
-     * StringUtils.substringAfter("", *)        = ""
-     * StringUtils.substringAfter(*, null)      = ""
-     * StringUtils.substringAfter("abc", "a")   = "bc"
-     * StringUtils.substringAfter("abcba", "b") = "cba"
-     * StringUtils.substringAfter("abc", "c")   = ""
-     * StringUtils.substringAfter("abc", "d")   = ""
-     * StringUtils.substringAfter("abc", "")    = "abc"
+     *  StringUtils.substringAfter(null, "");      = ""
+     *  StringUtils.substringAfter("", "");        = ""
+     *  StringUtils.substringAfter(" ", "");       = ""
+     *  StringUtils.substringAfter("Hello", null); = "Hello"
+     *  StringUtils.substringAfter("Hello", "");   = "Hello"
+     *  StringUtils.substringAfter("Hello", " ");  = ""
+     *  StringUtils.substringAfter("Hello ", " "); = " "
+     *  StringUtils.substringAfter("Hello", "h");  = ""
+     *  StringUtils.substringAfter("Hello", "e");  = "llo"
      * </pre>
      *
-     * @param str       the String to get a substring from, may be null
-     * @param separator the String to search for, may be null
-     * @return the substring after the first occurrence of the separator,
-     * {@code null} if null String input
+     * @param string    the string to get a substring from
+     * @param separator the string to search for
+     * @return the substring after the first occurrence of the separator
      */
-    public static String substringAfter(String str, String separator) {
-        if (!hasText(str) || !hasText(separator)) return str;
+    public static String substringAfter(String string, String separator) {
+        if (!hasText(string)) return EMPTY;
+        if (!hasLength(separator)) return string;
 
-        int pos = str.indexOf(separator);
-        return (pos == INDEX_NOT_FOUND) ? EMPTY : str.substring(pos + separator.length());
-    }
-
-    /**
-     * Gets the substring after the last occurrence of a separator.
-     * The separator is not returned.
-     *
-     * <p>A {@code null} string input will return {@code null}.
-     * An empty ("") string input will return the empty string.
-     * An empty or {@code null} separator will return the empty string if
-     * the input string is not {@code null}.</p>
-     *
-     * <p>If nothing is found, the empty string is returned.</p>
-     *
-     * <pre>
-     * StringUtils.substringAfterLast(null, *)      = null
-     * StringUtils.substringAfterLast("", *)        = ""
-     * StringUtils.substringAfterLast(*, "")        = ""
-     * StringUtils.substringAfterLast(*, null)      = ""
-     * StringUtils.substringAfterLast("abc", "a")   = "bc"
-     * StringUtils.substringAfterLast("abcba", "b") = "a"
-     * StringUtils.substringAfterLast("abc", "c")   = ""
-     * StringUtils.substringAfterLast("a", "a")     = ""
-     * StringUtils.substringAfterLast("a", "z")     = ""
-     * </pre>
-     *
-     * @param str       the String to get a substring from, may be null
-     * @param separator the String to search for, may be null
-     * @return the substring after the last occurrence of the separator,
-     * {@code null} if null String input
-     */
-    public static String substringAfterLast(String str, String separator) {
-        if (!hasText(str) || !hasText(separator)) return str;
-
-        int pos = str.lastIndexOf(separator);
-        return (pos == INDEX_NOT_FOUND || pos == str.length() - separator.length()) ?
-                EMPTY :
-                str.substring(pos + separator.length());
+        int position = string.indexOf(separator);
+        return (position == INDEX_NOT_FOUND) ? EMPTY : string.substring(position + separator.length());
     }
 
     /**
      * Gets the substring before the first occurrence of a separator.
      * The separator is not returned.
      *
-     * <p>A {@code null} string input will return {@code null}.
-     * An empty ("") string input will return the empty string.
-     * A {@code null} separator will return the input string.</p>
+     * <p>A {@code null}, {@code empty} or a {@code blank} input string will
+     * return the {@code empty} string.
      *
-     * <p>If nothing is found, the string input is returned.</p>
+     * <p>A {@code null} or an {@code empty} separator will return the
+     * {@code Original} string.
      *
+     * <p>If nothing is found, the {@code empty} string is returned.
+     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.substringBefore(null, *)      = null
-     * StringUtils.substringBefore("", *)        = ""
-     * StringUtils.substringBefore("abc", "a")   = ""
-     * StringUtils.substringBefore("abcba", "b") = "a"
-     * StringUtils.substringBefore("abc", "c")   = "ab"
-     * StringUtils.substringBefore("abc", "d")   = "abc"
-     * StringUtils.substringBefore("abc", "")    = ""
-     * StringUtils.substringBefore("abc", null)  = "abc"
+     *  StringUtils.substringBefore(null, "");               = ""
+     *  StringUtils.substringBefore("", "");                 = ""
+     *  StringUtils.substringBefore(" ", "");                = ""
+     *  StringUtils.substringBefore("Hello", null);          = "Hello"
+     *  StringUtils.substringBefore("Hello", "");            = "Hello"
+     *  StringUtils.substringBefore("Hello World", " ");     = "Hello"
+     *  StringUtils.substringBefore("Hello World", "World"); = "Hello "
      * </pre>
      *
-     * @param str       the String to get a substring from, may be null
-     * @param separator the String to search for, may be null
-     * @return the substring before the first occurrence of the separator,
-     * {@code null} if null String input
+     * @param string    the string to get a substring from
+     * @param separator the string to search for
+     * @return the substring before the first occurrence of the separator
      */
-    public static String substringBefore(String str, String separator) {
-        if (!hasText(str) || !hasText(separator)) return str;
+    public static String substringBefore(String string, String separator) {
+        if (!hasText(string)) return EMPTY;
+        if (!hasLength(separator)) return string;
 
-        int pos = str.indexOf(separator);
-        return (pos == INDEX_NOT_FOUND) ? str : str.substring(0, pos);
+        int pos = string.indexOf(separator);
+        return (pos == INDEX_NOT_FOUND) ? EMPTY : string.substring(0, pos);
     }
 
     /**
-     * Gets the substring before the last occurrence of a separator.
-     * The separator is not returned.
-     *
-     * <p>A {@code null} string input will return {@code null}.
-     * An empty ("") string input will return the empty string.
-     * An empty or {@code null} separator will return the input string.</p>
-     *
-     * <p>If nothing is found, the string input is returned.</p>
-     *
-     * <pre>
-     * StringUtils.substringBeforeLast(null, *)      = null
-     * StringUtils.substringBeforeLast("", *)        = ""
-     * StringUtils.substringBeforeLast("abcba", "b") = "abc"
-     * StringUtils.substringBeforeLast("abc", "c")   = "ab"
-     * StringUtils.substringBeforeLast("a", "a")     = ""
-     * StringUtils.substringBeforeLast("a", "z")     = "a"
-     * StringUtils.substringBeforeLast("a", null)    = "a"
-     * StringUtils.substringBeforeLast("a", "")      = "a"
-     * </pre>
-     *
-     * @param str       the String to get a substring from, may be null
-     * @param separator the String to search for, may be null
-     * @return the substring before the last occurrence of the separator,
-     * {@code null} if null String input
-     */
-    public static String substringBeforeLast(String str, String separator) {
-        if (!hasText(str) || !hasText(separator)) return str;
-
-        int pos = str.lastIndexOf(separator);
-        return (pos == INDEX_NOT_FOUND) ? str : str.substring(0, pos);
-    }
-
-    /**
-     * Gets the String that is nested in between two instances of the
-     * same String.
-     *
-     * <p>A {@code null} input String returns {@code null}.
-     * A {@code null} tag returns {@code null}.</p>
-     *
-     * <pre>
-     * StringUtils.substringBetween(null, *)            = null
-     * StringUtils.substringBetween("", "")             = ""
-     * StringUtils.substringBetween("", "tag")          = null
-     * StringUtils.substringBetween("tagabctag", null)  = null
-     * StringUtils.substringBetween("tagabctag", "")    = ""
-     * StringUtils.substringBetween("tagabctag", "tag") = "abc"
-     * </pre>
-     *
-     * @param str the String containing the substring, may be null
-     * @param tag the String before and after the substring, may be null
-     * @return the substring, {@code null} if no match
-     */
-    public static String substringBetween(String str, String tag) {
-        return substringBetween(str, tag, tag);
-    }
-
-    /**
-     * Gets the String that is nested in between two Strings.
+     * Gets the String that is nested in between two strings.
      * Only the first match is returned.
      *
-     * <p>A {@code null} input String returns {@code null}.
-     * A {@code null} open/close returns {@code null} (no match).
-     * An empty ("") open and close returns an empty string.</p>
+     * <p>A {@code null}, {@code empty} or a {@code blank} input string will
+     * return the {@code empty} string.
      *
+     * <p>A {@code null} or an {@code empty} open/close will return the
+     * {@code Original} string.
+     *
+     * <p>If nothing is found, the {@code empty} string is returned.
+     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.substringBetween("wx[b]yz", "[", "]") = "b"
-     * StringUtils.substringBetween(null, *, *)          = null
-     * StringUtils.substringBetween(*, null, *)          = null
-     * StringUtils.substringBetween(*, *, null)          = null
-     * StringUtils.substringBetween("", "", "")          = ""
-     * StringUtils.substringBetween("", "", "]")         = null
-     * StringUtils.substringBetween("", "[", "]")        = null
-     * StringUtils.substringBetween("yabcz", "", "")     = ""
-     * StringUtils.substringBetween("yabcz", "y", "z")   = "abc"
-     * StringUtils.substringBetween("yabczyabcz", "y", "z")   = "abc"
+     *  StringUtils.substringBetween(null, "", "");        = ""
+     *  StringUtils.substringBetween("", null, "");        = ""
+     *  StringUtils.substringBetween("", "", null);        = ""
+     *  StringUtils.substringBetween("", "", "");          = ""
+     *  StringUtils.substringBetween("", "", "]");         = ""
+     *  StringUtils.substringBetween("", "[", "]");        = ""
+     *  StringUtils.substringBetween("(Hello)", "[", "]"); = ""
+     *  StringUtils.substringBetween("(Hello)", "(", ")"); = "Hello"
      * </pre>
      *
-     * @param str   the String containing the substring, may be null
-     * @param open  the String before the substring, may be null
-     * @param close the String after the substring, may be null
-     * @return the substring, {@link #EMPTY} if no match
+     * @param string the string containing the substring
+     * @param open   the string before the substring
+     * @param close  the string after the substring
+     * @return the substring
      */
-    public static String substringBetween(String str, String open, String close) {
-        if (!hasTextAll(str, open, close)) return EMPTY;
-        int start = str.indexOf(open);
+    public static String substringBetween(String string, String open, String close) {
+        if (!hasText(string)) return EMPTY;
+        if (!hasLengthAll(open, close)) return string;
 
-        if (start != INDEX_NOT_FOUND) {
-            int end = str.indexOf(close, start + open.length());
-            if (end != INDEX_NOT_FOUND) return str.substring(start + open.length(), end);
+        int startIndex = string.indexOf(open);
+        if (startIndex != INDEX_NOT_FOUND) {
+            int endIndex = string.indexOf(close, startIndex + open.length());
+            if (endIndex != INDEX_NOT_FOUND) {
+                return string.substring(startIndex + open.length(), endIndex);
+            }
         }
 
         return EMPTY;
     }
 
     /**
-     * Searches a String for substrings delimited by a start and end tag,
-     * returning all matching substrings in an array.
+     * Extracts all substrings from the input string that are enclosed between
+     * the specified {@code open} and {@code close} tags.
+     * The substrings are returned as a list.
      *
-     * <p>A {@code null} input String returns {@code null}.
-     * A {@code null} open/close returns {@code null} (no match).
-     * An empty ("") open/close returns {@code null} (no match).</p>
+     * <p>A {@code null}, {@code empty} or a {@code blank} input string will
+     * return the {@code empty} list.
      *
+     * <p>A {@code null} or an {@code empty} open/close will return the
+     * {@code empty} list.
+     *
+     * <p>If nothing is found, the {@code empty} list is returned.
+     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.substringsBetween("[a][b][c]", "[", "]") = ["a","b","c"]
-     * StringUtils.substringsBetween(null, *, *)            = null
-     * StringUtils.substringsBetween(*, null, *)            = null
-     * StringUtils.substringsBetween(*, *, null)            = null
-     * StringUtils.substringsBetween("", "[", "]")          = []
+     *  StringUtils.substringsBetween(null, "", "");               = []
+     *  StringUtils.substringsBetween("", null, "");               = []
+     *  StringUtils.substringsBetween("", "", null);               = []
+     *  StringUtils.substringsBetween("", "", "");                 = []
+     *  StringUtils.substringsBetween("", "", "]");                = []
+     *  StringUtils.substringsBetween("", "[", "]");               = []
+     *  StringUtils.substringsBetween("(Hello) (World)", "[", "]") = [];
+     *  StringUtils.substringsBetween("(Hello) (World)", "(", ")") = ["Hello", "World"];
      * </pre>
      *
-     * @param str   the String containing the substrings, null returns null, empty returns empty
-     * @param open  the String identifying the start of the substring, empty returns null
-     * @param close the String identifying the end of the substring, empty returns null
-     * @return a String Array of substrings, or {@code null} if no match
+     * @param string the input string to process
+     * @param open   the opening tag; must be non-null and non-empty
+     * @param close  the closing tag; must be non-null and non-empty
+     * @return a list of non-empty substrings between matching {@code open} and {@code close} tags,
+     * or an empty list if no valid substrings are found or inputs are invalid
+     * @since 1.0
      */
-    public static String[] substringsBetween(String str, String open, String close) {
-        if (!hasTextAll(str, open, close)) return new String[]{};
+    public static List<String> substringsBetween(String string, String open, String close) {
+        if (!hasText(string) || !hasLengthAll(open, close)) return Collections.emptyList();
 
-        int strLength = str.length();
-        int closeLength = close.length();
-        int openLength = open.length();
+        int startIndex = 0;
+        int openLen = open.length();
+        int closeLen = close.length();
+        List<String> results = new ArrayList<>();
 
-        List<String> list = new ArrayList<>();
-        int pos = 0;
-        while (pos < strLength - closeLength) {
-            int start = str.indexOf(open, pos);
+        while (true) {
+            int openIndex = string.indexOf(open, startIndex);
+            if (openIndex == -1) break;
 
-            if (start < 0) break;
+            int closeIndex = string.indexOf(close, openIndex + openLen);
+            if (closeIndex == -1) break;
 
-            start += openLength;
-            int end = str.indexOf(close, start);
+            String found = string.substring(openIndex + openLen, closeIndex);
+            results.add(found);
 
-            if (end < 0) break;
-
-            list.add(str.substring(start, end));
-            pos = end + closeLength;
+            startIndex = closeIndex + closeLen;
         }
 
-        return (list.isEmpty()) ? new String[]{} : list.toArray(new String[]{});
-    }
-
-    /**
-     * Converts a {@link CharSequence} into an array of code points.
-     *
-     * <p>Valid pairs of surrogate code units will be converted into a single supplementary
-     * code point. Isolated surrogate code units (i.e. a high surrogate not followed by a low surrogate or
-     * a low surrogate not preceded by a high surrogate) will be returned as-is.</p>
-     *
-     * <pre>
-     * StringUtils.toCodePoints(null)   =  null
-     * StringUtils.toCodePoints("")     =  []  // empty array
-     * </pre>
-     *
-     * @param string the character sequence to convert
-     * @return an array of code points
-     */
-    public static int[] toCodePoints(String string) {
-        return (!hasText(string)) ? new int[]{} : string.codePoints().toArray();
-    }
-
-    /**
-     * Converts the given source String as a lower-case using the {@link Locale#ROOT} locale in a null-safe manner.
-     *
-     * @param source A source String or null.
-     * @return the given source String as a lower-case using the {@link Locale#ROOT} locale or null.
-     */
-    public static String toRootLowerCase(String source) {
-        return (!hasText(source)) ? source : source.toLowerCase(Locale.ROOT);
-    }
-
-    /**
-     * Converts the given source String as an upper-case using the {@link Locale#ROOT} locale in a null-safe manner.
-     *
-     * @param source A source String or null.
-     * @return the given source String as an upper-case using the {@link Locale#ROOT} locale or null.
-     */
-    public static String toRootUpperCase(String source) {
-        return (!hasText(source)) ? source : source.toUpperCase(Locale.ROOT);
-    }
-
-    /**
-     * Removes control characters (char &lt;= 32) from both
-     * ends of this String, handling {@code null} by returning
-     * {@code null}.
-     *
-     * <p>The String is trimmed using {@link String#trim()}.
-     * Trim removes start and end characters &lt;= 32.
-     * To strip whitespace use {@link #strip(String)}.</p>
-     *
-     * <p>To trim your choice of characters, use the
-     * {@link #strip(String, String)} methods.</p>
-     *
-     * <pre>
-     * StringUtils.trim(null)          = null
-     * StringUtils.trim("")            = ""
-     * StringUtils.trim("     ")       = ""
-     * StringUtils.trim("abc")         = "abc"
-     * StringUtils.trim("    abc    ") = "abc"
-     * </pre>
-     *
-     * @param str the String to be trimmed, may be null
-     * @return the trimmed string, {@code null} if null String input
-     */
-    public static String trim(String str) {
-        return str == null ? null : str.trim();
+        return (results.isEmpty() || results.get(0).isEmpty()) ? Collections.emptyList() : results;
     }
 
     /**
      * Uncapitalizes a String, changing the first character to lower case as
      * per {@link Character#toLowerCase(int)}. No other characters are changed.
      *
+     * <p>Examples:
      * <pre>
-     * StringUtils.uncapitalize(null)  = null
-     * StringUtils.uncapitalize("")    = ""
-     * StringUtils.uncapitalize("cat") = "cat"
-     * StringUtils.uncapitalize("Cat") = "cat"
-     * StringUtils.uncapitalize("CAT") = "cAT"
+     *  StringUtils.uncapitalize(null);    = null
+     *  StringUtils.uncapitalize("");      = ""
+     *  StringUtils.uncapitalize(" ");     = ""
+     *  StringUtils.uncapitalize("hello"); = "hello"
+     *  StringUtils.uncapitalize("Hello"); = "hello"
+     *  StringUtils.uncapitalize("HELLO"); = "hELLO"
      * </pre>
      *
-     * @param str the String to uncapitalize, may be null
-     * @return the uncapitalized String, {@code null} if null String input
+     * @param string the String to uncapitalize
+     * @return the uncapitalized string
      * @see #capitalize(String)
      */
-    public static String uncapitalize(String str) {
-        int strLen = length(str);
-        if (strLen == 0) {
-            return str;
-        }
-        int firstCodePoint = str.codePointAt(0);
+    public static String uncapitalize(String string) {
+        if (!hasText(string)) return string;
+
+        int firstCodePoint = string.codePointAt(0);
         int newCodePoint = Character.toLowerCase(firstCodePoint);
-        if (firstCodePoint == newCodePoint) {
-            // already uncapitalized
-            return str;
-        }
-        int[] newCodePoints = str.codePoints().toArray();
-        newCodePoints[0] = newCodePoint; // copy the first code point
+
+        if (firstCodePoint == newCodePoint) return string;
+
+        int[] newCodePoints = string.codePoints().toArray();
+        newCodePoints[0] = newCodePoint;
+
         return new String(newCodePoints, 0, newCodePoints.length);
     }
 
@@ -1833,96 +1771,82 @@ public abstract class StringUtils {
      * Unwraps a given string from another string.
      *
      * <pre>
-     * StringUtils.unwrap(null, null)         = null
-     * StringUtils.unwrap(null, "")           = null
-     * StringUtils.unwrap(null, "1")          = null
-     * StringUtils.unwrap("a", "a")           = "a"
-     * StringUtils.unwrap("aa", "a")          = ""
-     * StringUtils.unwrap("\'abc\'", "\'")    = "abc"
-     * StringUtils.unwrap("\"abc\"", "\"")    = "abc"
-     * StringUtils.unwrap("AABabcBAA", "AA")  = "BabcB"
-     * StringUtils.unwrap("A", "#")           = "A"
-     * StringUtils.unwrap("#A", "#")          = "#A"
-     * StringUtils.unwrap("A#", "#")          = "A#"
+     *  StringUtils.unwrap(null, null);     = null
+     *  StringUtils.unwrap("", '\0');       = ""
+     *  StringUtils.unwrap(" ", '1');       = " "
+     *  StringUtils.unwrap("#Hello#", '#'); = "Hello"
      * </pre>
      *
-     * @param str       the String to be unwrapped, can be null
-     * @param wrapToken the String used to unwrap
-     * @return unwrapped String or the original string
-     * if it is not quoted properly with the wrapToken
+     * @param string    the string to be unwrapped
+     * @param wrapToken the string used to unwrap
+     * @return the unwrapped string with {@code wrapToken} removed from both start and end
      */
-    public static String unwrap(String str, String wrapToken) {
-        return str;
+    public static String unwrap(String string, char wrapToken) {
+        if (!hasText(string)) return string;
+
+        int startIndex = 0;
+        int endIndex = string.length() - 1;
+
+        return (string.charAt(0) == wrapToken && string.charAt(string.length() - 1) == wrapToken) ?
+                string.substring(startIndex + 1, endIndex) : string;
     }
 
     /**
      * Wraps a String with another String.
      *
-     * <p>
-     * A {@code null} input String returns {@code null}.
-     * </p>
-     *
+     * <p>Examples:
      * <pre>
-     * StringUtils.wrap(null, *)         = null
-     * StringUtils.wrap("", *)           = ""
-     * StringUtils.wrap("ab", null)      = "ab"
-     * StringUtils.wrap("ab", "x")       = "xabx"
-     * StringUtils.wrap("ab", "\"")      = "\"ab\""
-     * StringUtils.wrap("\"ab\"", "\"")  = "\"\"ab\"\""
-     * StringUtils.wrap("ab", "'")       = "'ab'"
-     * StringUtils.wrap("'abcd'", "'")   = "''abcd''"
-     * StringUtils.wrap("\"abcd\"", "'") = "'\"abcd\"'"
-     * StringUtils.wrap("'abcd'", "\"")  = "\"'abcd'\""
+     *  StringUtils.wrap(null, null);     = null
+     *  StringUtils.wrap("", '\0');       = ""
+     *  StringUtils.wrap(" ", '1');       = " "
+     *  StringUtils.wrap("Hello", "#");   = "#Hello#"
+     *  StringUtils.wrap("#Hello#", "#"); = "##Hello##"
      * </pre>
      *
-     * @param str      the String to be wrapper, may be null
-     * @param wrapWith the String that will wrap str
-     * @return wrapped String, {@code null} if null String input
+     * @param string   the string to be wrapper
+     * @param wrapWith the string that will wrap string
+     * @return the wrapped string with {@code wrapWith} added from both start and end
      */
-    public static String wrap(String str, String wrapWith) {
-        return (!hasTextAll(str, wrapWith)) ? str : wrapWith.concat(str).concat(wrapWith);
+    public static String wrap(String string, String wrapWith) {
+        return (!hasText(string) || !hasLength(wrapWith)) ? string : wrapWith.concat(string).concat(wrapWith);
     }
 
     /**
-     * Wraps a string with a string if that string is missing from the start or end of the given string.
+     * Wraps a string with a string if that string is missing from the
+     * {@code start} or {@code end} of the given string.
      *
-     * <p>A new {@link String} will not be created if {@code str} is already wrapped.</p>
+     * <p>A new {@link String} will not be created if {@code string} is already wrapped.
      *
+     * <p>Examples:
      * <pre>
-     * StringUtils.wrapIfMissing(null, *)         = null
-     * StringUtils.wrapIfMissing("", *)           = ""
-     * StringUtils.wrapIfMissing("ab", null)      = "ab"
-     * StringUtils.wrapIfMissing("ab", "x")       = "xabx"
-     * StringUtils.wrapIfMissing("ab", "\"")      = "\"ab\""
-     * StringUtils.wrapIfMissing("\"ab\"", "\"")  = "\"ab\""
-     * StringUtils.wrapIfMissing("ab", "'")       = "'ab'"
-     * StringUtils.wrapIfMissing("'abcd'", "'")   = "'abcd'"
-     * StringUtils.wrapIfMissing("\"abcd\"", "'") = "'\"abcd\"'"
-     * StringUtils.wrapIfMissing("'abcd'", "\"")  = "\"'abcd'\""
-     * StringUtils.wrapIfMissing("/", "/")  = "/"
-     * StringUtils.wrapIfMissing("a/b/c", "/")  = "/a/b/c/"
-     * StringUtils.wrapIfMissing("/a/b/c", "/")  = "/a/b/c/"
-     * StringUtils.wrapIfMissing("a/b/c/", "/")  = "/a/b/c/"
+     *  StringUtils.wrapIfMissing(null, "*");      = null
+     *  StringUtils.wrapIfMissing("", "*");        = ""
+     *  StringUtils.wrapIfMissing(" ", "*");       = " "
+     *  StringUtils.wrapIfMissing("Hello", null);  = ""
+     *  StringUtils.wrapIfMissing("Hello", "");    = ""
+     *  StringUtils.wrapIfMissing("Hello", " ");   = "Hello"
+     *  StringUtils.wrapIfMissing("#Hello#", "#"); = "#Hello#"
+     *  StringUtils.wrapIfMissing("Hello#", "#");  = "#Hello#"
+     *  StringUtils.wrapIfMissing("#Hello", "#");  = "#Hello#"
+     *  StringUtils.wrapIfMissing("Hello", "#");   = "#Hello#"
      * </pre>
      *
-     * @param str      the string to be wrapped, may be {@code null}
-     * @param wrapWith the string that will wrap {@code str}
-     * @return the wrapped string, or {@code null} if {@code str == null}
+     * @param string   the string to be wrapped
+     * @param wrapWith the string that will wrap string
+     * @return the wrapped string with {@code wrapWith}
      */
-    public static String wrapIfMissing(String str, String wrapWith) {
-        if ((!hasTextAll(str, wrapWith))) return str;
+    public static String wrapIfMissing(String string, char wrapWith) {
+        if ((!hasText(string))) return string;
 
-        boolean wrapStart = !str.startsWith(wrapWith);
-        boolean wrapEnd = !str.endsWith(wrapWith);
+        boolean wrapStart = string.charAt(0) != wrapWith;
+        boolean wrapEnd = string.charAt(string.length() - 1) != wrapWith;
 
-        if (!wrapStart && !wrapEnd) return str;
+        if (!wrapStart && !wrapEnd) return string;
 
-        StringBuilder builder = new StringBuilder(str.length() + wrapWith.length() + wrapWith.length());
+        StringBuilder builder = new StringBuilder(string.length() + (wrapStart ? 1 : 0) + (wrapEnd ? 1 : 0));
 
         if (wrapStart) builder.append(wrapWith);
-
-        builder.append(str);
-
+        builder.append(string);
         if (wrapEnd) builder.append(wrapWith);
 
         return builder.toString();

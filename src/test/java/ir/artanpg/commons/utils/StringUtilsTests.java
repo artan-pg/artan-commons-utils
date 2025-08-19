@@ -2,8 +2,13 @@ package ir.artanpg.commons.utils;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -577,6 +582,68 @@ class StringUtilsTests {
     @Test
     void difference_ShouldHandleUnicodeCharacters_WhenStringsDifferWithUnicode() {
         assertEquals("ẞHello", StringUtils.difference("ßest", "ẞHello"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void endsWithIgnoreCase_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.endsWithIgnoreCase(input, "pre"));
+    }
+
+    @Test
+    void endsWithIgnoreCase_ShouldReturnFalse_WhenInputStringIsBlank() {
+        assertFalse(StringUtils.endsWithIgnoreCase(" ", "pre"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void endsWithIgnoreCase_ShouldReturnFalse_WhenSuffixIsNullOeEmpty(String suffix) {
+        assertFalse(StringUtils.endsWithIgnoreCase("Hello", suffix));
+    }
+
+    @Test
+    void endsWithIgnoreCase_ShouldReturnFalse_WhenSuffixIsBlank() {
+        assertFalse(StringUtils.endsWithIgnoreCase("Hello", " "));
+    }
+
+    @Test
+    void endsWithIgnoreCase_ShouldReturnTrue_WhenSuffixMatchesCaseSensitively() {
+        assertTrue(StringUtils.endsWithIgnoreCase("Hello suffix", "suffix"));
+    }
+
+    @Test
+    void endsWithIgnoreCase_ShouldReturnTrue_WhenSuffixMatchesCaseInsensitively() {
+        assertTrue(StringUtils.endsWithIgnoreCase("Hello SUFFIX", "suffix"));
+    }
+
+    @Test
+    void endsWithIgnoreCase_ShouldReturnFalse_WhenSuffixDoesNotMatch() {
+        assertFalse(StringUtils.endsWithIgnoreCase("Hello", "suffix"));
+    }
+
+    @Test
+    void endsWithIgnoreCase_ShouldReturnFalse_WhenStringShorterThanSuffix() {
+        assertFalse(StringUtils.endsWithIgnoreCase("pre", "suffix"));
+    }
+
+    @Test
+    void endsWithIgnoreCase_ShouldReturnTrue_WhenSuffixIsUnicodeAndMatches() {
+        assertTrue(StringUtils.endsWithIgnoreCase("Hello ẞüñ", "ẞüñ"));
+    }
+
+    @Test
+    void endsWithIgnoreCase_ShouldReturnFalse_WhenUnicodeSuffixDoesNotMatch() {
+        assertFalse(StringUtils.endsWithIgnoreCase("üñ Hello", "ẞüñ"));
+    }
+
+    @Test
+    void endsWithIgnoreCase_ShouldReturnTrue_WhenSingleCharSuffixMatchesCaseInsensitively() {
+        assertTrue(StringUtils.endsWithIgnoreCase("Apple", "e"));
+    }
+
+    @Test
+    void endsWithIgnoreCase_ShouldReturnTrue_WhenSuffixIsEntireString() {
+        assertTrue(StringUtils.endsWithIgnoreCase("suffix", "suffix"));
     }
 
     @ParameterizedTest
@@ -1522,5 +1589,567 @@ class StringUtilsTests {
     @Test
     void removeEnd_ShouldReturnOriginalString_WhenFirstCharacterIsUnicodeAndDoesNotMatch() {
         assertEquals("ẞüñ", StringUtils.removeEnd("ẞüñ", 'ü'));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void reverse_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.reverse(input));
+    }
+
+    @Test
+    void reverse_ShouldReturnBlankString_WhenInputStringIsBlank() {
+        assertEquals(" ", StringUtils.reverse(" "));
+    }
+
+    @Test
+    void reverse_ShouldReturnReversedString_WhenInputStringIsNonEmpty() {
+        assertEquals("olleh", StringUtils.reverse("hello"));
+    }
+
+    @Test
+    void reverse_ShouldReturnReversedString_WhenInputStringContainsUnicodeCharacters() {
+        assertEquals("ñüẞ", StringUtils.reverse("ẞüñ"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void right_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.right(input, 3));
+    }
+
+    @Test
+    void right_ShouldThrowIllegalArgumentException_WhenLengthIsNegative() {
+        assertThrowsExactly(IllegalArgumentException.class, () -> StringUtils.right("hello", -1), "Length must be positive");
+    }
+
+    @Test
+    void right_ShouldReturnOriginalString_WhenLengthIsEqualToStringLength() {
+        assertEquals("Hello", StringUtils.right("Hello", 5));
+    }
+
+    @Test
+    void right_ShouldReturnOriginalString_WhenLengthIsGreaterThanStringLength() {
+        assertEquals("Hello", StringUtils.right("Hello", 10));
+    }
+
+    @Test
+    void right_ShouldReturnSubstring_WhenLengthIsLessThanStringLength() {
+        assertEquals("llo", StringUtils.right("Hello", 3));
+    }
+
+    @Test
+    void right_ShouldReturnOriginalString_WhenInputStringIsSingleCharacter() {
+        assertEquals("a", StringUtils.right("a", 1));
+    }
+
+    @Test
+    void right_ShouldReturnEmptyString_WhenLengthIsZero() {
+        assertEquals("", StringUtils.right("Hello", 0));
+    }
+
+    @Test
+    void right_ShouldReturnUnicodeSubstring_WhenInputStringContainsUnicodeCharacters() {
+        assertEquals("üñ", StringUtils.right("ẞüñ", 2));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void startsWithIgnoreCase_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
+        assertFalse(StringUtils.startsWithIgnoreCase(input, "pre"));
+    }
+
+    @Test
+    void startsWithIgnoreCase_ShouldReturnFalse_WhenInputStringIsBlank() {
+        assertFalse(StringUtils.startsWithIgnoreCase(" ", "pre"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void startsWithIgnoreCase_ShouldReturnFalse_WhenPrefixIsNullOeEmpty(String prefix) {
+        assertFalse(StringUtils.startsWithIgnoreCase("Hello", prefix));
+    }
+
+    @Test
+    void startsWithIgnoreCase_ShouldReturnFalse_WhenPrefixIsBlank() {
+        assertFalse(StringUtils.startsWithIgnoreCase("Hello", " "));
+    }
+
+    @Test
+    void startsWithIgnoreCase_ShouldReturnTrue_WhenPrefixMatchesCaseSensitively() {
+        assertTrue(StringUtils.startsWithIgnoreCase("prefix Hello", "prefix"));
+    }
+
+    @Test
+    void startsWithIgnoreCase_ShouldReturnTrue_WhenPrefixMatchesCaseInsensitively() {
+        assertTrue(StringUtils.startsWithIgnoreCase("PREFIX Hello", "prefix"));
+    }
+
+    @Test
+    void startsWithIgnoreCase_ShouldReturnFalse_WhenPrefixDoesNotMatch() {
+        assertFalse(StringUtils.startsWithIgnoreCase("Hello", "prefix"));
+    }
+
+    @Test
+    void startsWithIgnoreCase_ShouldReturnFalse_WhenStringShorterThanPrefix() {
+        assertFalse(StringUtils.startsWithIgnoreCase("pre", "prefix"));
+    }
+
+    @Test
+    void startsWithIgnoreCase_ShouldReturnTrue_WhenPrefixIsUnicodeAndMatches() {
+        assertTrue(StringUtils.startsWithIgnoreCase("ẞüñ Hello", "ẞüñ"));
+    }
+
+    @Test
+    void startsWithIgnoreCase_ShouldReturnFalse_WhenUnicodePrefixDoesNotMatch() {
+        assertFalse(StringUtils.startsWithIgnoreCase("üñ Hello", "ẞüñ"));
+    }
+
+    @Test
+    void startsWithIgnoreCase_ShouldReturnTrue_WhenSingleCharPrefixMatchesCaseInsensitively() {
+        assertTrue(StringUtils.startsWithIgnoreCase("Apple", "a"));
+    }
+
+    @Test
+    void startsWithIgnoreCase_ShouldReturnTrue_WhenPrefixIsEntireString() {
+        assertTrue(StringUtils.startsWithIgnoreCase("prefix", "prefix"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void strip_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.strip(input));
+    }
+
+    @Test
+    void strip_ShouldReturnEmptyString_WhenInputStringIsBlank() {
+        assertEquals("", StringUtils.strip(" "));
+    }
+
+    @Test
+    void strip_ShouldRemoveLeadingAndTrailingSpaces_WhenInputStringHasWhitespace() {
+        assertEquals("Hello", StringUtils.strip("  Hello  "));
+    }
+
+    @Test
+    void strip_ShouldReturnOriginalString_WhenInputStringHasNoWhitespace() {
+        assertEquals("Hello", StringUtils.strip("Hello"));
+    }
+
+    @Test
+    void strip_ShouldRemoveMixedWhitespace_WhenInputStringHasTabsAndNewlines() {
+        assertEquals("Hello", StringUtils.strip("\t\nHello\r\n"));
+    }
+
+    @Test
+    void strip_ShouldRemoveUnicodeWhitespace_WhenInputStringHasUnicodeWhitespace() {
+        assertEquals("Hello", StringUtils.strip("\u2000Hello\u2003"));
+    }
+
+    @Test
+    void strip_ShouldRemoveNonBreakingSpace_WhenInputStringHasNonBreakingSpace() {
+        assertEquals("Hello", StringUtils.strip("\u00A0Hello\u00A0"));
+    }
+
+    @Test
+    void strip_ShouldReturnSingleCharacter_WhenInputStringIsSingleCharacterWithWhitespace() {
+        assertEquals("a", StringUtils.strip(" a "));
+    }
+
+    @Test
+    void strip_ShouldReturnUnicodeString_WhenInputStringHasUnicodeCharacters() {
+        assertEquals("ẞüñ", StringUtils.strip("  ẞüñ  "));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void stripStart_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.stripStart(input, "abc"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void stripStart_ShouldRemoveLeadingWhitespace_WhenStripCharsIsNullOrEmpty(String input) {
+        assertEquals("Hello", StringUtils.stripStart("  \t\nHello", input));
+    }
+
+    @Test
+    void stripStart_ShouldRemoveSpecifiedCharacters_WhenStripCharsIsNonEmpty() {
+        assertEquals("llo", StringUtils.stripStart("Hello", "He"));
+    }
+
+    @Test
+    void stripStart_ShouldReturnOriginalString_WhenNoCharactersMatch() {
+        assertEquals("Hello", StringUtils.stripStart("Hello", "xyz"));
+    }
+
+    @Test
+    void stripStart_ShouldReturnEmptyString_WhenAllCharactersMatch() {
+        assertEquals("", StringUtils.stripStart("aaa", "a"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void stripStart_ShouldRemoveUnicodeWhitespace_WhenStripCharsIsNullOrEmpty(String input) {
+        assertEquals("Hello", StringUtils.stripStart("\u00A0\u2000Hello", input));
+    }
+
+    @Test
+    void stripStart_ShouldRemoveUnicodeCharacters_WhenStripCharsContainsUnicode() {
+        assertEquals("ñ", StringUtils.stripStart("ẞüñ", "ẞü"));
+    }
+
+    @Test
+    void stripStart_ShouldReturnSingleCharacter_WhenNoCharactersMatch() {
+        assertEquals("a", StringUtils.stripStart("a", "b"));
+    }
+
+    @Test
+    void stripStart_ShouldRemoveLongStripChars_WhenStripCharsIsLong() {
+        assertEquals("World", StringUtils.stripStart("Hello World", "Hello "));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void stripEnd_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.stripEnd(input, "abc"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void stripEnd_ShouldRemoveTrailingWhitespace_WhenStripCharsIsNullOrEmpty(String input) {
+        assertEquals("Hello", StringUtils.stripEnd("Hello  \t\n", input));
+    }
+
+    @Test
+    void stripEnd_ShouldRemoveSpecifiedCharacters_WhenStripCharsIsNonEmpty() {
+        assertEquals("He", StringUtils.stripEnd("Hello", "lo"));
+    }
+
+    @Test
+    void stripEnd_ShouldReturnOriginalString_WhenNoCharactersMatch() {
+        assertEquals("Hello", StringUtils.stripEnd("Hello", "xyz"));
+    }
+
+    @Test
+    void stripEnd_ShouldReturnEmptyString_WhenAllCharactersMatch() {
+        assertEquals("", StringUtils.stripEnd("aaa", "a"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void stripEnd_ShouldRemoveUnicodeWhitespace_WhenStripCharsIsNullOrEmpty(String input) {
+        assertEquals("Hello", StringUtils.stripEnd("Hello\u00A0\u2000", input));
+    }
+
+    @Test
+    void stripEnd_ShouldRemoveUnicodeCharacters_WhenStripCharsContainsUnicode() {
+        assertEquals("ẞ", StringUtils.stripEnd("ẞüñ", "üñ"));
+    }
+
+    @Test
+    void stripEnd_ShouldReturnSingleCharacter_WhenNoCharactersMatch() {
+        assertEquals("a", StringUtils.stripEnd("a", "b"));
+    }
+
+    @Test
+    void stripEnd_ShouldRemoveLongStripChars_WhenStripCharsIsLong() {
+        assertEquals("Hello", StringUtils.stripEnd("Hello World", " World"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void substringAfter_ShouldReturnEmptyString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals("", StringUtils.substringAfter(input, "a"));
+    }
+
+    @Test
+    void substringAfter_ShouldReturnEmptyString_WhenInputStringIsBlank() {
+        assertEquals("", StringUtils.substringAfter(" ", "a"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void substringAfter_ShouldReturnOriginalString_WhenSeparatorIsNullOrEmpty(String separator) {
+        assertEquals("Hello", StringUtils.substringAfter("Hello", separator));
+    }
+
+    @Test
+    void substringAfter_ShouldReturnEmptyString_WhenSeparatorIsBlankAndNotFound() {
+        assertEquals("", StringUtils.substringAfter("Hello", " "));
+    }
+
+    @Test
+    void substringAfter_ShouldReturnSubstring_WhenSeparatorIsBlankAndFound() {
+        assertEquals("", StringUtils.substringAfter("Hello ", " "));
+        assertEquals("World", StringUtils.substringAfter("Hello World", " "));
+        assertEquals("World", StringUtils.substringAfter("Hello World", " "));
+        assertEquals("World ", StringUtils.substringAfter("Hello World ", " "));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"Hello,World_,", "Hello::World_::"}, delimiter = '_')
+    void substringAfter_ShouldReturnSubstring_WhenSeparatorIsFound(String input, String separator) {
+        assertEquals("World", StringUtils.substringAfter(input, separator));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"Hello,h", "Hello World,w"}, delimiter = ',')
+    void substringAfter_ShouldReturnEmptyString_WhenSeparatorNotFound(String input, String separator) {
+        assertEquals("", StringUtils.substringAfter(input, separator));
+    }
+
+    @Test
+    void substringAfter_ShouldReturnSubstring_WhenUnicodeSeparatorIsFound() {
+        assertEquals("ñ", StringUtils.substringAfter("ẞüñ", "ü"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void substringBefore_ShouldReturnEmptyString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals("", StringUtils.substringAfter(input, "a"));
+    }
+
+    @Test
+    void substringBefore_ShouldReturnEmptyString_WhenInputStringIsBlank() {
+        assertEquals("", StringUtils.substringBefore(" ", "a"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void substringBefore_ShouldReturnOriginalString_WhenSeparatorIsNullOrEmpty(String separator) {
+        assertEquals("Hello", StringUtils.substringBefore("Hello", separator));
+    }
+
+    @Test
+    void substringBefore_ShouldReturnEmptyString_WhenSeparatorIsBlankAndNotFound() {
+        assertEquals("", StringUtils.substringBefore("Hello", " "));
+    }
+
+    @Test
+    void substringBefore_ShouldReturnSubstring_WhenSeparatorIsBlankAndFound() {
+        assertEquals("Hello", StringUtils.substringBefore("Hello World", " "));
+        assertEquals("Hello", StringUtils.substringBefore("Hello World ", " "));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"Hello,World_,", "Hello::World_::"}, delimiter = '_')
+    void substringBefore_ShouldReturnSubstring_WhenSeparatorIsFound(String input, String separator) {
+        assertEquals("Hello", StringUtils.substringBefore(input, separator));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"Hello,h", "Hello World,w"}, delimiter = ',')
+    void substringBefore_ShouldReturnEmptyString_WhenSeparatorNotFound(String input, String separator) {
+        assertEquals("", StringUtils.substringBefore(input, separator));
+    }
+
+    @Test
+    void substringBefore_ShouldReturnSubstring_WhenUnicodeSeparatorIsFound() {
+        assertEquals("ẞ", StringUtils.substringBefore("ẞüñ", "ü"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void substringBetween_ShouldReturnEmptyString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals("", StringUtils.substringBetween(input, "(", ")"));
+    }
+
+    @Test
+    void substringBetween_ShouldReturnEmptyString_WhenInputStringIsBlank() {
+        assertEquals("", StringUtils.substringBetween(" ", "(", ")"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void substringBetween_ShouldReturnOriginalString_WhenOpenIsNullOrEmpty(String open) {
+        assertEquals("Hello", StringUtils.substringBetween("Hello", open, ")"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void substringBetween_ShouldReturnOriginalString_WhenCloseIsNullOrEmpty(String close) {
+        assertEquals("Hello", StringUtils.substringBetween("Hello", "(", close));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"(World),(,)", "<<World>>,<<,>>", "<span>World</span>, <span>, </span>"}, delimiter = ',')
+    void substringBetween_ShouldReturnSubstring_WhenOpenAndCloseAreFound(String input, String open, String close) {
+        assertEquals("World", StringUtils.substringBetween(input, open, close));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"World,[,])", "(World,(,)"}, delimiter = ',')
+    void substringBetween_ShouldReturnEmptyString_WhenOpenOrCloseNotFound(String input, String open, String close) {
+        assertEquals("", StringUtils.substringBetween(input, open, close));
+    }
+
+    @Test
+    void substringBetween_ShouldReturnSubstring_WhenUnicodeTagsAreFound() {
+        assertEquals("üñ", StringUtils.substringBetween("ẞüñẞ", "ẞ", "ẞ"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void substringsBetween_ShouldReturnEmptyList_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(Collections.emptyList(), StringUtils.substringsBetween(input, "(", ")"));
+    }
+
+    @Test
+    void substringsBetween_ShouldReturnEmptyList_WhenInputStringIsBlank() {
+        assertEquals(Collections.emptyList(), StringUtils.substringsBetween(" ", "(", ")"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void substringsBetween_ShouldReturnEmptyList_WhenOpenIsNullOrEmpty(String open) {
+        assertEquals(Collections.emptyList(), StringUtils.substringsBetween("Hello", open, ")"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void substringsBetween_ShouldReturnEmptyList_WhenCloseIsNullOrEmpty(String close) {
+        assertEquals(Collections.emptyList(), StringUtils.substringsBetween("Hello", "(", close));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"(Hello)(World),(,)", "<Hello><World>,<,>"}, delimiter = ',')
+    void substringsBetween_ShouldReturnSubstrings_WhenTagsAreFound(String input, String open, String close) {
+        assertEquals(Arrays.asList("Hello", "World"), StringUtils.substringsBetween(input, open, close));
+    }
+
+    @Test
+    void substringsBetween_ShouldReturnEmptyList_WhenTagsNotFound() {
+        assertEquals(Collections.emptyList(), StringUtils.substringsBetween("Hello", "[", "]"));
+    }
+
+    @Test
+    void substringsBetween_ShouldReturnEmptyList_WhenOpenAndCloseAreSame() {
+        assertEquals(List.of("Hello]"), StringUtils.substringsBetween("[Hello][World]", "[", "["));
+    }
+
+    @Test
+    void substringsBetween_ShouldIgnoreEmptySubstrings_WhenTagsAreEmpty() {
+        assertEquals(Collections.emptyList(), StringUtils.substringsBetween("()", "(", ")"));
+    }
+
+    @Test
+    void substringsBetween_ShouldReturnSubstrings_WhenNestedTagsAreValid() {
+        assertEquals(List.of("Hello(World)more"), StringUtils.substringsBetween("[Hello(World)more]", "[", "]"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void uncapitalize_ShouldReturnNull_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.uncapitalize(input));
+    }
+
+    @Test
+    void uncapitalize_ShouldReturnBlankString_WhenInputStringIsBlank() {
+        assertEquals(" ", StringUtils.uncapitalize(" "));
+    }
+
+    @Test
+    void uncapitalize_ShouldReturnLowercaseFirstChar_WhenFirstCharIsUppercase() {
+        assertEquals("hello", StringUtils.uncapitalize("Hello"));
+    }
+
+    @Test
+    void uncapitalize_ShouldReturnSingleLowercaseChar_WhenInputIsSingleUppercaseChar() {
+        assertEquals("a", StringUtils.uncapitalize("A"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void unwrap_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.unwrap(input, '('));
+    }
+
+    @Test
+    void unwrap_ShouldReturnBlankString_WhenInputStringIsBlank() {
+        assertEquals(" ", StringUtils.unwrap(" ", '('));
+    }
+
+    @Test
+    void unwrap_ShouldUnwrapString_WhenWrappedWithValidToken() {
+        assertEquals("Hello", StringUtils.unwrap("#Hello#", '#'));
+    }
+
+    @Test
+    void unwrap_ShouldReturnString_WhenNotWrappedWithToken() {
+        assertEquals("Hello", StringUtils.unwrap("Hello", '('));
+    }
+
+    @Test
+    void unwrap_ShouldReturnString_WhenOnlyStartsWithToken() {
+        assertEquals("(Hello", StringUtils.unwrap("(Hello", '('));
+    }
+
+    @Test
+    void unwrap_ShouldReturnString_WhenOnlyEndsWithToken() {
+        assertEquals("Hello)", StringUtils.unwrap("Hello)", ')'));
+    }
+
+    @Test
+    void unwrap_ShouldUnwrapUnicode_WhenWrappedWithUnicodeToken() {
+        assertEquals("üñ", StringUtils.unwrap("ẞüñẞ", 'ẞ'));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void wrap_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.wrap(input, "("));
+    }
+
+    @Test
+    void wrap_ShouldReturnBlankString_WhenInputStringIsBlank() {
+        assertEquals(" ", StringUtils.wrap(" ", "("));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void wrap_ShouldReturnOriginalString_WhenWrapWithIsNullOrEmpty(String input) {
+        assertEquals("Hello", StringUtils.wrap("Hello", input));
+    }
+
+    @Test
+    void wrap_ShouldWrapString_WhenWrappedWithIsBlank() {
+        assertEquals(" Hello ", StringUtils.wrap("Hello", " "));
+    }
+
+    @Test
+    void wrap_ShouldWrapString_WhenWrappedWithValidToken() {
+        assertEquals("#Hello#", StringUtils.wrap("Hello", "#"));
+    }
+
+    @Test
+    void wrap_ShouldUnwrapUnicode_WhenWrappedWithUnicodeToken() {
+        assertEquals("ẞüñẞ", StringUtils.wrap("üñ", "ẞ"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void wrapIfMissing_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.wrapIfMissing(input, '('));
+    }
+
+    @Test
+    void wrapIfMissing_ShouldReturnBlankString_WhenInputStringIsBlank() {
+        assertEquals(" ", StringUtils.wrapIfMissing(" ", '('));
+    }
+
+    @Test
+    void wrapIfMissing_ShouldWrapString_WhenNotWrapped() {
+        assertEquals("#world#", StringUtils.wrapIfMissing("world", '#'));
+    }
+
+    @Test
+    void wrapIfMissing_ShouldReturnOriginalString_WhenAlreadyWrapped() {
+        assertEquals("#world#", StringUtils.wrapIfMissing("#world#", '#'));
+    }
+
+    @Test
+    void wrapIfMissing_ShouldWrapWithUnicodeToken_WhenNotWrapped() {
+        assertEquals("ẞüñẞ", StringUtils.wrapIfMissing("üñ", 'ẞ'));
     }
 }
