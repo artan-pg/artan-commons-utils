@@ -1,7 +1,5 @@
 package ir.artanpg.commons.utils;
 
-import org.springframework.lang.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,14 +50,9 @@ public abstract class StringUtils {
     public static final String ELLIPSIS3 = "...";
 
     /**
-     * The maximum size to which the padding constant(s) can expand.
-     */
-    private static final int PAD_LIMIT = 8192;
-
-    /**
      * Represents a failed index search.
      */
-    private static final int INDEX_NOT_FOUND = -1;
+    public static final int INDEX_NOT_FOUND = -1;
 
     private StringUtils() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
@@ -471,7 +464,7 @@ public abstract class StringUtils {
         return (at == INDEX_NOT_FOUND) ? EMPTY : string2.substring(at);
     }
 
-    static int indexOfDifference(String string1, String string2) {
+    private static int indexOfDifference(String string1, String string2) {
         if (Objects.equals(string1, string2)) return INDEX_NOT_FOUND;
         if (string1 == null || string2 == null) return 0;
 
@@ -1733,6 +1726,74 @@ public abstract class StringUtils {
         }
 
         return (results.isEmpty() || results.get(0).isEmpty()) ? Collections.emptyList() : results;
+    }
+
+    /**
+     * Removes all leading occurrences of a specified character from the
+     * beginning of a string.
+     *
+     * <p>This method scans the input string from the start and removes all
+     * consecutive occurrences of the specified character until a different
+     * character is found or the end of the string is reached.
+     *
+     * <p>If the input string is {@code null} or {@code empty}, it is returned
+     * unchanged.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.trimLeadingCharacter(null, ' ');       = null
+     *  StringUtils.trimLeadingCharacter("", ' ');         = ""
+     *  StringUtils.trimLeadingCharacter("#####", '#');    = ""
+     *  StringUtils.trimLeadingCharacter("   Hello", ' '); = "Hello"
+     *  StringUtils.trimLeadingCharacter("###Hello", '#'); = "Hello"
+     * </pre>
+     *
+     * @param string  the string to trim leading characters from
+     * @param leading the character to remove from the start of the string
+     * @return the string with all leading occurrences of the specified character removed
+     */
+    public static String trimLeadingCharacter(String string, char leading) {
+        if (!hasLength(string)) return string;
+
+        int beginIdx = 0;
+        while (beginIdx < string.length() && leading == string.charAt(beginIdx)) {
+            beginIdx++;
+        }
+        return string.substring(beginIdx);
+    }
+
+    /**
+     * Removes all leading occurrences of a specified character from the end of
+     * a string.
+     *
+     * <p>This method scans the input string from the end and removes all
+     * consecutive occurrences of the specified character until a different
+     * character is found or the beginning of the string is reached.
+     *
+     * <p>If the input string is {@code null} or {@code empty}, it is returned
+     * unchanged.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.trimTrailingCharacter(null, ' ');       = null
+     *  StringUtils.trimTrailingCharacter("", ' ');         = ""
+     *  StringUtils.trimTrailingCharacter("#####", '#');    = ""
+     *  StringUtils.trimTrailingCharacter("Hello   ", ' '); = "Hello"
+     *  StringUtils.trimTrailingCharacter("Hello###", '#'); = "Hello"
+     * </pre>
+     *
+     * @param string   the string to trim leading characters from
+     * @param trailing the character to remove from the end of the string
+     * @return the string with all leading occurrences of the specified character removed
+     */
+    public static String trimTrailingCharacter(String string, char trailing) {
+        if (!hasLength(string)) return string;
+
+        int endIdx = string.length() - 1;
+        while (endIdx >= 0 && trailing == string.charAt(endIdx)) {
+            endIdx--;
+        }
+        return string.substring(0, endIdx + 1);
     }
 
     /**

@@ -2040,6 +2040,98 @@ class StringUtilsTests {
 
     @ParameterizedTest
     @NullAndEmptySource
+    void trimLeadingCharacter_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.trimLeadingCharacter(input, '-'));
+    }
+
+    @Test
+    void trimLeadingCharacter_ShouldReturnOriginalString_WhenNoLeadingChar() {
+        assertEquals("Hello", StringUtils.trimLeadingCharacter("Hello", '-'));
+    }
+
+    @Test
+    void trimLeadingCharacter_ShouldRemoveSingleLeadingChar_WhenStringStartsWithChar() {
+        assertEquals("Hello", StringUtils.trimLeadingCharacter("-Hello", '-'));
+    }
+
+    @Test
+    void trimLeadingCharacter_ShouldRemoveMultipleLeadingChars_WhenStringStartsWithMultipleChars() {
+        assertEquals("Hello", StringUtils.trimLeadingCharacter("---Hello", '-'));
+    }
+
+    @Test
+    void trimLeadingCharacter_ShouldReturnEmptyString_WhenAllCharsAreLeading() {
+        assertEquals("", StringUtils.trimLeadingCharacter("---", '-'));
+    }
+
+    @Test
+    void trimLeadingCharacter_ShouldRemoveUnicodeLeadingChar_WhenStringStartsWithUnicodeChar() {
+        assertEquals("üñ", StringUtils.trimLeadingCharacter("ẞüñ", 'ẞ'));
+    }
+
+    @Test
+    void trimLeadingCharacter_ShouldReturnSingleChar_WhenSingleNonLeadingChar() {
+        assertEquals("a", StringUtils.trimLeadingCharacter("a", '-'));
+    }
+
+    @Test
+    void trimLeadingCharacter_ShouldReturnEmptyString_WhenSingleLeadingChar() {
+        assertEquals("", StringUtils.trimLeadingCharacter("-", '-'));
+    }
+
+    @Test
+    void trimLeadingCharacter_ShouldReturnOriginalString_WhenDifferentLeadingChar() {
+        assertEquals("#Hello", StringUtils.trimLeadingCharacter("#Hello", '-'));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void trimTrailingCharacter_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.trimTrailingCharacter(input, '-'));
+    }
+
+    @Test
+    void trimTrailingCharacter_ShouldReturnOriginalString_WhenNoTrailingChar() {
+        assertEquals("Hello", StringUtils.trimTrailingCharacter("Hello", '-'));
+    }
+
+    @Test
+    void trimTrailingCharacter_ShouldRemoveSingleTrailingChar_WhenStringEndsWithChar() {
+        assertEquals("Hello", StringUtils.trimTrailingCharacter("Hello-", '-'));
+    }
+
+    @Test
+    void trimTrailingCharacter_ShouldRemoveMultipleTrailingChars_WhenStringEndsWithMultipleChars() {
+        assertEquals("Hello", StringUtils.trimTrailingCharacter("Hello---", '-'));
+    }
+
+    @Test
+    void trimTrailingCharacter_ShouldReturnEmptyString_WhenAllCharsAreTrailing() {
+        assertEquals("", StringUtils.trimTrailingCharacter("---", '-'));
+    }
+
+    @Test
+    void trimTrailingCharacter_ShouldRemoveUnicodeTrailingChar_WhenStringEndsWithUnicodeChar() {
+        assertEquals("üñ", StringUtils.trimTrailingCharacter("üñẞ", 'ẞ'));
+    }
+
+    @Test
+    void trimTrailingCharacter_ShouldReturnSingleChar_WhenSingleNonTrailingChar() {
+        assertEquals("a", StringUtils.trimTrailingCharacter("a", '-'));
+    }
+
+    @Test
+    void trimTrailingCharacter_ShouldReturnEmptyString_WhenSingleTrailingChar() {
+        assertEquals("", StringUtils.trimTrailingCharacter("-", '-'));
+    }
+
+    @Test
+    void trimTrailingCharacter_ShouldReturnOriginalString_WhenDifferentTrailingChar() {
+        assertEquals("Hello#", StringUtils.trimTrailingCharacter("Hello#", '-'));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
     void uncapitalize_ShouldReturnNull_WhenInputStringIsNullOrEmpty(String input) {
         assertEquals(input, StringUtils.uncapitalize(input));
     }
