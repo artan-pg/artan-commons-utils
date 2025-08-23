@@ -502,6 +502,7 @@ public abstract class StringUtils {
      *
      * @param string the string to check
      * @param suffix the suffix to look for
+     * @return {@code true}, if the string ends with the given suffix
      * @see String#endsWith(String)
      */
     public static boolean endsWithIgnoreCase(String string, String suffix) {
@@ -1094,17 +1095,17 @@ public abstract class StringUtils {
      * like non-breaking space) with a single space, and trimming leading and
      * trailing whitespace.
      *
-     * <p>Non-breaking spaces (U+00A0) are converted to regular spaces (U+0020)
-     * and if the string consists only of whitespace, an empty string is
-     * returned.
+     * <p>Non-breaking spaces (U+00A0) are converted to regular spaces
+     * (U+0020), and if the string consists only of whitespace, an empty string
+     * is returned.
      *
      * <p>Examples:
      * <pre>
-     *  StringUtils.normalizeSpace(null);            = null
-     *  StringUtils.normalizeSpace("");              = ""
-     *  StringUtils.normalizeSpace("Hello World");   = "Hello World"
-     *  StringUtils.normalizeSpace(" Hello World "); = "Hello World"
-     *  StringUtils.normalizeSpace("Hello  World");  = "Hello World"
+     *  StringUtils.normalizeSpace(null);               = null
+     *  StringUtils.normalizeSpace("");                 = ""
+     *  StringUtils.normalizeSpace("Hello World");      = "Hello World"
+     *  StringUtils.normalizeSpace(" Hello World ");    = "Hello World"
+     *  StringUtils.normalizeSpace(" Hello   World ");  = "Hello World"
      * </pre>
      *
      * @param string the string to normalize
@@ -1194,32 +1195,29 @@ public abstract class StringUtils {
     /**
      * Replaces all occurrences of a specified pattern in the input string with
      * a replacement string.
-     *
-     * <p>A {@code null}, {@code empty} or a {@code blank} input string or old
-     * pattern will or
-     * return the {@code empty} list.
-     * <p>If the input string or old pattern is {@code null}, {@code empty}, or
-     * a {@code blank} if the replacement is {@code null}, the original string is returned
-     * unchanged.
-     *
-     * <p>If the pattern is not found, the original string is returned.
      * This method is case-sensitive and uses a {@link StringBuilder} for
      * efficient string construction.
      *
+     * <p>A {@code null}, {@code empty} or a {@code blank} input string return
+     * the original string is returned unchanged.
      *
-     * <p>A {@code null} or an {@code empty} open/close will return the
-     * {@code empty} list.
+     * <p>A {@code null} or an {@code empty} old pattern string the original
+     * string is returned unchanged.
      *
-     * <p>If nothing is found, the {@code empty} list is returned.
+     * <p>A {@code null} new pattern string the original string is returned
+     * unchanged.
+     *
+     * <p>If the pattern is not found, the original string is returned.
      *
      * <p>Examples:
      * <pre>
      *  StringUtils.replace(null, "old", "new");             = null
-     *  StringUtils.replace("", "old", "new");               = null
-     *  StringUtils.replace("abcabc", "bc", "x");            = "axax"
-     *  StringUtils.replace("hello", "x", "y");              = "hello"
-     *  StringUtils.replace("hello", null, "new");           = "hello"
-     *  StringUtils.replace("hello world", "world", "grok"); = "hello grok"
+     *  StringUtils.replace("", "old", "new");               = ""
+     *  StringUtils.replace(" ", "old", "new");              = " "
+     *  StringUtils.replace("Hello", null, "new");           = "Hello"
+     *  StringUtils.replace("Hello", "", "new");             = "Hello"
+     *  StringUtils.replace("Hello", "old", null);           = "Hello"
+     *  StringUtils.replace("Hello World", "World", "Grok"); = "Hello Grok"
      * </pre>
      *
      * @param string     the input string to process
@@ -1229,7 +1227,8 @@ public abstract class StringUtils {
      * or the original string if invalid inputs or pattern not found
      */
     public static String replace(String string, String oldPattern, String newPattern) {
-        if (!hasText(string, oldPattern) || newPattern == null) return string;
+        if (!hasText(string)) return string;
+        if (!hasLength(oldPattern) || newPattern == null) return string;
 
         int index = string.indexOf(oldPattern);
         if (index == -1) return string;
@@ -1401,6 +1400,7 @@ public abstract class StringUtils {
      *
      * @param string the string to check
      * @param prefix the prefix to look for
+     * @return {@code true}, if the string starts with the given prefix
      * @see String#startsWith(String)
      */
     public static boolean startsWithIgnoreCase(String string, String prefix) {
@@ -1554,6 +1554,41 @@ public abstract class StringUtils {
         }
 
         return string.substring(0, length);
+    }
+
+    /**
+     * Checks if the specified substring matches the characters in the input
+     * string starting at the given index.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.substringMatch(null, 0, "hel");       = false
+     *  StringUtils.substringMatch("", 0, "hel");         = false
+     *  StringUtils.substringMatch(" ", 0, "hel");        = false
+     *  StringUtils.substringMatch("Hello", 0, null);     = false
+     *  StringUtils.substringMatch("Hello", 0, "");       = false
+     *  StringUtils.substringMatch("Hello", 0, "Hel");    = true
+     *  StringUtils.substringMatch("Hello", 2, "llo");    = true
+     *  StringUtils.substringMatch("Hello", 1, "ell");    = true
+     *  StringUtils.substringMatch("Hello", 3, "world");  = false
+     *  StringUtils.substringMatch("Hello", -1, "world"); = IllegalArgumentException
+     * </pre>
+     *
+     * @param string    the input string to check
+     * @param index     the starting index in {@code string}
+     * @param substring the substring to match
+     * @return {@code true}, if substring matches string starting at index
+     * @throws IllegalArgumentException if {@code index} is negative
+     */
+    public static boolean substringMatch(String string, int index, String substring) {
+        if (index <= INDEX_NOT_FOUND) throw new IllegalArgumentException("Index must be positive");
+        if (!hasText(string) || !hasLength(substring) || (index + substring.length() > string.length())) return false;
+
+        for (int i = 0; i < substring.length(); i++) {
+            if (string.charAt(index + i) != substring.charAt(i)) return false;
+        }
+
+        return true;
     }
 
     /**

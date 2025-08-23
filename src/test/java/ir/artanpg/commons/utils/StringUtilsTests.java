@@ -1500,6 +1500,63 @@ class StringUtilsTests {
 
     @ParameterizedTest
     @NullAndEmptySource
+    void replace_ShouldReturnEmptyString_WhenInputStringIsNullOrEmpty(String input) {
+        assertEquals(input, StringUtils.replace(input, "old", "new"));
+    }
+
+    @Test
+    void replace_ShouldReturnBlankString_WhenInputStringIsBlank() {
+        assertEquals(" ", StringUtils.replace(" ", "old", "new"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void replace_ShouldReturnOriginalString_WhenOldPatternIsNullOrEmpty(String oldPattern) {
+        assertEquals("Hello", StringUtils.replace("Hello", oldPattern, "new"));
+    }
+
+    @Test
+    void replace_ShouldReturnOriginalString_WhenNewPatternIsNull() {
+        assertEquals("Hello", StringUtils.replace("Hello", "old", null));
+    }
+
+    @Test
+    void replace_ShouldReturnOriginalString_WhenPatternNotFound() {
+        assertEquals("Hello", StringUtils.replace("Hello", "World", "new"));
+    }
+
+    @Test
+    void replace_ShouldReplaceSingleOccurrence_WhenPatternFound() {
+        assertEquals("Hello Grok", StringUtils.replace("Hello World", "World", "Grok"));
+    }
+
+    @Test
+    void replace_ShouldReplaceMultipleOccurrences_WhenPatternFoundMultipleTimes() {
+        assertEquals("Hnewlolo", StringUtils.replace("Hellolo", "el", "new"));
+    }
+
+    @Test
+    void replace_ShouldReplaceWithShorterPattern_WhenNewPatternIsShorter() {
+        assertEquals("Hlo", StringUtils.replace("Hello", "el", ""));
+    }
+
+    @Test
+    void replace_ShouldReplaceWithLongerPattern_WhenNewPatternIsLonger() {
+        assertEquals("Hnewnewllo", StringUtils.replace("Hello", "e", "newnew"));
+    }
+
+    @Test
+    void replace_ShouldReplaceUnicodePattern_WhenPatternIsUnicode() {
+        assertEquals("ẞnewñ", StringUtils.replace("ẞüñ", "ü", "new"));
+    }
+
+    @Test
+    void replace_ShouldReturnEmptyString_WhenReplacingAllWithEmpty() {
+        assertEquals("", StringUtils.replace("aaa", "a", ""));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
     void remove_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
         assertEquals(input, StringUtils.remove(input, 'a'));
     }
@@ -1855,6 +1912,67 @@ class StringUtilsTests {
     @Test
     void stripEnd_ShouldRemoveLongStripChars_WhenStripCharsIsLong() {
         assertEquals("Hello", StringUtils.stripEnd("Hello World", " World"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = " ")
+    void substringMatch_ShouldReturnFalse_WhenInputStringIsNullOrEmptyOrBlank(String input) {
+        assertFalse(StringUtils.substringMatch(input, 0, "hol"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void substringMatch_ShouldReturnFalse_WhenSubstringIsNullOrEmpty(String substring) {
+        assertFalse(StringUtils.substringMatch("Hello", 0, substring));
+    }
+
+    @Test
+    void substringMatch_ShouldThrowIllegalArgumentException_WhenIndexIsNegative() {
+        assertThrowsExactly(
+                IllegalArgumentException.class,
+                () -> StringUtils.substringMatch("Hello", -1, "Hel"),
+                "Index must be positive");
+    }
+
+    @Test
+    void substringMatch_ShouldReturnFalse_WhenSubstringDoesNotMatchAtIndex() {
+        assertFalse(StringUtils.substringMatch("Hello", 0, "hol"));
+    }
+
+    @Test
+    void substringMatch_ShouldReturnFalse_WhenIndexPlusLengthExceedsStringLength() {
+        assertFalse(StringUtils.substringMatch("Hello", 3, "llo"));
+    }
+
+    @Test
+    void substringMatch_ShouldReturnFalse_WhenSubstringIsLongerThanRemainingString() {
+        assertFalse(StringUtils.substringMatch("Hello", 4, "Hello"));
+    }
+
+    @Test
+    void substringMatch_ShouldReturnFalse_WhenCaseMismatch() {
+        assertFalse(StringUtils.substringMatch("Hello", 0, "HEL"));
+    }
+
+    @Test
+    void substringMatch_ShouldReturnTrue_WhenSubstringMatchesAtIndex() {
+        assertTrue(StringUtils.substringMatch("Hello", 0, "Hel"));
+    }
+
+    @Test
+    void substringMatch_ShouldReturnTrue_WhenSubstringMatchesAtEnd() {
+        assertTrue(StringUtils.substringMatch("Hello", 2, "llo"));
+    }
+
+    @Test
+    void substringMatch_ShouldReturnTrue_WhenUnicodeSubstringMatchesAtIndex() {
+        assertTrue(StringUtils.substringMatch("ẞüñ", 1, "üñ"));
+    }
+
+    @Test
+    void substringMatch_ShouldReturnFalse_WhenUnicodeSubstringDoesNotMatchAtIndex() {
+        assertFalse(StringUtils.substringMatch("ẞüñ", 0, "üñ"));
     }
 
     @ParameterizedTest
