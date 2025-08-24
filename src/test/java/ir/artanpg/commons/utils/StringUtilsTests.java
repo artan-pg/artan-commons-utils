@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.BDDAssertions.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -439,6 +441,96 @@ class StringUtilsTests {
     @Test
     void countMatches_ShouldReturnZero_WhenSubstringIsLongerThanString() {
         assertEquals(0, StringUtils.countMatches("Hi", "Hello"));
+    }
+
+    @Test
+    void collectionToDelimitedString_ShouldReturnEmptyString_WhenCollectionIsNull() {
+        // When
+        String actual = StringUtils.collectionToDelimitedString(null);
+        String actual2 = StringUtils.collectionToDelimitedString(null, ",");
+        String actual3 = StringUtils.collectionToDelimitedString(null, ",", "[", "]");
+
+        // then
+        then(actual).isEmpty();
+        then(actual2).isEmpty();
+        then(actual3).isEmpty();
+    }
+
+    @Test
+    void collectionToDelimitedString_ShouldReturnEmptyString_WhenCollectionIsEmpty() {
+        // Given
+        List<String> emptyList = Collections.emptyList();
+
+        // When
+        String actual = StringUtils.collectionToDelimitedString(emptyList);
+        String actual2 = StringUtils.collectionToDelimitedString(emptyList, ",");
+        String actual3 = StringUtils.collectionToDelimitedString(emptyList, ",", "[", "]");
+
+        // then
+        then(actual).isEmpty();
+        then(actual2).isEmpty();
+        then(actual3).isEmpty();
+    }
+
+    @Test
+    void collectionToDelimitedString_ShouldReturnDelimitedString_WhenSingleElement() {
+        // Given
+        List<String> list = List.of("Java");
+
+        // When
+        String actual = StringUtils.collectionToDelimitedString(list);
+        String actual2 = StringUtils.collectionToDelimitedString(list, ",");
+        String actual3 = StringUtils.collectionToDelimitedString(list, ",", "[", "]");
+
+        // Then
+        then(actual).isEqualTo("Java");
+        then(actual2).isEqualTo("Java");
+        then(actual3).isEqualTo("[Java]");
+    }
+
+    @Test
+    void collectionToDelimitedString_ShouldReturnDelimitedString_WhenMultipleElements() {
+        // Given
+        List<String> list = List.of("Java", "JavaScript", "C#");
+
+        // When
+        String actual = StringUtils.collectionToDelimitedString(list);
+        String actual2 = StringUtils.collectionToDelimitedString(list, " ");
+        String actual3 = StringUtils.collectionToDelimitedString(list, ",", "[", "]");
+
+        // Then
+        then(actual).isEqualTo("Java,JavaScript,C#");
+        then(actual2).isEqualTo("Java JavaScript C#");
+        then(actual3).isEqualTo("[Java],[JavaScript],[C#]");
+    }
+
+    @Test
+    void collectionToDelimitedString_ShouldHandleNullElement_WhenCollectionContainsNull() {
+        // Given
+        List<String> list = Arrays.asList("Java", null, "C#");
+
+        // When
+        String actual = StringUtils.collectionToDelimitedString(list);
+        String actual2 = StringUtils.collectionToDelimitedString(list, " ");
+        String actual3 = StringUtils.collectionToDelimitedString(list, ",", "[", "]");
+
+        // Then
+        then(actual).isEqualTo("Java,null,C#");
+        then(actual2).isEqualTo("Java null C#");
+        then(actual3).isEqualTo("[Java],[null],[C#]");
+    }
+
+    @Test
+    void collectionToDelimitedString_ShouldThrowNullPointerException_WhenDelimiterIsNull() {
+        // Given
+        List<String> list = Arrays.asList("Java", null, "C#");
+
+        // Then
+        assertThatThrownBy(() -> StringUtils.collectionToDelimitedString(list, null))
+                .isInstanceOf(NullPointerException.class);
+
+        assertThatThrownBy(() -> StringUtils.collectionToDelimitedString(list, null, "[", "]"))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @ParameterizedTest
@@ -2246,6 +2338,70 @@ class StringUtilsTests {
     @Test
     void trimTrailingCharacter_ShouldReturnOriginalString_WhenDifferentTrailingChar() {
         assertEquals("Hello#", StringUtils.trimTrailingCharacter("Hello#", '-'));
+    }
+
+    @SuppressWarnings("ConstantValue")
+    @Test
+    void trimArrayElements_ShouldReturnOriginalStringArray_WhenArrayIsNullOrEmpty() {
+        // Given
+        String[] input = null;
+        String[] input2 = {};
+
+        // When
+        String[] actual = StringUtils.trimArrayElements(input);
+        String[] actual2 = StringUtils.trimArrayElements(input2);
+
+        // Then
+        then(actual).isNull();
+        then(actual2).isEmpty();
+    }
+
+    @Test
+    void trimArrayElements_ShouldTrimElements_WhenArrayHasNonNullElements() {
+        // Given
+        String[] input = {"  Hello  ", " World "};
+
+        // When
+        String[] actual = StringUtils.trimArrayElements(input);
+
+        // Then
+        then(actual).containsExactly("Hello", "World");
+    }
+
+    @Test
+    void trimArrayElements_ShouldReturnNullElementsUnchanged_WhenArrayHasNullElement() {
+        // Given
+        String[] input = {null, "  Hello  "};
+
+        // When
+        String[] actual = StringUtils.trimArrayElements(input);
+
+        // Then
+        then(actual).containsExactly(null, "Hello");
+    }
+
+    @Test
+    void trimArrayElements_ShouldHandleEmptyStrings_WhenArrayHasEmptyOrBlankElements() {
+        // Given
+        String[] input = {"  ", ""};
+
+        // When
+        String[] actual = StringUtils.trimArrayElements(input);
+
+        // Then
+        then(actual).containsExactly("", "");
+    }
+
+    @Test
+    void trimArrayElements_ShouldHandleUnicodeElements_WhenArrayHasUnicodeStrings() {
+        // Given
+        String[] input = {"  ẞüñ  "};
+
+        // When
+        String[] actual = StringUtils.trimArrayElements(input);
+
+        // Then
+        then(actual).containsExactly("ẞüñ");
     }
 
     @ParameterizedTest

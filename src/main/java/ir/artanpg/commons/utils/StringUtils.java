@@ -1,7 +1,9 @@
 package ir.artanpg.commons.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -359,6 +361,109 @@ public abstract class StringUtils {
         }
 
         return count;
+    }
+
+    /**
+     * Converts a collection of objects into a single string, with each element
+     * separated by a comma.
+     *
+     * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
+     * string is returned.
+     *
+     * <p>Each element is converted to its string representation using
+     * {@link String#valueOf(Object)} and {@code null} elements are represented
+     * as {@code "null"}.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.collectionToDelimitedString(null);              = ""
+     *  StringUtils.collectionToDelimitedString(List.of());         = ""
+     *  StringUtils.collectionToDelimitedString(List.of("a"));      = "a"
+     *  StringUtils.collectionToDelimitedString(List.of("a", "b")); = "a,b"
+     * </pre>
+     *
+     * @param collection the collection to convert
+     * @return a string containing the elements of the collection separated by commas
+     */
+    public static String collectionToDelimitedString(Collection<?> collection) {
+        return collectionToDelimitedString(collection, ",", "", "");
+    }
+
+    /**
+     * Converts a collection of objects into a single string, with each element
+     * separated by the specified delimiter.
+     *
+     * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
+     * string is returned.
+     *
+     * <p>Each element is converted to its string representation using
+     * {@link String#valueOf(Object)} and {@code null} elements are represented
+     * as {@code "null"}.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.collectionToDelimitedString(null, ",");              = ""
+     *  StringUtils.collectionToDelimitedString(List.of(), ";");         = ""
+     *  StringUtils.collectionToDelimitedString(List.of(1,2,), ",");     = "1,2"
+     *  StringUtils.collectionToDelimitedString(List.of("a","b"), " ");  = "a b"
+     *  StringUtils.collectionToDelimitedString(List.of("a","b"), null); = NullPointerException
+     * </pre>
+     *
+     * @param collection the collection to convert
+     * @param delimiter  the delimiter to separate elements
+     * @return a string containing the elements of the collection separated by {@code delimiter}
+     * @throws NullPointerException if {@code delimiter} is {@code null}
+     */
+    public static String collectionToDelimitedString(Collection<?> collection, String delimiter) {
+        return collectionToDelimitedString(collection, delimiter, "", "");
+    }
+
+    /**
+     * Converts a collection of objects into a single string, with each element
+     * enclosed by the specified {@code prefix} and {@code suffix}, and
+     * separated by the specified {@code delimiter}.
+     *
+     * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
+     * string is returned.
+     *
+     * <p>Each element is converted to its string representation using
+     * {@link String#valueOf(Object)} and {@code null} elements are represented
+     * as {@code "null"}.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.collectionToDelimitedString(null, ",", "[", "]");              = ""
+     *  StringUtils.collectionToDelimitedString(List.of(), ",", "", "");           = ""
+     *  StringUtils.collectionToDelimitedString(List.of(1,2), ";", "", "");        = "1;2"
+     *  StringUtils.collectionToDelimitedString(List.of("a","b"), ",", "[", "]");  = "[a],[b]"
+     *  StringUtils.collectionToDelimitedString(List.of("a","b"), null, "[", "]"); = NullPointerException
+     * </pre>
+     *
+     * @param collection the collection to convert
+     * @param delimiter  the delimiter to separate elements
+     * @param prefix     the string to prepend to each element
+     * @param suffix     the string to append to each element
+     * @return a string containing the elements of the collection
+     * @throws NullPointerException if {@code delimiter} is {@code null}
+     */
+    public static String collectionToDelimitedString(Collection<?> collection,
+                                                     String delimiter,
+                                                     String prefix,
+                                                     String suffix) {
+        if (collection == null || collection.isEmpty()) return EMPTY;
+
+        int length = collection.size() * (length(prefix) + length(suffix)) + (collection.size() - 1) * delimiter.length();
+        for (Object element : collection) {
+            length += String.valueOf(element).length();
+        }
+
+        StringBuilder stringBuilder = new StringBuilder(length);
+        Iterator<?> it = collection.iterator();
+        while (it.hasNext()) {
+            stringBuilder.append(prefix).append(it.next()).append(suffix);
+            if (it.hasNext()) stringBuilder.append(delimiter);
+        }
+        return stringBuilder.toString();
     }
 
     /**
@@ -1829,6 +1934,42 @@ public abstract class StringUtils {
             endIdx--;
         }
         return string.substring(0, endIdx + 1);
+    }
+
+    /**
+     * Trims whitespace from each non-null element in the input string strings.
+     *
+     * <p>If the input strings is {@code null} or {@code empty}, it is returned
+     * unchanged.
+     *
+     * <p>Each non-null element is processed using {@link String#trim()}, which
+     * removes {@code leading} and {@code trailing} whitespace.
+     *
+     * <p>Null elements remain {@code null} in the output strings.
+     * The returned strings is a new strings with the same length as the input
+     * strings.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.trimArrayElements(null);                             = null
+     *  StringUtils.trimArrayElements(new String[]{});                   = []
+     *  StringUtils.trimArrayElements(new String[]{" ", ""});            = ["", ""]
+     *  StringUtils.trimArrayElements(new String[]{null, " hello "});    = [null, "test"]
+     *  StringUtils.trimArrayElements(new String[]{" hello ", "world"}); = ["hello", "world"]
+     * </pre>
+     *
+     * @param strings the input strings to process
+     * @return a new string strings with the same length as the input, where each non-null element has
+     * been trimmed of leading and trailing whitespace
+     */
+    public static String[] trimArrayElements(String[] strings) {
+        if (strings == null || strings.length == 0) return strings;
+
+        String[] result = new String[strings.length];
+        for (int i = 0; i < strings.length; i++) {
+            result[i] = (strings[i] != null ? strings[i].trim() : null);
+        }
+        return result;
     }
 
     /**
