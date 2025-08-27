@@ -1,9 +1,14 @@
 package ir.artanpg.commons.utils;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import static ir.artanpg.commons.utils.StringUtils.EMPTY;
 import static ir.artanpg.commons.utils.StringUtils.INDEX_NOT_FOUND;
@@ -86,7 +91,7 @@ public abstract class FileUtils {
      * @return a {@link Path} object representing the filename, never {@code null}
      */
     public static Path getFilename(String path) {
-        if (!StringUtils.hasText(path)) return Path.of(EMPTY);
+        if (!StringUtils.hasText(path)) return getEmptyPath();
 
         path = path.trim();
 
@@ -177,6 +182,55 @@ public abstract class FileUtils {
         if (getFolderSeparatorIndex(path) > lastIndex) return EMPTY;
 
         return path.substring(lastIndex + 1);
+    }
+
+    /**
+     * Maps a file to memory using multiple {@link MappedByteBuffer} instances,
+     * each representing a segment of the file with the specified page size.
+     *
+     * <p>This method is useful for handling large files that exceed the size
+     * limitations of a single memory mapping or require segmented processing.
+     *
+     * <p>The file is divided into segments of the specified {@code pageSize},
+     * with the last segment potentially smaller to cover the remaining bytes.
+     *
+     * <p>The mapping mode determines whether the buffers are {@code read-only}
+     * , {@code read-write} or {@code private}.
+     *
+     * <p>Examples:
+     * <ul>
+     *   <li>For an {@code empty} file, returns an {@code empty} list.</li>
+     *   <li>For a {@code 2500-byte} file with {@code pageSize=1000} and
+     *   {@code mode=READ_ONLY}, returns a list of three
+     *   {@link MappedByteBuffer} objects: two of size {@code 1000} and one of
+     *   size {@code 500}.</li>
+     * </ul>
+     *
+     * @param channel  the {@link FileChannel} representing the file to map
+     * @param mode     the mapping mode
+     * @param pageSize the size of each mapped segment in bytes
+     * @return a list of {@code MappedByteBuffer} instances representing the file segments
+     * @throws IOException              if an I/O error occurs during mapping
+     * @throws NullPointerException     if {@code channel} or {@code mode} is {@code null}
+     * @throws IllegalArgumentException if {@code pageSize} is not positive
+     */
+    public static List<MappedByteBuffer> mapFileUsingMappedByteBuffers(FileChannel channel,
+                                                                       FileChannel.MapMode mode,
+                                                                       int pageSize) throws IOException {
+        if (pageSize <= 0) throw new IllegalArgumentException("Page size must be positive");
+
+        List<MappedByteBuffer> bufferList = new ArrayList<>();
+        long channelSize = channel.size();
+        long mappingStart = 0;
+        int mappingSize = 0;
+
+        for (long i = 0; mappingStart + mappingSize < channelSize; i++) {
+            mappingSize = ((channelSize / pageSize) == i) ? (int) (channelSize - i * pageSize) : pageSize;
+            mappingStart = i * pageSize;
+            bufferList.add(channel.map(mode, mappingStart, mappingSize));
+        }
+
+        return bufferList;
     }
 
     private static Path getEmptyPath() {

@@ -6,62 +6,69 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
 
-import static ir.artanpg.commons.utils.StringUtils.EMPTY;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.BDDAssertions.then;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Unit tests for the {@link FileUtils} class.
+ *
+ * @author Mohammad Yazdian
  */
-public class FileUtilsTests {
+@SuppressWarnings("DataFlowIssue")
+class FileUtilsTests {
 
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = " ")
-    void getFilename_ShouldReturnEmptyPath_WhenTheStringPathIsNullOrEmptyOrBlank(String path) {
+    void getFilename_ShouldReturnEmptyPath_WhenTheStringPathIsNullOrEmptyOrBlank(String input) {
         // When
-        Path result = FileUtils.getFilename(path);
+        Path actual = FileUtils.getFilename(input);
 
         // Then
-        then(result.toString()).isEqualTo(EMPTY);
-        then(result.isAbsolute()).isFalse();
+        then(actual.toString()).isEmpty();
+        then(actual.isAbsolute()).isFalse();
     }
 
     @ParameterizedTest
     @NullSource
-    void getFilename_ShouldReturnEmptyPath_WhenThePathIsNull(Path path) {
+    void getFilename_ShouldReturnEmptyPath_WhenThePathIsNull(Path input) {
         // When
-        Path result = FileUtils.getFilename(path);
+        Path actual = FileUtils.getFilename(input);
 
         // Then
-        then(result.toString()).isEqualTo(EMPTY);
-        then(result.isAbsolute()).isFalse();
+        then(actual.toString()).isEmpty();
+        then(actual.isAbsolute()).isFalse();
     }
 
     @Test
     void getFilename_ShouldReturnEmptyPath_WhenThePathWithEmptyString() {
         // Given
-        Path objectPath = Path.of(EMPTY);
+        Path input = Path.of("");
 
         // When
-        Path result = FileUtils.getFilename(objectPath);
+        Path actual = FileUtils.getFilename(input);
 
         // Then
-        then(result.toString()).isEqualTo(EMPTY);
-        then(result.isAbsolute()).isFalse();
+        then(actual.toString()).isEmpty();
+        then(actual.isAbsolute()).isFalse();
     }
 
     @Test
     void getFilename_ShouldThrowInvalidPathException_WhenOnlySpace() {
         // Given
-        String invalidPath = " ";
+        String input = " ";
 
         // Then
-        assertThatThrownBy(() -> Path.of(invalidPath))
+        assertThatThrownBy(() -> Path.of(input))
                 .isInstanceOf(InvalidPathException.class)
                 .hasMessageContaining("Trailing char");
     }
@@ -78,156 +85,285 @@ public class FileUtilsTests {
     @Test
     void getFilename_ShouldThrowsInvalidPathException_WhenUNCPathIsMissingHostname() {
         // Given
-        String invalidUNC = "//";
+        String input = "//";
 
         // Then
-        assertThatThrownBy(() -> Path.of(invalidUNC))
+        assertThatThrownBy(() -> Path.of(input))
                 .isInstanceOf(InvalidPathException.class)
                 .hasMessageContaining("UNC path is missing hostname");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"/path/to/file.txt", "/ẞüñ/file.txt"})
-    void getFilename_ShouldReturnPath_WhenTheStringUnixPathProvided(String path) {
-        // Given
-        Path objectPath = Path.of(path);
-
+    void getFilename_ShouldReturnPath_WhenTheStringUnixPathProvided(String input) {
         // When
-        Path resultStringPath = FileUtils.getFilename(path);
-        Path resultObjectPath = FileUtils.getFilename(objectPath);
+        Path actualStringPath = FileUtils.getFilename(input);
+        Path actualObjectPath = FileUtils.getFilename(Path.of(input));
 
         // Then
-        then(resultStringPath.toString()).isEqualTo("file.txt");
-        then(resultStringPath.isAbsolute()).isFalse();
+        then(actualStringPath.toString()).isEqualTo("file.txt");
+        then(actualStringPath.isAbsolute()).isFalse();
 
-        then(resultObjectPath.toString()).isEqualTo("file.txt");
-        then(resultObjectPath.isAbsolute()).isFalse();
+        then(actualObjectPath.toString()).isEqualTo("file.txt");
+        then(actualObjectPath.isAbsolute()).isFalse();
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"\\path\\to\\file.txt", "\\ẞüñ\\file.txt"})
-    void getFilename_ShouldReturnPath_WhenTheStringWindowsPathProvided(String path) {
-        // Given
-        Path objectPath = Path.of(path);
-
+    void getFilename_ShouldReturnPath_WhenTheStringWindowsPathProvided(String input) {
         // When
-        Path resultStringPath = FileUtils.getFilename(path);
-        Path resultObjectPath = FileUtils.getFilename(objectPath);
+        Path actualStringPath = FileUtils.getFilename(input);
+        Path actualObjectPath = FileUtils.getFilename(Path.of(input));
 
         // Then
-        then(resultStringPath.toString()).isEqualTo("file.txt");
-        then(resultStringPath.isAbsolute()).isFalse();
+        then(actualStringPath.toString()).isEqualTo("file.txt");
+        then(actualStringPath.isAbsolute()).isFalse();
 
-        then(resultObjectPath.toString()).isEqualTo("file.txt");
-        then(resultObjectPath.isAbsolute()).isFalse();
+        then(actualObjectPath.toString()).isEqualTo("file.txt");
+        then(actualObjectPath.isAbsolute()).isFalse();
     }
 
     @Test
     void getFilename_ShouldReturnPath_WhenTheStringPathHasMixedSeparators() {
         // Given
-        String stringPath = "/path\\to/file.txt";
-        Path objectPath = Path.of(stringPath);
+        String input = "/path\\to/file.txt";
 
         //When
-        Path resultStringPath = FileUtils.getFilename(stringPath);
-        Path resultObjectPath = FileUtils.getFilename(objectPath);
+        Path actualStringPath = FileUtils.getFilename(input);
+        Path actualObjectPath = FileUtils.getFilename(Path.of(input));
 
         // Then
-        then(resultStringPath.toString()).isEqualTo("file.txt");
-        then(resultStringPath.isAbsolute()).isFalse();
+        then(actualStringPath.toString()).isEqualTo("file.txt");
+        then(actualStringPath.isAbsolute()).isFalse();
 
-        then(resultObjectPath.toString()).isEqualTo("file.txt");
-        then(resultObjectPath.isAbsolute()).isFalse();
+        then(actualObjectPath.toString()).isEqualTo("file.txt");
+        then(actualObjectPath.isAbsolute()).isFalse();
     }
 
     @Test
     void getFilename_ShouldReturnPath_WhenTheStringPathNoSeparatorsPresent() {
         // Given
-        String stringPath = "file.txt";
-        Path objectPath = Path.of(stringPath);
+        String input = "file.txt";
 
         // When
-        Path resultStringPath = FileUtils.getFilename(stringPath);
-        Path resultObjectPath = FileUtils.getFilename(objectPath);
+        Path actualStringPath = FileUtils.getFilename(input);
+        Path actualObjectPath = FileUtils.getFilename(Path.of(input));
 
         // Then
-        then(resultStringPath.toString()).isEqualTo("file.txt");
-        then(resultStringPath.isAbsolute()).isFalse();
+        then(actualStringPath.toString()).isEqualTo("file.txt");
+        then(actualStringPath.isAbsolute()).isFalse();
 
-        then(resultObjectPath.toString()).isEqualTo("file.txt");
-        then(resultObjectPath.isAbsolute()).isFalse();
+        then(actualObjectPath.toString()).isEqualTo("file.txt");
+        then(actualObjectPath.isAbsolute()).isFalse();
     }
 
     @Test
     void getFilename_ShouldReturnEmptyPath_WhenThePathEndsWithSeparator() {
         // Given
-        String stringPath = "/path/to/";
-        Path objectPath = Path.of(stringPath);
+        String input = "/path/to/";
 
         // When
-        Path resultStringPath = FileUtils.getFilename(stringPath);
-        Path resultObjectPath = FileUtils.getFilename(objectPath);
+        Path actualStringPath = FileUtils.getFilename(input);
+        Path actualObjectPath = FileUtils.getFilename(Path.of(input));
 
         // Then
-        then(resultStringPath.toString()).isEqualTo(EMPTY);
-        then(resultStringPath.isAbsolute()).isFalse();
+        then(actualStringPath.toString()).isEmpty();
+        then(actualStringPath.isAbsolute()).isFalse();
 
-        then(resultObjectPath.toString()).isEqualTo(EMPTY);
-        then(resultObjectPath.isAbsolute()).isFalse();
+        then(actualObjectPath.toString()).isEmpty();
+        then(actualObjectPath.isAbsolute()).isFalse();
     }
 
     @Test
     void getFilename_ShouldReturnEmptyPath_WhenThePathIsOnlySeparators() {
         // Given
-        String stringPath = "//";
+        String input = "//";
 
         // When
-        Path resultStringPath = FileUtils.getFilename(stringPath);
+        Path actual = FileUtils.getFilename(input);
 
         // Then
-        then(resultStringPath.toString()).isEqualTo(EMPTY);
-        then(resultStringPath.isAbsolute()).isFalse();
+        then(actual.toString()).isEmpty();
+        then(actual.isAbsolute()).isFalse();
+    }
+
+    @Test
+    void mapFileUsingMappedByteBuffers_ShouldReturnEmptyList_WhenFileIsEmpty() throws IOException, URISyntaxException {
+        // Given
+        List<MappedByteBuffer> actual;
+        Path file = Path.of(getClass().getClassLoader().getResource("files/empty.txt").toURI());
+
+        // When
+        try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
+            actual = FileUtils.mapFileUsingMappedByteBuffers(channel, FileChannel.MapMode.READ_ONLY, 1000);
+        }
+
+        // Then
+        then(actual).isEmpty();
+    }
+
+    @Test
+    void mapFileUsingMappedByteBuffers_ShouldReturnSingleBuffer_WhenFileSizeLessThanPageSize()
+            throws IOException, URISyntaxException {
+        // Given
+        List<MappedByteBuffer> actual;
+        Path file = Path.of(getClass().getClassLoader().getResource("files/small.txt").toURI());
+
+        // When
+        try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
+            actual = FileUtils.mapFileUsingMappedByteBuffers(channel, FileChannel.MapMode.READ_ONLY, 1000);
+        }
+
+        // Then
+        then(actual)
+                .hasSize(1)
+                .allSatisfy(buffer -> then(buffer.capacity()).isEqualTo(4));
+    }
+
+    @Test
+    void mapFileUsingMappedByteBuffers_ShouldReturnMultipleBuffers_WhenFileSizeExceedsPageSize()
+            throws IOException, URISyntaxException {
+        // Given
+        List<MappedByteBuffer> actual;
+        Path file = Path.of(getClass().getClassLoader().getResource("files/large.txt").toURI());
+
+        // When
+        try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
+            actual = FileUtils.mapFileUsingMappedByteBuffers(channel, FileChannel.MapMode.READ_ONLY, 1000);
+        }
+
+        // Then
+        then(actual).hasSize(3)
+                .satisfies(buffer -> then(buffer.get(0).capacity()).isEqualTo(1000))
+                .satisfies(buffer -> then(buffer.get(1).capacity()).isEqualTo(1000))
+                .satisfies(buffer -> then(buffer.get(2).capacity()).isEqualTo(500));
+    }
+
+    @Test
+    void mapFileUsingMappedByteBuffers_ShouldThrowNullPointerException_WhenChannelIsNull() {
+        // Then
+        assertThatThrownBy(() -> FileUtils.mapFileUsingMappedByteBuffers(null, FileChannel.MapMode.READ_ONLY, 1000))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void mapFileUsingMappedByteBuffers_ShouldThrowNullPointerException_WhenModeIsNull()
+            throws IOException, URISyntaxException {
+        // Given
+        Path file = Path.of(getClass().getClassLoader().getResource("files/small.txt").toURI());
+
+        // Then
+        try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
+            assertThatThrownBy(() -> FileUtils.mapFileUsingMappedByteBuffers(channel, null, 1000))
+                    .isInstanceOf(NullPointerException.class);
+        }
+    }
+
+    @Test
+    void mapFileUsingMappedByteBuffers_ShouldThrowIllegalArgumentException_WhenPageSizeIsNonPositive()
+            throws IOException, URISyntaxException {
+        // Given
+        Path file = Path.of(getClass().getClassLoader().getResource("files/small.txt").toURI());
+
+        // Then
+        try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
+            assertThatThrownBy(() -> FileUtils.mapFileUsingMappedByteBuffers(channel, FileChannel.MapMode.READ_ONLY, 0))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
     }
 
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = " ")
-    void getFilenameExtension_ShouldReturnsEmptyString_WhenPathIsNullOrEmptyOrBlank(String path) {
-        assertEquals(EMPTY, FileUtils.getFilenameExtension(path));
+    void getFilenameExtension_ShouldReturnsEmptyString_WhenPathIsNullOrEmptyOrBlank(String input) {
+        // When
+        String actual = FileUtils.getFilenameExtension(input);
+
+        // Then
+        then(actual).isEmpty();
     }
 
     @Test
     void getFilenameExtension_ShouldReturnsEmpty_WhenNoDotExists() {
-        assertEquals(EMPTY, FileUtils.getFilenameExtension("filename"));
+        // Given
+        String input = "filename";
+
+        // When
+        String actual = FileUtils.getFilenameExtension(input);
+
+        // Then
+        then(actual).isEmpty();
     }
 
     @Test
     void getFilenameExtension_ShouldReturnsEmpty_WhenFolderSeparatorAfterDot() {
-        assertEquals(EMPTY, FileUtils.getFilenameExtension("folder.ext/file"));
+        // Given
+        String input = "folder.ext/file";
+
+        // When
+        String actual = FileUtils.getFilenameExtension(input);
+
+        // Then
+        then(actual).isEmpty();
     }
 
     @Test
     void getFilenameExtension_ShouldReturnsExtension_WhenSimpleFilenameHasExtension() {
-        assertEquals("txt", FileUtils.getFilenameExtension("readme.txt"));
+        // Given
+        String input = "readme.txt";
+
+        // When
+        String actual = FileUtils.getFilenameExtension(input);
+
+        // Then
+        then(actual).isEqualTo("txt");
     }
 
     @Test
     void getFilenameExtension_ShouldReturnsLastExtension_WhenMultipleDotsExist() {
-        assertEquals("gz", FileUtils.getFilenameExtension("archive.tar.gz"));
+        // Given
+        String input = "archive.tar.gz";
+
+        // When
+        String actual = FileUtils.getFilenameExtension(input);
+
+        //Then
+        then(actual).isEqualTo("gz");
     }
 
     @Test
     void getFilenameExtension_ShouldReturnsExtension_WhenPathContainsUnixFolders() {
-        assertEquals("pdf", FileUtils.getFilenameExtension("/home/user/document.pdf"));
+        // Given
+        String input = "/home/user/document.pdf";
+
+        // When
+        String actual = FileUtils.getFilenameExtension(input);
+
+        //Then
+        then(actual).isEqualTo("pdf");
     }
 
     @Test
     void getFilenameExtension_ShouldReturnsExtension_WhenPathContainsWindowsFolders() {
-        assertEquals("pdf", FileUtils.getFilenameExtension("\\home\\user\\document.pdf"));
+        // Given
+        String input = "\\home\\user\\document.pdf";
+
+        // When
+        String actual = FileUtils.getFilenameExtension(input);
+
+        // Then
+        then(actual).isEqualTo("pdf");
     }
 
     @Test
     void getFilenameExtension_ShouldReturnExtension_WhenPathHasUnicode() {
-        assertEquals("txt", FileUtils.getFilenameExtension("/ẞüñ/file.txt"));
+        // Given
+        String input = "/ẞüñ/file.txt";
+
+        // When
+        String actual = FileUtils.getFilenameExtension(input);
+
+        // Then
+        then(actual).isEqualTo("txt");
     }
 }

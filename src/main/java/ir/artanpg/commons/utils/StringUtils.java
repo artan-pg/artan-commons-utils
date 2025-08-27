@@ -3,11 +3,15 @@ package ir.artanpg.commons.utils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.stream.Collectors;
+
+import static ir.artanpg.commons.utils.ArrayUtils.EMPTY_STRING_ARRAY;
 
 /**
  * Provides utility methods for {@link String} instances.
@@ -56,6 +60,11 @@ public abstract class StringUtils {
      */
     public static final int INDEX_NOT_FOUND = -1;
 
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     *
+     * @throws UnsupportedOperationException if an attempt is made to instantiate this class
+     */
     private StringUtils() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
@@ -64,10 +73,14 @@ public abstract class StringUtils {
      * Abbreviates a string to a specified maximum width by appending a default
      * ellipsis marker ({@code ...}).
      *
+     * <p>A {@code null}, {@code empty} or {@code Blank} input string will
+     * return the {@code empty} string.
+     *
      * <p>Examples:
      * <pre>
-     *  StringUtils.abbreviate(null, 4);           = null
+     *  StringUtils.abbreviate(null, 4);           = ""
      *  StringUtils.abbreviate("", 4);             = ""
+     *  StringUtils.abbreviate(" ", 4);            = ""
      *  StringUtils.abbreviate("Hello World", 4);  = "H..."
      *  StringUtils.abbreviate("Hello World", 8);  = "Hello..."
      *  StringUtils.abbreviate("Hello World", 11); = "Hello World"
@@ -75,19 +88,22 @@ public abstract class StringUtils {
      *  StringUtils.abbreviate("Hello World", 3);  = IllegalArgumentException
      * </pre>
      *
-     * @param str      the string to abbreviate, may be null or empty
+     * @param string   the string to abbreviate, may be null or empty
      * @param maxWidth the maximum length of the resulting string, including the ellipsis marker
      * @return the abbreviated string, or the original string if no abbreviation is needed
-     * @throws IllegalArgumentException if maxWidth is less than the minimum required width (length of abbrevMarker + 1)
+     * @throws IllegalArgumentException if maxWidth is less than the minimum required width
      * @see #abbreviate(String, String, int)
      */
-    public static String abbreviate(String str, int maxWidth) {
-        return abbreviate(str, ELLIPSIS3, maxWidth);
+    public static String abbreviate(String string, int maxWidth) {
+        return abbreviate(string, ELLIPSIS3, maxWidth);
     }
 
     /**
      * Abbreviates a string to a specified maximum width by appending an
      * abbreviation marker.
+     *
+     * <p>A {@code null}, {@code empty} or {@code blank} input string or abbrev
+     * marker string will return the {@code empty} string.
      *
      * <p>If the string length is less than or equal to the maximum width, it
      * is returned unchanged.
@@ -97,8 +113,9 @@ public abstract class StringUtils {
      *
      * <p>Examples:
      * <pre>
-     *  StringUtils.abbreviate(null, "...", 4);           = null
+     *  StringUtils.abbreviate(null, "...", 4);           = ""
      *  StringUtils.abbreviate("", "...", 4);             = ""
+     *  StringUtils.abbreviate(" ", "...", 4);            = ""
      *  StringUtils.abbreviate("Hello World", "...", 4);  = "H..."
      *  StringUtils.abbreviate("Hello World", "...", 8);  = "Hello..."
      *  StringUtils.abbreviate("Hello World", "...", 11); = "Hello World"
@@ -110,11 +127,10 @@ public abstract class StringUtils {
      * @param abbrevMarker the marker to append when abbreviating, may be null or empty
      * @param maxWidth     the maximum length of the result, including the abbreviation marker
      * @return the abbreviated string, or the original string if no abbreviation is needed
-     * @throws IllegalArgumentException if maxWidth is less than the minimum required width (length of abbrevMarker + 1)
+     * @throws IllegalArgumentException if maxWidth is less than the minimum required width
      */
     public static String abbreviate(String string, String abbrevMarker, int maxWidth) {
-        if (hasText(string) && EMPTY.equals(abbrevMarker) && maxWidth > 0) return string.substring(0, maxWidth);
-        if (!hasLengthAll(string, abbrevMarker)) return string;
+        if (!hasTextAll(string, abbrevMarker)) return EMPTY;
 
         int abbrevMarkerLength = abbrevMarker.length();
         int minAbbrevWidth = abbrevMarkerLength + 1;
@@ -132,36 +148,33 @@ public abstract class StringUtils {
      * Capitalizes the first character of the given string, handling Unicode
      * characters properly.
      *
-     * <p>This method converts the first character of the input string to title
-     * case using Unicode code points. If the string is already capitalized or
-     * empty, it returns the original string unchanged.
-     *
-     * <p>The method properly handles supplementary Unicode characters that
-     * occupy two char values (surrogate pairs).
+     * <p>A {@code null}, {@code empty} or {@code blank} input string will
+     * return the {@code Original} string.
      *
      * <p>Examples:
      * <pre>
      *  StringUtils.capitalize(null);      = null
      *  StringUtils.capitalize("");        = ""
+     *  StringUtils.capitalize(" ");       = " "
      *  StringUtils.capitalize("hello");   = "Hello"
      *  StringUtils.capitalize("hEllo");   = "HEllo"
      *  StringUtils.capitalize("'Hello'"); = "'Hello'"
      * </pre>
      *
-     * @param str the String to capitalize, may be null
-     * @return the capitalized String, {@code null} if null String input
+     * @param string the string to capitalize
+     * @return the capitalized string
      * @see #uncapitalize(String)
      */
-    public static String capitalize(String str) {
-        if (!hasText(str)) return str;
+    public static String capitalize(String string) {
+        if (!hasText(string)) return string;
 
-        int firstCodepoint = str.codePointAt(0);
+        int firstCodepoint = string.codePointAt(0);
         int newCodePoint = Character.toTitleCase(firstCodepoint);
 
-        if (firstCodepoint == newCodePoint) return str;
+        if (firstCodepoint == newCodePoint) return string;
 
-        int[] newCodePoints = str.codePoints().toArray();
-        newCodePoints[0] = newCodePoint; // copy the first code point
+        int[] newCodePoints = string.codePoints().toArray();
+        newCodePoints[0] = newCodePoint;
 
         return new String(newCodePoints, 0, newCodePoints.length);
     }
@@ -832,6 +845,86 @@ public abstract class StringUtils {
     }
 
     /**
+     * Finds the index of the first occurrence of any string from the given
+     * array within the input string.
+     * The search is case-sensitive.
+     *
+     * <p>This method searches for the earliest occurrence (lowest index) of
+     * any string in the {@code search} array within the input {@code string}.
+     *
+     * <p>If no match is found, or if the input string is {@code empty},
+     * {@code null}, or contains only {@code whitespace}, or if the search
+     * array is {@code null} or {@code empty}, it returns {@code -1}.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.indexOfAny(null, new String[]{"*"});                       = -1
+     *  StringUtils.indexOfAny("", new String[]{"*"});                         = -1
+     *  StringUtils.indexOfAny(" ", new String[]{"*"});                        = -1
+     *  StringUtils.indexOfAny("Hello", null);                                 = -1
+     *  StringUtils.indexOfAny("Hello", new String[]{});                       = -1
+     *  StringUtils.indexOfAny("Hello World", new String[]{"lo", "or", "ld"}); = 3
+     * </pre>
+     *
+     * @param string the input string to search in
+     * @param search the array of strings to search for
+     * @return the index of the first occurrence of any string from search in string
+     */
+    public static int indexOfAny(String string, String[] search) {
+        if (!hasText(string) || search == null || search.length == 0) return INDEX_NOT_FOUND;
+
+        int position = Integer.MAX_VALUE;
+        int tmp;
+
+        for (String strSearch : search) {
+            tmp = string.indexOf(strSearch);
+            if (tmp == -1) continue;
+            if (tmp < position) position = tmp;
+        }
+
+        return (position == Integer.MAX_VALUE) ? INDEX_NOT_FOUND : position;
+    }
+
+    /**
+     * Finds the last index within a string of the specified substrings.
+     *
+     * <p>This method searches for the last occurrence of any substring from
+     * the provided array within the input string and returns the highest index
+     * found.
+     *
+     * <p>If no substring is found, or if the input string is {@code null},
+     * {@code empty}, or the search array is {@code null} or {@code empty},
+     * it returns {@code -1}.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.lastIndexOfAny(null, new String[]{"*"});                       = -1
+     *  StringUtils.lastIndexOfAny("", new String[]{"*"});                         = -1
+     *  StringUtils.lastIndexOfAny(" ", new String[]{"*"});                        = -1
+     *  StringUtils.lastIndexOfAny("Hello", null);                                 = -1
+     *  StringUtils.lastIndexOfAny("Hello", new String[]{});                       = -1
+     *  StringUtils.lastIndexOfAny("Hello World", new String[]{"lo", "or", "ld"}); = 9
+     * </pre>
+     *
+     * @param string the string to search in
+     * @param search an array of substrings to search for
+     * @return the highest index in the string where any substring from the search array is found
+     */
+    public static int lastIndexOfAny(String string, String[] search) {
+        if (!hasText(string) || search == null || search.length == 0) return INDEX_NOT_FOUND;
+
+        int position = -1;
+        int tmp;
+
+        for (String strSearch : search) {
+            tmp = string.lastIndexOf(strSearch);
+            if (tmp > position) position = tmp;
+        }
+
+        return position;
+    }
+
+    /**
      * Tests if the String contains only lowercase characters.
      *
      * <p>Examples:
@@ -1480,6 +1573,129 @@ public abstract class StringUtils {
     }
 
     /**
+     * Splits a string into an array of substrings using a single space as the
+     * default separator.
+     *
+     * <p>This method is a convenience wrapper around the
+     * {@link #split(String, String, int)} method, using a {@code space} as the
+     * separator and no limit on the number of splits.
+     *
+     * <p>A {@code null}, {@code empty} or a {@code blank} input string will
+     * return the {@code empty} array.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.split(null);    = []
+     *  StringUtils.split("");      = []
+     *  StringUtils.split(" ");     = []
+     *  StringUtils.split("a,b,c"); = ["a,b,c"]
+     * </pre>
+     *
+     * @param string the input string to split
+     * @return an array of strings containing the split substrings
+     * @see #split(String, String, int)
+     */
+    public static String[] split(String string) {
+        return split(string, " ", 0);
+    }
+
+    /**
+     * Splits a string into an array of substrings using the specified
+     * separator.
+     *
+     * <p>This method is a convenience wrapper around the
+     * {@link #split(String, String, int)} method, using the provided separator
+     * and no limit on the number of splits.
+     *
+     * <p>A {@code null}, {@code empty} or a {@code blank} input string will
+     * return the {@code empty} array.
+     *
+     * <p>If the separator is {@code null}, default delimiters are used.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.split(null, ",");    = []
+     *  StringUtils.split("", ",");      = []
+     *  StringUtils.split(" ", ",");     = []
+     *  StringUtils.split("a,b,c", ";"); = ["a;b;c"]
+     * </pre>
+     *
+     * @param string    the input string to split
+     * @param separator the delimiter to split the string
+     * @return an array of strings containing the split substrings
+     * @see #split(String, String, int)
+     */
+    public static String[] split(String string, String separator) {
+        return split(string, separator, 0);
+    }
+
+    /**
+     * Splits a string into an array of substrings based on a separator, with
+     * an optional limit on the number of splits.
+     *
+     * <p>A {@code null}, {@code empty} or a {@code blank} input string will
+     * return the {@code empty} array.
+     *
+     * <p>If the separator is {@code null}, default delimiters
+     * ({@code whitespace}) are used.
+     *
+     * <p>If {@code max} is positive, the resulting array is limited to
+     * {@code max} elements, with the last element containing the remainder of
+     * the string.
+     *
+     * <p>If {@code max} is zero or negative, all tokens are returned.
+     *
+     * <p>Examples:
+     * <pre>
+     * StringUtils.split(null, ",", 0);          = []
+     * StringUtils.split("", ",", 0);            = []
+     * StringUtils.split(" ", ",", 0);           = []
+     * StringUtils.split("a,,b,,c", ",", 0);     = ["a", "b", "c"]
+     * StringUtils.split("a,b,c,d", ",", 0);     = ["a", "b", "c", "d"]
+     * StringUtils.split("a,b,c,d", ",", 2);     = ["a", "b,c,d"]
+     * StringUtils.split("a b  c   d", null, 0); = ["a", "b", "c", "d"]
+     * </pre>
+     *
+     * @param string    the input string to split
+     * @param separator the delimiter to split the string
+     * @param max       the maximum number of elements in the output array
+     * @return an array of strings containing the split substrings
+     */
+    public static String[] split(String string, String separator, int max) {
+        if (!hasText(string)) return EMPTY_STRING_ARRAY;
+
+        StringTokenizer stringTokenizer =
+                (separator == null) ? new StringTokenizer(string) : new StringTokenizer(string, separator);
+
+        int listSize = stringTokenizer.countTokens();
+        if ((max > 0) && (listSize > max)) {
+            listSize = max;
+        }
+
+        int i = 0;
+        int lastTokenBegin;
+        int lastTokenEnd = 0;
+        String endToken;
+        String[] list = new String[listSize];
+
+        while (stringTokenizer.hasMoreTokens()) {
+            if ((max > 0) && (i == listSize - 1)) {
+                endToken = stringTokenizer.nextToken();
+                lastTokenBegin = string.indexOf(endToken, lastTokenEnd);
+                list[i] = string.substring(lastTokenBegin);
+                break;
+            } else {
+                list[i] = stringTokenizer.nextToken();
+                lastTokenBegin = string.indexOf(list[i], lastTokenEnd);
+                lastTokenEnd = lastTokenBegin + list[i].length();
+            }
+            i++;
+        }
+
+        return list;
+    }
+
+    /**
      * Test if the given {@code String} starts with the specified prefix,
      * ignoring upper/lower case.
      *
@@ -1694,6 +1910,46 @@ public abstract class StringUtils {
         }
 
         return true;
+    }
+
+    /**
+     * Extracts a substring from the input string starting at the specified
+     * index.
+     *
+     * <p>If the input string is {@code null}, {@code empty} or {@code blank},
+     * an {@code empty} string is returned.
+     *
+     * <p>Negative start indices are treated as relative to the end of the
+     * string.
+     * If the adjusted start index is still negative, it is set to {@code 0}.
+     *
+     * <p>If the start index exceeds the string's length, an {@code empty}
+     * string is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.substring(null, 0);      = ""
+     *  StringUtils.substring("", 0);        = ""
+     *  StringUtils.substring(" ", 0);       = ""
+     *  StringUtils.substring("Hello", 0);   = "Hello"
+     *  StringUtils.substring("Hello", 2);   = "llo"
+     *  StringUtils.substring("Hello", -2);  = "lo"
+     *  StringUtils.substring("Hello", -10); = "Hello"
+     * </pre>
+     *
+     * @param string the input string to extract the substring from
+     * @param start  the starting index
+     * @return the substring from the start index to the end of the string
+     */
+    public static String substring(String string, int start) {
+        if (!hasText(string)) return EMPTY;
+
+        if (start < 0) start = string.length() + start;
+
+        if (start < 0) start = 0;
+        if (start > string.length()) return EMPTY;
+
+        return string.substring(start);
     }
 
     /**
@@ -1970,6 +2226,51 @@ public abstract class StringUtils {
             result[i] = (strings[i] != null ? strings[i].trim() : null);
         }
         return result;
+    }
+
+    /**
+     * Converts a {@link Collection} of strings to a string array.
+     * This method is useful for converting collections to arrays in a safe
+     * manner without null pointer exceptions.
+     *
+     * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
+     * array is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.toString(null);                    = []
+     *  StringUtils.toString(Collections.emptyList()); = []
+     *  StringUtils.toString(Arrays.asList("Hello"));  = ["Hello"]
+     * </pre>
+     *
+     * @param collection the collection of strings to convert
+     * @return a string array containing the elements of the collection
+     */
+    public static String[] toString(Collection<String> collection) {
+        return collection == null || collection.isEmpty() ? EMPTY_STRING_ARRAY : collection.toArray(EMPTY_STRING_ARRAY);
+    }
+
+    /**
+     * Converts an {@link Enumeration} of strings to a string array.
+     * This method is useful for converting enumerations to arrays in a safe
+     * manner.
+     *
+     * <p>If the enumeration is {@code null}, an {@code empty} array is
+     * returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  StringUtils.toString(null);                                      = []
+     *  StringUtils.toString(Collections.emptyEnumeration());            = []
+     *  StringUtils.toString(Collections.enumeration(List.of("Hello"))); = ["Hello"]
+     * </pre>
+     *
+     * @param enumeration the enumeration of strings to convert
+     * @return a string array containing the elements of the enumeration
+     */
+    public static String[] toString(Enumeration<String> enumeration) {
+        return (enumeration == null || !enumeration.hasMoreElements()) ?
+                EMPTY_STRING_ARRAY : toString(Collections.list(enumeration));
     }
 
     /**

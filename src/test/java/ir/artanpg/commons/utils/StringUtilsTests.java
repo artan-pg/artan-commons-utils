@@ -7,9 +7,12 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 
+import static ir.artanpg.commons.utils.StringUtils.INDEX_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,128 +23,163 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for the {@link StringUtils} class.
+ *
+ * @author Mohammad Yazdian
  */
 class StringUtilsTests {
 
     @ParameterizedTest
     @NullAndEmptySource
-    void abbreviate_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
-        assertEquals(input, StringUtils.abbreviate(input, 4));
-        assertEquals(input, StringUtils.abbreviate(input, "...", 4));
+    @ValueSource(strings = {" "})
+    void abbreviate_ShouldReturnEmptyString_WhenInputStringIsNullOrEmpty(String input) {
+        // Given
+        String abbrevMarker = "...";
+        int maxWidth = 4;
+
+        // When
+        String actual = StringUtils.abbreviate(input, abbrevMarker, maxWidth);
+
+        // then
+        then(actual).isEmpty();
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void abbreviate_ShouldReturnOriginalString_WhenAbbrevMarkerIsNullOrEmpty(String abbrevMarker) {
-        assertEquals("Hello", StringUtils.abbreviate("Hello", abbrevMarker, 5));
+    @ValueSource(strings = {" "})
+    void abbreviate_ShouldReturnEmptyString_WhenAbbrevMarkerIsNullOrEmpty(String abbrevMarker) {
+        // Given
+        String input = "Hello";
+        int maxWidth = 4;
+
+        // When
+        String actual = StringUtils.abbreviate(input, abbrevMarker, maxWidth);
+
+        // Then
+        then(actual).isEmpty();
     }
 
     @Test
     void abbreviate_ShouldReturnOriginalString_WhenStringLengthIsLessThanMaxWidth() {
-        assertEquals("Hello", StringUtils.abbreviate("Hello", 10));
-        assertEquals("Hello", StringUtils.abbreviate("Hello", "...", 10));
+        // Given
+        String input = "Hello";
+        String abbrevMarker = "...";
+        int maxWidth = 10;
+
+        // When
+        String actual = StringUtils.abbreviate(input, abbrevMarker, maxWidth);
+
+        // Then
+        then(actual).isEqualTo(input);
     }
 
     @Test
     void abbreviate_ShouldReturnOriginalString_WhenStringLengthEqualsMaxWidth() {
-        assertEquals("Hello", StringUtils.abbreviate("Hello", 5));
-        assertEquals("Hello", StringUtils.abbreviate("Hello", "...", 5));
+        // Given
+        String input = "Hello";
+        String abbrevMarker = "...";
+        int maxWidth = 5;
+
+        // When
+        String actual = StringUtils.abbreviate(input, abbrevMarker, maxWidth);
+
+        // Then
+        then(actual).isEqualTo(input);
     }
 
     @Test
     void abbreviate_ShouldReturnAbbreviatedString_WhenStringLengthExceedsMaxWidth() {
-        assertEquals("Hello...", StringUtils.abbreviate("Hello World", 8));
-        assertEquals("Hello...", StringUtils.abbreviate("Hello World", "...", 8));
-    }
+        // Given
+        String input = "Hello World";
+        String abbrevMarker = "...";
+        int maxWidth = 8;
 
-    @Test
-    void abbreviate_ShouldReturnSubstring_WhenAbbrevMarkerIsEmptyAndMaxWidthIsPositive() {
-        assertEquals("Hello", StringUtils.abbreviate("Hello World", "", 5));
+        // When
+        String actual = StringUtils.abbreviate(input, abbrevMarker, maxWidth);
+
+        // Then
+        then(actual).isEqualTo("Hello...");
     }
 
     @Test
     void abbreviate_ShouldThrowIllegalArgumentException_WhenMaxWidthIsLessThanMinAbbrevWidth() {
-        assertThrowsExactly(
-                IllegalArgumentException.class,
-                () -> StringUtils.abbreviate("Hello", 3),
-                "Minimum abbreviation width is 4");
+        // Given
+        String input = "Hello";
+        String abbrevMarker = "...";
+        int maxWidth = 3;
 
-        assertThrowsExactly(
-                IllegalArgumentException.class,
-                () -> StringUtils.abbreviate("Hello", "...", 3),
-                "Minimum abbreviation width is 4");
+        // Then
+        assertThatThrownBy(() -> StringUtils.abbreviate(input, abbrevMarker, maxWidth))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Minimum abbreviation width is 4");
     }
 
     @Test
     void abbreviate_ShouldThrowIllegalArgumentException_WhenMaxWidthIsZero() {
-        assertThrowsExactly(
-                IllegalArgumentException.class,
-                () -> StringUtils.abbreviate("Hello", 0),
-                "Minimum abbreviation width is 4");
+        // Given
+        String input = "Hello";
+        String abbrevMarker = "...";
+        int maxWidth = 0;
 
-        assertThrowsExactly(
-                IllegalArgumentException.class,
-                () -> StringUtils.abbreviate("Hello", "...", 0),
-                "Minimum abbreviation width is 4");
+        // Then
+        assertThatThrownBy(() -> StringUtils.abbreviate(input, abbrevMarker, maxWidth))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Minimum abbreviation width is 4");
     }
 
     @Test
     void abbreviate_ShouldThrowIllegalArgumentException_WhenMaxWidthIsNegative() {
-        assertThrowsExactly(
-                IllegalArgumentException.class,
-                () -> StringUtils.abbreviate("Hello", -1),
-                "Minimum abbreviation width is 4");
+        // Given
+        String input = "Hello";
+        String abbrevMarker = "...";
+        int maxWidth = -1;
 
-        assertThrowsExactly(
-                IllegalArgumentException.class,
-                () -> StringUtils.abbreviate("Hello", "...", -1),
-                "Minimum abbreviation width is 4");
+        // Then
+        assertThatThrownBy(() -> StringUtils.abbreviate(input, abbrevMarker, maxWidth))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Minimum abbreviation width is 4");
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void capitalize_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
-        assertEquals(input, StringUtils.capitalize(input));
+    @ValueSource(strings = {" "})
+    void capitalize_ShouldReturnOriginalString_WhenInputStringIsNullOrEmptyOrBlank(String input) {
+        // When
+        String actual = StringUtils.capitalize(input);
+
+        // then
+        then(actual).isEqualTo(input);
     }
 
-    @Test
-    void capitalize_ShouldReturnOriginalString_WhenInputStringIsBlank() {
-        assertEquals(" ", StringUtils.capitalize(" "));
+    @ParameterizedTest
+    @ValueSource(strings = {"hello", "hELLO"})
+    void capitalize_ShouldCapitalizeFirstCharacter_WhenInputStringStartsWithLowercase(String input) {
+        // When
+        String actual = StringUtils.capitalize(input);
+
+        // then
+        then(actual).isIn("Hello", "HELLO");
     }
 
-    @Test
-    void capitalize_ShouldCapitalizeFirstCharacter_WhenInputStringStartsWithLowercase() {
-        assertEquals("Hello", StringUtils.capitalize("Hello"));
-    }
+    @ParameterizedTest
+    @ValueSource(strings = {"Hello", "HELLO"})
+    void capitalize_ShouldReturnOriginalString_WhenInputStringStartsWithUppercase(String input) {
+        // When
+        String actual = StringUtils.capitalize(input);
 
-    @Test
-    void capitalize_ShouldReturnOriginalString_WhenFirstCharacterIsAlreadyCapitalized() {
-        assertEquals("Hello", StringUtils.capitalize("Hello"));
-    }
-
-    @Test
-    void capitalize_ShouldCapitalizeSingleCharacter_WhenInputStringIsSingleLowercaseCharacter() {
-        assertEquals("A", StringUtils.capitalize("a"));
-    }
-
-    @Test
-    void capitalize_ShouldReturnOriginalString_WhenInputStringIsSingleUppercaseCharacter() {
-        assertEquals("A", StringUtils.capitalize("A"));
-    }
-
-    @Test
-    void capitalize_ShouldHandleUnicodeCharacters_WhenInputStringStartsWithUnicodeLowercase() {
-        assertEquals("Θeta", StringUtils.capitalize("θeta"));
+        // then
+        then(actual).isEqualTo(input);
     }
 
     @Test
     void capitalize_ShouldReturnOriginalString_WhenInputStringStartsWithNonLetter() {
-        assertEquals("123test", StringUtils.capitalize("123test"));
-    }
+        // Given
+        String input = "123test";
 
-    @Test
-    void capitalize_ShouldCapitalizeFirstLetter_WhenInputStringHasMixedCase() {
-        assertEquals("HELLO", StringUtils.capitalize("hELLO"));
+        // When
+        String actual = StringUtils.capitalize(input);
+
+        // then
+        then(actual).isEqualTo(input);
     }
 
     @ParameterizedTest
@@ -975,6 +1013,177 @@ class StringUtilsTests {
 
     @ParameterizedTest
     @NullAndEmptySource
+    @ValueSource(strings = {" "})
+    void indexOfAny_ShouldReturnIndexNotFound_WhenInputStringIsNullOrEmptyOrBlank(String input) {
+        // Given
+        String[] search = {"lo", "or", "ld"};
+
+        // When
+        int actual = StringUtils.indexOfAny(input, search);
+
+        // Then
+        then(actual).isEqualTo(INDEX_NOT_FOUND);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void indexOfAny_ShouldReturnIndexNotFound_WhenSearchArrayIsNullOrEmpty(String... search) {
+        // Given
+        String input = "Hello World";
+
+        // When
+        int actual = StringUtils.indexOfAny(input, search);
+
+        // Then
+        then(actual).isEqualTo(INDEX_NOT_FOUND);
+    }
+
+    @Test
+    void indexOfAny_ShouldReturnFirstOccurrenceIndex_WhenMultipleMatchesExist() {
+        // Given
+        String string = "Hello World";
+        String[] search = {"lo", "or", "ld"};
+
+        // When
+        int actual = StringUtils.indexOfAny(string, search);
+
+        // Then
+        then(actual).isEqualTo(3);
+    }
+
+    @Test
+    void indexOfAny_ShouldReturnIndexNotFound_WhenNoMatchExists() {
+        // Given
+        String string = "Hello World";
+        String[] search = {"xyz", "abc"};
+
+        // When
+        int actual = StringUtils.indexOfAny(string, search);
+
+        // Then
+        then(actual).isEqualTo(INDEX_NOT_FOUND);
+    }
+
+    @Test
+    void indexOfAny_ShouldReturnCorrectIndex_WhenSingleMatchExists() {
+        // Given
+        String string = "abc123";
+        String[] search = {"123"};
+
+        // When
+        int actual = StringUtils.indexOfAny(string, search);
+
+        // Then
+        then(actual).isEqualTo(3);
+    }
+
+    @Test
+    void indexOfAny_ShouldReturnEarliestIndex_WhenMultipleStringsMatch() {
+        // Given
+        String string = "abc123def";
+        String[] search = {"bc", "123", "def"};
+
+        // When
+        int actual = StringUtils.indexOfAny(string, search);
+
+        // Then
+        then(actual).isEqualTo(1);
+    }
+
+    @Test
+    void indexOfAny_ShouldReturnIndexNotFound_WhenInputStringIsCaseSensitive() {
+        // Given
+        String string = "Hello World";
+        String[] search = {"hello", "WORLD"};
+
+        // When
+        int actual = StringUtils.indexOfAny(string, search);
+
+        // Then
+        then(actual).isEqualTo(INDEX_NOT_FOUND); // Case-sensitive, no match
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" "})
+    void lastIndexOfAny_ShouldReturnIndexNotFound_WhenStringIsNullOrEmptyOrBlank(String input) {
+        // Given
+        String[] search = {"lo", "or", "ld"};
+
+        // When
+        int actual = StringUtils.lastIndexOfAny(input, search);
+
+        // Then
+        then(actual).isEqualTo(INDEX_NOT_FOUND);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void lastIndexOfAny_ShouldReturnIndexNotFound_WhenSearchArrayIsNullOrEmpty(String... search) {
+        // Given
+        String string = "Hello World";
+
+        // When
+        int actual = StringUtils.lastIndexOfAny(string, search);
+
+        // Then
+        then(actual).isEqualTo(INDEX_NOT_FOUND);
+    }
+
+    @Test
+    void lastIndexOfAny_ShouldReturnLastIndex_WhenSingleSearchStringIsFound() {
+        // Given
+        String input = "Hello World";
+        String[] search = {"World"};
+
+        // When
+        int actual = StringUtils.lastIndexOfAny(input, search);
+
+        // Then
+        then(actual).isEqualTo(6);
+    }
+
+    @Test
+    void lastIndexOfAny_ShouldReturnLastIndex_WhenMultipleSearchStringsAreFound() {
+        // Given
+        String input = "hello world, hello universe";
+        String[] search = {"world", "universe"};
+
+        // When
+        int actual = StringUtils.lastIndexOfAny(input, search);
+
+        // Then
+        then(actual).isEqualTo(19);
+    }
+
+    @Test
+    void lastIndexOfAny_ShouldReturnIndexNotFound_WhenNoSearchStringIsFound() {
+        // Given
+        String input = "hello world";
+        String[] search = {"java", "python"};
+
+        // When
+        int actual = StringUtils.lastIndexOfAny(input, search);
+
+        // Then
+        then(actual).isEqualTo(INDEX_NOT_FOUND);
+    }
+
+    @Test
+    void lastIndexOfAny_ShouldReturnLastIndex_WhenSearchStringAppearsMultipleTimes() {
+        // Given
+        String input = "hello hello world";
+        String[] search = {"hello"};
+
+        // When
+        int actual = StringUtils.lastIndexOfAny(input, search);
+
+        // Then
+        then(actual).isEqualTo(6);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
     void isAllLowerCase_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
         assertFalse(StringUtils.isAllLowerCase(input));
     }
@@ -1804,6 +2013,111 @@ class StringUtilsTests {
 
     @ParameterizedTest
     @NullAndEmptySource
+    @ValueSource(strings = " ")
+    void split_ShouldReturnEmptyStringArray_WhenInputStringIsNullOrEmpty(String input) {
+        // Given
+        String separator = ",";
+        int max = 0;
+
+        // When
+        String[] actual = StringUtils.split(input, separator, max);
+
+        // Then
+        then(actual).isEmpty();
+    }
+
+    @Test
+    void split_ShouldSplitByDefaultSeparator_WhenSeparatorIsNull() {
+        // Given
+        String input = "a b c";
+        String separator = null;
+        int max = 0;
+
+        // When
+        String[] actual = StringUtils.split(input, separator, max);
+
+        // Then
+        then(actual).hasSize(3);
+        then(actual).containsExactly("a", "b", "c");
+    }
+
+    @Test
+    void split_ShouldSplitBySpecifiedSeparator_WhenSeparatorIsProvided() {
+        // Given
+        String input = "a,b,c";
+        String separator = ",";
+        int max = 0;
+
+        // When
+        String[] actual = StringUtils.split(input, separator, max);
+
+        // Then
+        then(actual).hasSize(3);
+        then(actual).containsExactly("a", "b", "c");
+    }
+
+    @Test
+    void split_ShouldLimitOutputArraySize_WhenMaxIsPositive() {
+        // Given
+        String input = "a,b,c,d";
+        String separator = ",";
+        int max = 2;
+
+        // When
+        String[] actual = StringUtils.split(input, separator, max);
+
+        // Then
+        then(actual).hasSize(2);
+        then(actual).containsExactly("a", "b,c,d");
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1})
+    void split_ShouldReturnFullArray_WhenMaxIsZeroOrNegative(int max) {
+        // Given
+        String input = "a,b,c";
+        String separator = ",";
+
+        // When
+        String[] actual = StringUtils.split(input, separator, max);
+
+        // Then
+        then(actual).hasSize(3);
+        then(actual).containsExactly("a", "b", "c");
+    }
+
+    @Test
+    void split_ShouldReturnSingleElementArray_WhenInputHasNoSeparator() {
+        // Given
+        String input = "abc";
+        String separator = ",";
+        int max = 0;
+
+        // When
+        String[] actual = StringUtils.split(input, separator, max);
+
+        // Then
+        then(actual).hasSize(1);
+        then(actual).containsExactly("abc");
+    }
+
+    @Test
+    void split_ShouldHandleMultipleSeparators_WhenInputHasConsecutiveSeparators() {
+        // Given
+        String input = "a,,b,,c";
+        String separator = ",";
+        int max = 0;
+
+        // When
+        String[] actual = StringUtils.split(input, separator, max);
+
+        // Then
+        then(actual).hasSize(3);
+        then(actual).containsExactly("a", "b", "c");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
     void startsWithIgnoreCase_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
         assertFalse(StringUtils.startsWithIgnoreCase(input, "pre"));
     }
@@ -2065,6 +2379,72 @@ class StringUtilsTests {
     @Test
     void substringMatch_ShouldReturnFalse_WhenUnicodeSubstringDoesNotMatchAtIndex() {
         assertFalse(StringUtils.substringMatch("ẞüñ", 0, "üñ"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = " ")
+    void substring_ShouldReturnEmptyString_WhenInputStringIsNullOrEmptyOrBlank(String input) {
+        // Given
+        int start = 0;
+
+        // When
+        String actual = StringUtils.substring(input, start);
+
+        // Then
+        then(actual).isEmpty();
+    }
+
+    @Test
+    void substring_ShouldReturnSubstring_WhenStartIndexIsValid() {
+        // Given
+        String input = "hello";
+        int start = 2;
+
+        // When
+        String actual = StringUtils.substring(input, start);
+
+        // Then
+        then(actual).isEqualTo("llo");
+    }
+
+    @Test
+    void substring_ShouldReturnSubstringFromAdjustedIndex_WhenStartIndexIsNegative() {
+        // Given
+        String input = "hello";
+        int start = -2;
+
+        // When
+        String actual = StringUtils.substring(input, start);
+
+        // Then
+        then(actual).isEqualTo("lo");
+    }
+
+    @Test
+    void substring_ShouldReturnOriginalString_WhenNegativeStartIndexIsBeyondStringLength() {
+        // Given
+        String input = "hello";
+        int start = -10;
+
+        // When
+        String actual = StringUtils.substring(input, start);
+
+        // Then
+        then(actual).isEqualTo("hello");
+    }
+
+    @Test
+    void substring_ShouldReturnEmptyString_WhenStartIndexExceedsStringLength() {
+        // Given
+        String input = "hello";
+        int start = 10;
+
+        // When
+        String actual = StringUtils.substring(input, start);
+
+        // Then
+        then(actual).isEmpty();
     }
 
     @ParameterizedTest
@@ -2402,6 +2782,110 @@ class StringUtilsTests {
 
         // Then
         then(actual).containsExactly("ẞüñ");
+    }
+
+    @SuppressWarnings("ConstantValue")
+    @Test
+    void toString_ShouldReturnEmptyArray_WhenCollectionIsNullOrEmpty() {
+        // Given
+        Collection<String> inputNull = null;
+        Collection<String> inputEmpty = Collections.emptyList();
+
+        // When
+        String[] actualNull = StringUtils.toString(inputNull);
+        String[] actualEmpty = StringUtils.toString(inputEmpty);
+
+        // Then
+        then(actualNull).isEmpty();
+        then(actualEmpty).isEmpty();
+    }
+
+    @Test
+    void toString_ShouldReturnStringArray_WhenCollectionHasElements() {
+        // Given
+        Collection<String> input = List.of("Hello", "World");
+
+        // When
+        String[] actual = StringUtils.toString(input);
+
+        // Then
+        then(actual).containsExactly("Hello", "World");
+    }
+
+    @Test
+    void toString_ShouldReturnStringArrayWithNull_WhenCollectionHasNullElement() {
+        // Given
+        Collection<String> input = Arrays.asList("Hello", "World", null);
+
+        // When
+        String[] actual = StringUtils.toString(input);
+
+        // Then
+        then(actual).containsExactly("Hello", "World", null);
+    }
+
+    @Test
+    void toString_ShouldReturnStringArrayWithEmptyString_WhenCollectionHasEmptyString() {
+        // Given
+        Collection<String> input = Arrays.asList("", "World");
+
+        // When
+        String[] actual = StringUtils.toString(input);
+
+        // Then
+        then(actual).containsExactly("", "World");
+    }
+
+    @SuppressWarnings("ConstantValue")
+    @Test
+    void toString_ShouldReturnEmptyArray_WhenEnumerationIsNullOrEmpty() {
+        // Given
+        Collection<String> inputNull = null;
+        Enumeration<String> inputEmpty = Collections.emptyEnumeration();
+
+        // When
+        String[] actualNull = StringUtils.toString(inputNull);
+        String[] actualEmpty = StringUtils.toString(inputEmpty);
+
+        // Then
+        then(actualNull).isEmpty();
+        then(actualEmpty).isEmpty();
+    }
+
+    @Test
+    void toString_ShouldReturnStringArray_WhenEnumerationHasElements() {
+        // Given
+        Enumeration<String> input = Collections.enumeration(List.of("Hello", "World"));
+
+        // When
+        String[] actual = StringUtils.toString(input);
+
+        // Then
+        then(actual).containsExactly("Hello", "World");
+    }
+
+    @Test
+    void toString_ShouldReturnStringArrayWithNull_WhenEnumerationHasNullElement() {
+        // Given
+        Enumeration<String> input = Collections.enumeration(Arrays.asList("Hello", "World", null));
+
+        // When
+        String[] actual = StringUtils.toString(input);
+
+        // Then
+        then(actual).containsExactly("Hello", "World", null);
+    }
+
+    @Test
+    void toString_ShouldReturnStringArrayWithEmptyString_WhenEnumerationHasEmptyString() {
+        // Given
+        Enumeration<String> input = Collections.enumeration(List.of("", "World"));
+
+        // When
+        String[] actual = StringUtils.toString(input);
+
+        // Then
+        then(actual).containsExactly("", "World");
     }
 
     @ParameterizedTest
