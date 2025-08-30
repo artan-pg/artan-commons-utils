@@ -21,17 +21,22 @@ import static ir.artanpg.commons.utils.ArrayUtils.EMPTY_STRING_ARRAY;
 public abstract class StringUtils {
 
     /**
-     * The empty String {@code ""}.
+     * The empty string {@code ""}.
      */
     public static final String EMPTY = "";
 
     /**
-     * The space String {@code " "}.
+     * The space string {@code " "}.
      */
     public static final String SPACE = " ";
 
     /**
-     * The null String {@code "null"}.
+     * The comma string {@code ","}.
+     */
+    public static final String COMMA = ",";
+
+    /**
+     * The null string {@code "null"}.
      */
     public static final String NULL = "null";
 
@@ -73,8 +78,8 @@ public abstract class StringUtils {
      * Abbreviates a string to a specified maximum width by appending a default
      * ellipsis marker ({@code ...}).
      *
-     * <p>A {@code null}, {@code empty} or {@code Blank} input string will
-     * return the {@code empty} string.
+     * <p>If the string is {@code null}, {@code empty} or {@code blank}, an
+     * {@code empty} string is returned.
      *
      * <p>Examples:
      * <pre>
@@ -88,8 +93,8 @@ public abstract class StringUtils {
      *  StringUtils.abbreviate("Hello World", 3);  = IllegalArgumentException
      * </pre>
      *
-     * @param string   the string to abbreviate, may be null or empty
-     * @param maxWidth the maximum length of the resulting string, including the ellipsis marker
+     * @param string   the string to abbreviate
+     * @param maxWidth the maximum length of the resulting string
      * @return the abbreviated string, or the original string if no abbreviation is needed
      * @throws IllegalArgumentException if maxWidth is less than the minimum required width
      * @see #abbreviate(String, String, int)
@@ -102,14 +107,14 @@ public abstract class StringUtils {
      * Abbreviates a string to a specified maximum width by appending an
      * abbreviation marker.
      *
-     * <p>A {@code null}, {@code empty} or {@code blank} input string or abbrev
-     * marker string will return the {@code empty} string.
+     * <p>If the input string or abbrev marker is {@code null}, {@code empty}
+     * or {@code blank}, an {@code empty} string is returned.
      *
-     * <p>If the string length is less than or equal to the maximum width, it
-     * is returned unchanged.
+     * <p>If the string length is {@code less than} or {@code equal} to the
+     * {@code maximum} width, it is returned unchanged.
      *
-     * <p>If the string is longer, it is truncated and the abbreviation marker
-     * is appended to fit within the maximum width.
+     * <p>If the string is {@code longer}, it is truncated and the abbreviation
+     * marker is appended to fit within the {@code maximum} width.
      *
      * <p>Examples:
      * <pre>
@@ -123,8 +128,8 @@ public abstract class StringUtils {
      *  StringUtils.abbreviate("Hello World", "...", 3);  = IllegalArgumentException
      * </pre>
      *
-     * @param string       the string to abbreviate, may be null or empty
-     * @param abbrevMarker the marker to append when abbreviating, may be null or empty
+     * @param string       the string to abbreviate
+     * @param abbrevMarker the marker to append when abbreviating
      * @param maxWidth     the maximum length of the result, including the abbreviation marker
      * @return the abbreviated string, or the original string if no abbreviation is needed
      * @throws IllegalArgumentException if maxWidth is less than the minimum required width
@@ -145,11 +150,11 @@ public abstract class StringUtils {
     }
 
     /**
-     * Capitalizes the first character of the given string, handling Unicode
-     * characters properly.
+     * Capitalizes the first character of the given string, handling
+     * {@code Unicode} characters properly.
      *
-     * <p>A {@code null}, {@code empty} or {@code blank} input string will
-     * return the {@code Original} string.
+     * <p>If the input string is {@code null}, {@code empty} or {@code blank},
+     * the input string is returned unchanged.
      *
      * <p>Examples:
      * <pre>
@@ -180,16 +185,19 @@ public abstract class StringUtils {
     }
 
     /**
-     * Removes one newline from end of a String if it's there, otherwise leave
+     * Removes one newline from end of a string if it's there, otherwise leave
      * it alone.
-     *
-     * <p>A newline is &quot;{@code \n}&quot;, &quot;{@code \r}&quot;, or
+     * A newline is &quot;{@code \n}&quot;, &quot;{@code \r}&quot;, or
      * &quot;{@code \r\n}&quot;.
+     *
+     * <p>If the input string is {@code null}, {@code empty} or {@code blank},
+     * the input string is returned unchanged.
      *
      * <p>Examples:
      * <pre>
      *  StringUtils.chomp(null);            = null
      *  StringUtils.chomp("");              = ""
+     *  StringUtils.chomp(" ");             = " "
      *  StringUtils.chomp("\r");            = ""
      *  StringUtils.chomp("\n");            = ""
      *  StringUtils.chomp("\r\n");          = ""
@@ -200,32 +208,35 @@ public abstract class StringUtils {
      * </pre>
      *
      * @param string the String to chomp a newline from
-     * @return String without newline, {@code null} if null String input
+     * @return string without newline
      */
     public static String chomp(String string) {
         if (!hasLength(string)) return string;
 
-        int lastIdx = string.length();
-        if (lastIdx == 1) {
+        int length = string.length();
+        if (length == 1) {
             char ch = string.charAt(0);
             return (ch == CR || ch == LF) ? EMPTY : string;
         }
 
-        char last = string.charAt(lastIdx - 1);
-        lastIdx -= last == LF ? (string.charAt(lastIdx - 2) == CR ? 2 : 1) : last == CR ? 1 : 0;
+        char last = string.charAt(length - 1);
+        length -= last == LF ? (string.charAt(length - 2) == CR ? 2 : 1) : last == CR ? 1 : 0;
 
-        return lastIdx == string.length() ? string : string.substring(0, lastIdx);
+        return length == string.length() ? string : string.substring(0, length);
     }
 
     /**
-     * Remove the last character from a String.
+     * Remove the last character from a string.
+     * If the string ends in {@code \r\n}, then remove both of them.
      *
-     * <p>If the String ends in {@code \r\n}, then remove both of them.
+     * <p>If the input string is {@code null}, {@code empty} or {@code blank},
+     * an {@code empty} string is returned.
      *
      * <p>Examples:
      * <pre>
-     *  StringUtils.chop(null);         = null
+     *  StringUtils.chop(null);         = ""
      *  StringUtils.chop("");           = ""
+     *  StringUtils.chop(" ");          = ""
      *  StringUtils.chop("a");          = ""
      *  StringUtils.chop("\r");         = ""
      *  StringUtils.chop("\n");         = ""
@@ -237,74 +248,88 @@ public abstract class StringUtils {
      *  StringUtils.chop("Hello\nWorld"); = "Hello\nWorl"
      * </pre>
      *
-     * @param string the String to chop last character from
-     * @return String without last character
+     * @param string the string to chop last character from
+     * @return string without last character
      */
     public static String chop(String string) {
-        if (string == null) return null;
+        if (!hasText(string) || string.length() < 2) return EMPTY;
 
-        int stringLength = string.length();
-        if (stringLength < 2) return EMPTY;
+        int length = string.length();
 
-        int lastIdx = stringLength - 1;
-        String ret = string.substring(0, lastIdx);
-        char last = string.charAt(lastIdx);
+        int lastIndex = length - 1;
+        String chop = string.substring(0, lastIndex);
+        char last = string.charAt(lastIndex);
 
-        return last == LF || last == CR ? ret.substring(0, lastIdx - 1) : ret;
+        return last == LF || last == CR ? chop.substring(0, lastIndex - 1) : chop;
     }
 
     /**
-     * Tests if String contains a search string, handling {@code null}.
-     * <p>This method uses {@link String#contains(CharSequence)} if possible.
+     * Tests if string input contains a search string.
+     *
+     * <p>If the input string is {@code null}, {@code empty} or {@code blank},
+     * {@code false} is returned.
+     *
+     * <p>if the search string is {@code null} or {@code empty}, {@code false}
+     * is returned.
      *
      * <p>Examples:
      * <pre>
      *  StringUtils.contains(null, "Hello");          = false
      *  StringUtils.contains("", "Hello");            = false
+     *  StringUtils.contains(" ", "Hello");           = false
      *  StringUtils.contains("Hello", null);          = false
      *  StringUtils.contains("Hello", "");            = false
-     *  StringUtils.contains("Hello World", "Hello"); = true
      *  StringUtils.contains("Hello World", "hello"); = false
+     *  StringUtils.contains("Hello ", " ");          = true
+     *  StringUtils.contains("Hello World", "Hello"); = true
      * </pre>
      *
-     * @param string       the string to check
-     * @param searchString the string to find
-     * @return {@code true}, if the String contains the search string, {@code false} if not or {@code null} string input
+     * @param string the string to check
+     * @param search the string to find
+     * @return {@code true}, if the string contains the search string, {@code false} otherwise
+     * @see String#contains(CharSequence)
      */
-    public static boolean contains(String string, String searchString) {
+    public static boolean contains(String string, String search) {
         if (!hasText(string)) return false;
-        if (!hasText(searchString)) return false;
+        if (!hasLength(search)) return false;
 
-        return string.contains(searchString);
+        return string.contains(search);
     }
 
     /**
-     * Tests if the String contains any character in the given set of
+     * Tests if the string contains any character in the given set of
      * characters.
+     *
+     * <p>If the input string is {@code null}, {@code empty} or {@code blank},
+     * {@code false} is returned.
+     *
+     * <p>if the search string is {@code null} or {@code empty}, {@code false}
+     * is returned.
      *
      * <p>Examples:
      * <pre>
      *  StringUtils.containsAny(null, "Hello");                   = false
      *  StringUtils.containsAny("", "Hello");                     = false
+     *  StringUtils.containsAny(" ", "Hello");                    = false
      *  StringUtils.containsAny("Hello", null);                   = false
      *  StringUtils.containsAny("Hello", "");                     = false
      *  StringUtils.containsAny("Hello World", "hello", "world"); = false
      *  StringUtils.containsAny("Hello World", "Hello", "World"); = true
      * </pre>
      *
-     * @param string       the string to check
-     * @param searchString the strings to search for
-     * @return the {@code true} if any of the chars are found, {@code false} if no match or null input
+     * @param string the string to check
+     * @param search the strings to search for
+     * @return {@code true}, if any of the chars are found, {@code false} otherwise
      */
-    public static boolean containsAny(String string, String... searchString) {
+    public static boolean containsAny(String string, String... search) {
         if (!hasText(string)) return false;
-        if (!hasText(searchString)) return false;
+        if (!hasLength(search)) return false;
 
         // Initialize Aho-Corasick and add patterns
         AhoCorasick ahoCorasick = new AhoCorasick();
-        for (String searchStr : searchString) {
-            if (hasText(searchStr)) {
-                ahoCorasick.addPattern(searchStr);
+        for (String str : search) {
+            if (hasLength(str)) {
+                ahoCorasick.addPattern(str);
             }
         }
 
@@ -314,9 +339,11 @@ public abstract class StringUtils {
     }
 
     /**
-     * Tests whether the given String contains any whitespace characters.
+     * Tests whether the given string contains any whitespace characters.
+     * Whitespace is defined by {@link Character#isWhitespace(char)}.
      *
-     * <p>Whitespace is defined by {@link Character#isWhitespace(char)}.
+     * <p>If the input string is {@code null} or {@code empty}, {@code false}
+     * is returned.
      *
      * <p>Examples:
      * <pre>
@@ -329,13 +356,13 @@ public abstract class StringUtils {
      * </pre>
      *
      * @param string the string to check
-     * @return {@code true}, if the string is not empty and contains at least 1 (breaking) whitespace character
+     * @return {@code true}, if the string contains at least 1 whitespace character, {@code false} otherwise
      */
     public static boolean containsWhitespace(String string) {
         if (!hasLength(string)) return false;
 
-        int strLen = string.length();
-        for (int i = 0; i < strLen; i++) {
+        int length = string.length();
+        for (int i = 0; i < length; i++) {
             if (Character.isWhitespace(string.charAt(i))) return true;
         }
 
@@ -363,22 +390,22 @@ public abstract class StringUtils {
      * @return the number of occurrences
      */
     public static int countMatches(String string, String substring) {
-        if (!hasLength(string) || !hasLength(substring)) return 0;
+        if (!hasLengthAll(string, substring)) return 0;
 
         int count = 0;
-        int idx = 0;
+        int index = 0;
 
-        while ((idx = string.indexOf(substring, idx)) != INDEX_NOT_FOUND) {
+        while ((index = string.indexOf(substring, index)) != INDEX_NOT_FOUND) {
             count++;
-            idx += substring.length();
+            index += substring.length();
         }
 
         return count;
     }
 
     /**
-     * Converts a collection of objects into a single string, with each element
-     * separated by a comma.
+     * Converts a collection of string into a single string, with each element
+     * separated by a {@code comma}.
      *
      * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
      * string is returned.
@@ -397,13 +424,14 @@ public abstract class StringUtils {
      *
      * @param collection the collection to convert
      * @return a string containing the elements of the collection separated by commas
+     * @see #collectionToDelimitedString(Collection, String, String, String)
      */
-    public static String collectionToDelimitedString(Collection<?> collection) {
-        return collectionToDelimitedString(collection, ",", "", "");
+    public static String collectionToDelimitedString(Collection<String> collection) {
+        return collectionToDelimitedString(collection, COMMA, EMPTY, EMPTY);
     }
 
     /**
-     * Converts a collection of objects into a single string, with each element
+     * Converts a collection of strings into a single string, with each element
      * separated by the specified delimiter.
      *
      * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
@@ -419,16 +447,15 @@ public abstract class StringUtils {
      *  StringUtils.collectionToDelimitedString(List.of(), ";");         = ""
      *  StringUtils.collectionToDelimitedString(List.of(1,2,), ",");     = "1,2"
      *  StringUtils.collectionToDelimitedString(List.of("a","b"), " ");  = "a b"
-     *  StringUtils.collectionToDelimitedString(List.of("a","b"), null); = NullPointerException
      * </pre>
      *
      * @param collection the collection to convert
      * @param delimiter  the delimiter to separate elements
      * @return a string containing the elements of the collection separated by {@code delimiter}
-     * @throws NullPointerException if {@code delimiter} is {@code null}
+     * @see #collectionToDelimitedString(Collection, String, String, String)
      */
-    public static String collectionToDelimitedString(Collection<?> collection, String delimiter) {
-        return collectionToDelimitedString(collection, delimiter, "", "");
+    public static String collectionToDelimitedString(Collection<String> collection, String delimiter) {
+        return collectionToDelimitedString(collection, delimiter, EMPTY, EMPTY);
     }
 
     /**
@@ -439,6 +466,10 @@ public abstract class StringUtils {
      * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
      * string is returned.
      *
+     * <p>If the delimiter is {@code null}, an {@code comma} string is used.
+     *
+     * <p>If the prefix or suffix is {@code null}, an {@code empty} string is used.
+     *
      * <p>Each element is converted to its string representation using
      * {@link String#valueOf(Object)} and {@code null} elements are represented
      * as {@code "null"}.
@@ -447,9 +478,9 @@ public abstract class StringUtils {
      * <pre>
      *  StringUtils.collectionToDelimitedString(null, ",", "[", "]");              = ""
      *  StringUtils.collectionToDelimitedString(List.of(), ",", "", "");           = ""
+     *  StringUtils.collectionToDelimitedString(List.of(1,2), ";", null, null);    = "1;2"
      *  StringUtils.collectionToDelimitedString(List.of(1,2), ";", "", "");        = "1;2"
      *  StringUtils.collectionToDelimitedString(List.of("a","b"), ",", "[", "]");  = "[a],[b]"
-     *  StringUtils.collectionToDelimitedString(List.of("a","b"), null, "[", "]"); = NullPointerException
      * </pre>
      *
      * @param collection the collection to convert
@@ -457,24 +488,28 @@ public abstract class StringUtils {
      * @param prefix     the string to prepend to each element
      * @param suffix     the string to append to each element
      * @return a string containing the elements of the collection
-     * @throws NullPointerException if {@code delimiter} is {@code null}
      */
-    public static String collectionToDelimitedString(Collection<?> collection,
+    public static String collectionToDelimitedString(Collection<String> collection,
                                                      String delimiter,
                                                      String prefix,
                                                      String suffix) {
-        if (collection == null || collection.isEmpty()) return EMPTY;
+        if (CollectionUtils.isEmpty(collection)) return EMPTY;
 
-        int length = collection.size() * (length(prefix) + length(suffix)) + (collection.size() - 1) * delimiter.length();
-        for (Object element : collection) {
+        if (delimiter == null) delimiter = COMMA;
+        if (prefix == null) prefix = EMPTY;
+        if (suffix == null) suffix = EMPTY;
+
+        int length =
+                collection.size() * (prefix.length() + suffix.length()) + (collection.size() - 1) * delimiter.length();
+        for (String element : collection) {
             length += String.valueOf(element).length();
         }
 
         StringBuilder stringBuilder = new StringBuilder(length);
-        Iterator<?> it = collection.iterator();
-        while (it.hasNext()) {
-            stringBuilder.append(prefix).append(it.next()).append(suffix);
-            if (it.hasNext()) stringBuilder.append(delimiter);
+        Iterator<String> iterator = collection.iterator();
+        while (iterator.hasNext()) {
+            stringBuilder.append(prefix).append(iterator.next()).append(suffix);
+            if (iterator.hasNext()) stringBuilder.append(delimiter);
         }
         return stringBuilder.toString();
     }
@@ -493,7 +528,7 @@ public abstract class StringUtils {
      *
      * @param string        the string to check
      * @param defaultString the default string to return
-     * @return the passed in String, or the default string
+     * @return the passed in string, or the default string
      * @see #hasLength(String)
      */
     public static String defaultIfNotHasLength(String string, String defaultString) {
@@ -2247,7 +2282,7 @@ public abstract class StringUtils {
      * @return a string array containing the elements of the collection
      */
     public static String[] toString(Collection<String> collection) {
-        return collection == null || collection.isEmpty() ? EMPTY_STRING_ARRAY : collection.toArray(EMPTY_STRING_ARRAY);
+        return (CollectionUtils.isEmpty(collection)) ? EMPTY_STRING_ARRAY : collection.toArray(EMPTY_STRING_ARRAY);
     }
 
     /**

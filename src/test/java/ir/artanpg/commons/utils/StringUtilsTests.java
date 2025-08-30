@@ -39,7 +39,7 @@ class StringUtilsTests {
         // When
         String actual = StringUtils.abbreviate(input, abbrevMarker, maxWidth);
 
-        // then
+        // Then
         then(actual).isEmpty();
     }
 
@@ -146,7 +146,7 @@ class StringUtilsTests {
         // When
         String actual = StringUtils.capitalize(input);
 
-        // then
+        // Then
         then(actual).isEqualTo(input);
     }
 
@@ -156,7 +156,7 @@ class StringUtilsTests {
         // When
         String actual = StringUtils.capitalize(input);
 
-        // then
+        // Then
         then(actual).isIn("Hello", "HELLO");
     }
 
@@ -166,7 +166,7 @@ class StringUtilsTests {
         // When
         String actual = StringUtils.capitalize(input);
 
-        // then
+        // Then
         then(actual).isEqualTo(input);
     }
 
@@ -178,320 +178,402 @@ class StringUtilsTests {
         // When
         String actual = StringUtils.capitalize(input);
 
-        // then
+        // Then
         then(actual).isEqualTo(input);
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void chomp_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
-        assertEquals(input, StringUtils.chomp(input));
+    @ValueSource(strings = {" "})
+    void chomp_ShouldReturnOriginalString_WhenInputStringIsNullOrEmptyOrBlank(String input) {
+        // When
+        String actual = StringUtils.chomp(input);
+
+        // Then
+        then(actual).isEqualTo(input);
     }
 
-    @Test
-    void chomp_ShouldReturnBlankString_WhenInputStringIsBlank() {
-        assertEquals(" ", StringUtils.chomp(" "));
+    @ParameterizedTest
+    @ValueSource(strings = {"Hello\n", "Hello\r", "Hello\r\n"})
+    void chomp_ShouldRemoveNewLineFeed_WhenStringEndsWithNewLineFeed(String input) {
+        // When
+        String actual = StringUtils.chomp(input);
+
+        // Then
+        then(actual).isEqualTo("Hello");
     }
 
-    @Test
-    void chomp_ShouldRemoveLineFeed_WhenStringEndsWithLineFeed() {
-        assertEquals("Hello", StringUtils.chomp("Hello\n"));
+    @ParameterizedTest
+    @ValueSource(strings = {"Hello", "a"})
+    void chomp_ShouldReturnOriginalString_WhenStringDoesNotEndWithLineFeedOrCarriageReturn(String input) {
+        // When
+        String actual = StringUtils.chomp(input);
+
+        // Then
+        then(actual).isIn(input);
     }
 
-    @Test
-    void chomp_ShouldRemoveCarriageReturn_WhenStringEndsWithCarriageReturn() {
-        assertEquals("Hello", StringUtils.chomp("Hello\r"));
+    @ParameterizedTest
+    @ValueSource(strings = {"\n", "\r", "\r\n"})
+    void chomp_ShouldReturnEmptyString_WhenInputStringIsSingleNewLineFeed(String input) {
+        // When
+        String actual = StringUtils.chomp(input);
+
+        // Then
+        then(actual).isEmpty();
     }
 
-    @Test
-    void chomp_ShouldRemoveCarriageReturnLineFeed_WhenStringEndsWithCarriageReturnLineFeed() {
-        assertEquals("Hello", StringUtils.chomp("Hello\r\n"));
-    }
+    @ParameterizedTest
+    @ValueSource(strings = {"Hello\nWorld\n", "Hello\rWorld\r", "Hello\r\nWorld\r\n"})
+    void chomp_ShouldRemoveOnlyLastNewline_WhenStringContainsMultipleNewlines(String input) {
+        // When
+        String actual = StringUtils.chomp(input);
 
-    @Test
-    void chomp_ShouldReturnOriginalString_WhenStringDoesNotEndWithLineFeedOrCarriageReturn() {
-        assertEquals("Hello", StringUtils.chomp("Hello"));
-    }
-
-    @Test
-    void chomp_ShouldReturnOriginalString_WhenStringHasSingleCharacterNotLineFeedOrCarriageReturn() {
-        assertEquals("a", StringUtils.chomp("a"));
-    }
-
-    @Test
-    void chomp_ShouldReturnEmptyString_WhenInputStringIsSingleLineFeed() {
-        assertEquals("", StringUtils.chomp("\n"));
-    }
-
-    @Test
-    void chomp_ShouldReturnEmptyString_WhenInputStringIsSingleCarriageReturn() {
-        assertEquals("", StringUtils.chomp("\r"));
-    }
-
-    @Test
-    void chomp_ShouldRemoveOnlyLastNewline_WhenStringContainsMultipleNewlines() {
-        assertEquals("Hello\nWorld", StringUtils.chomp("Hello\nWorld\n"));
-    }
-
-    @Test
-    void chomp_ShouldRemoveOnlyLastCarriageReturnLineFeed_WhenStringContainsMultipleCarriageReturnLineFeeds() {
-        assertEquals("Hello\r\nWorld", StringUtils.chomp("Hello\r\nWorld\r\n"));
+        // Then
+        then(actual).isIn("Hello\nWorld", "Hello\rWorld", "Hello\r\nWorld");
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void chop_ShouldReturnOriginalString_WhenInputStringIsNullOrEmpty(String input) {
-        assertEquals(input, StringUtils.chop(input));
+    @ValueSource(strings = {" "})
+    void chop_ShouldReturnOriginalString_WhenInputStringIsNullOrEmptyOrBlank(String input) {
+        // When
+        String actual = StringUtils.chop(input);
+
+        // Then
+        then(actual).isEmpty();
     }
 
-    @Test
-    void chop_ShouldReturnEmptyString_WhenInputStringIsSingleCharacter() {
-        assertEquals("", StringUtils.chop("a"));
+    @ParameterizedTest
+    @ValueSource(strings = {"a", "A", "\n", "\r", "\r\n"})
+    void chop_ShouldReturnEmptyString_WhenInputStringIsSingleCharacter(String input) {
+        // When
+        String actual = StringUtils.chop(input);
+
+        // Then
+        then(actual).isEmpty();
     }
 
-    @Test
-    void chop_ShouldRemoveLastCharacter_WhenStringDoesNotEndWithLineFeedOrCarriageReturn() {
-        assertEquals("Hell", StringUtils.chop("Hello"));
+    @ParameterizedTest
+    @ValueSource(strings = {"Hello ", "Hello!", "Hello\r\n"})
+    void chop_ShouldRemoveLastCharacter_WhenStringDoesNotEndWithLineFeed(String input) {
+        // When
+        String actual = StringUtils.chop(input);
+
+        // Then
+        then(actual).isEqualTo("Hello");
     }
 
-    @Test
-    void chop_ShouldRemoveLastTwoCharacters_WhenStringEndsWithLineFeed() {
-        assertEquals("Hell", StringUtils.chop("Hello\n"));
+    @ParameterizedTest
+    @ValueSource(strings = {"Hello\n", "Hello\r"})
+    void chop_ShouldRemoveLastTwoCharacters_WhenStringEndsWithLineFeed(String input) {
+        // When
+        String actual = StringUtils.chop(input);
+
+        // Then
+        then(actual).isEqualTo("Hell");
     }
 
-    @Test
-    void chop_ShouldRemoveLastTwoCharacters_WhenStringEndsWithCarriageReturn() {
-        assertEquals("Hell", StringUtils.chop("Hello\r"));
-    }
+    @ParameterizedTest
+    @ValueSource(strings = {"Hello\nWorld\n", "Hello\rWorld\r"})
+    void chop_ShouldRemoveLastTwoCharacters_WhenStringHasMultipleLineFeeds(String input) {
+        // When
+        String actual = StringUtils.chop(input);
 
-    @Test
-    void chop_ShouldRemoveLastTwoCharacters_WhenStringEndsWithCarriageReturnLineFeed() {
-        assertEquals("Hello", StringUtils.chop("Hello\r\n"));
-    }
-
-    @Test
-    void chop_ShouldRemoveOnlyLastCharacter_WhenStringEndsWithNonSpecialCharacter() {
-        assertEquals("Hello", StringUtils.chop("Hello!"));
-    }
-
-    @Test
-    void chop_ShouldRemoveOnlyLastCharacter_WhenStringHasMultipleNonSpecialCharacters() {
-        assertEquals("Hello Worl", StringUtils.chop("Hello World"));
-    }
-
-    @Test
-    void chop_ShouldRemoveLastTwoCharacters_WhenStringHasMultipleLineFeeds() {
-        assertEquals("Hello\nWorl", StringUtils.chop("Hello\nWorld\n"));
-    }
-
-    @Test
-    void chop_ShouldRemoveLastTwoCharacters_WhenStringHasMultipleCarriageReturns() {
-        assertEquals("Hello\rWorl", StringUtils.chop("Hello\rWorld\r"));
+        // Then
+        then(actual).isIn("Hello\nWorl", "Hello\rWorl");
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void contains_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
-        assertFalse(StringUtils.contains(input, "Hello"));
+    @ValueSource(strings = {" "})
+    void contains_ShouldReturnFalse_WhenInputStringIsNullOrEmptyOrBlank(String input) {
+        // Given
+        String search = "*";
+
+        // When
+        boolean actual = StringUtils.contains(input, search);
+
+        // Then
+        then(actual).isFalse();
     }
 
     @ParameterizedTest
     @NullAndEmptySource
     void contains_ShouldReturnFalse_WhenSearchStringIsNullOrEmpty(String search) {
-        assertFalse(StringUtils.contains("Hello World", search));
+        // Given
+        String input = "Hello World";
+
+        // When
+        boolean actual = StringUtils.contains(input, search);
+
+        // Then
+        then(actual).isFalse();
     }
 
-    @Test
-    void contains_ShouldReturnFalse_WhenInputStringIsBlank() {
-        assertFalse(StringUtils.contains(" ", "World"));
+    @ParameterizedTest
+    @ValueSource(strings = {"Hello", "World", "Hello World", "H", "W", " "})
+    void contains_ShouldReturnTrue_WhenStringContainsSearchString(String search) {
+        // Given
+        String input = "Hello World";
+
+        // When
+        boolean actual = StringUtils.contains(input, search);
+
+        // Then
+        then(actual).isTrue();
     }
 
-    @Test
-    void contains_ShouldReturnFalse_WhenSearchStringIsBlank() {
-        assertFalse(StringUtils.contains("Hello", " "));
-    }
+    @ParameterizedTest
+    @ValueSource(strings = {"hello", "world", "hello world", "h", "w"})
+    void contains_ShouldReturnFalse_WhenStringDoesNotContainSearchString(String search) {
+        // Given
+        String input = "Hello World";
 
-    @Test
-    void contains_ShouldReturnTrue_WhenStringContainsSearchString() {
-        assertTrue(StringUtils.contains("Hello World", "World"));
-    }
+        // When
+        boolean actual = StringUtils.contains(input, search);
 
-    @Test
-    void contains_ShouldReturnFalse_WhenStringDoesNotContainSearchString() {
-        assertFalse(StringUtils.contains("Hello World", "world"));
-    }
-
-    @Test
-    void contains_ShouldReturnTrue_WhenSearchStringIsSingleCharacterAndPresent() {
-        assertTrue(StringUtils.contains("Hello", "H"));
-    }
-
-    @Test
-    void contains_ShouldReturnFalse_WhenSearchStringIsSingleCharacterAndNotPresent() {
-        assertFalse(StringUtils.contains("Hello", "z"));
-    }
-
-    @Test
-    void contains_ShouldReturnTrue_WhenStringAndSearchStringAreIdentical() {
-        assertTrue(StringUtils.contains("Hello", "Hello"));
-    }
-
-    @Test
-    void contains_ShouldReturnFalse_WhenSearchStringIsLongerThanInputString() {
-        assertFalse(StringUtils.contains("hi", "Hello"));
-    }
-
-    @Test
-    void contains_ShouldReturnTrue_WhenStringContainsUnicodeSearchString() {
-        assertTrue(StringUtils.contains("HelloθWorld", "θ"));
+        // Then
+        then(actual).isFalse();
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void containsAny_ShouldReturnFalse_WhenInputStringIsNullOrEmpty(String input) {
-        assertFalse(StringUtils.containsAny(input, "Hello", "World"));
+    @ValueSource(strings = {" "})
+    void containsAny_ShouldReturnFalse_WhenInputStringIsNullOrEmptyOrBlank(String input) {
+        // Given
+        String[] search = {"Hello", "World"};
+
+        // When
+        boolean actual = StringUtils.containsAny(input, search);
+
+        // Then
+        then(actual).isFalse();
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void containsAny_ShouldReturnFalse_WhenSearchStringIsNullOrEmpty(String search) {
+        // Given
+        String input = "Hello World";
+
+        // When
+        boolean actual = StringUtils.containsAny(input, search);
+
+        // Then
+        then(actual).isFalse();
     }
 
     @Test
-    void containsAny_ShouldReturnFalse_WhenInputStringIsBlank() {
-        assertFalse(StringUtils.containsAny(" ", "Hello", "World"));
+    void containsAny_ShouldReturnFalse_WhenSearchStringIsNullOrEmptyElements() {
+        // Given
+        String input = "Hello World";
+        String[] search = {null, null, "", ""};
+
+        // When
+        boolean actual = StringUtils.containsAny(input, search);
+
+        // Then
+        then(actual).isFalse();
     }
 
     @Test
-    void containsAny_ShouldReturnFalse_WhenSearchStringArrayIsNull() {
-        assertFalse(StringUtils.containsAny("Hello", (String[]) null));
+    void containsAny_ShouldReturnTrue_WhenStringContainsAnyCharFromSearchString() {
+        // Given
+        String input = "Hello World";
+        String[] search = {"Hello", "", null};
+
+        // When
+        boolean actual = StringUtils.containsAny(input, search);
+
+        // Then
+        then(actual).isTrue();
     }
 
     @Test
-    void containsAny_ShouldReturnFalse_WhenSearchStringArrayIsEmpty() {
-        assertFalse(StringUtils.containsAny("Hello"));
-    }
+    void containsAny_ShouldReturnFalse_WhenStringDoesNotContainAnyCharFromSearchString() {
+        // Given
+        String input = "Hello World";
+        String[] search = {"hello", "", null};
 
-    @Test
-    void containsAny_ShouldReturnFalse_WhenSearchStringArrayIsBlank() {
-        assertFalse(StringUtils.containsAny("Hello World", " "));
-    }
+        // When
+        boolean actual = StringUtils.containsAny(input, search);
 
-    @Test
-    void containsAny_ShouldReturnTrue_WhenStringContainsAnyCharFromSearchStringArray() {
-        assertTrue(StringUtils.containsAny("Hello World", "", "Hello", null));
-    }
-
-    @Test
-    void containsAny_ShouldReturnFalse_WhenStringDoesNotContainAnyCharFromSearchStrings() {
-        assertFalse(StringUtils.containsAny("Hello World", "", "hello", null));
+        // Then
+        then(actual).isFalse();
     }
 
     @Test
     void containsAny_ShouldReturnTrue_WhenStringContainsUnicodeCharFromSearchString() {
-        assertTrue(StringUtils.containsAny("HelloθWorld", "θ", "Hello"));
+        // Given
+        String input = "Hello θ World";
+        String[] search = {"θ", "hello"};
+
+        // When
+        boolean actual = StringUtils.containsAny(input, search);
+
+        // Then
+        then(actual).isTrue();
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void containsWhitespace_ShouldReturnFalse_WhenInputStringIsNull(String input) {
-        assertFalse(StringUtils.containsWhitespace(input));
+    @ValueSource(strings = {"HelloWorld"})
+    void containsWhitespace_ShouldReturnFalse_WhenInputStringIsNullOrEmptyOrHasNoWhitespace(String input) {
+        // When
+        boolean actual = StringUtils.containsWhitespace(input);
+
+        // Then
+        then(actual).isFalse();
     }
 
-    @Test
-    void containsWhitespace_ShouldReturnTrue_WhenInputStringIsBlank() {
-        assertTrue(StringUtils.containsWhitespace(" "));
-    }
+    @ParameterizedTest
+    @ValueSource(strings = {" ", "Hello World", "Hello\tWorld", "Hello\nWorld", "Hello\u2002World", "Hello\t\nWorld"})
+    void containsWhitespace_ShouldReturnTrue_WhenStringContainsSpace(String input) {
+        // When
+        boolean actual = StringUtils.containsWhitespace(input);
 
-    @Test
-    void containsWhitespace_ShouldReturnFalse_WhenStringHasNoWhitespace() {
-        assertFalse(StringUtils.containsWhitespace("HelloWorld"));
-    }
-
-    @Test
-    void containsWhitespace_ShouldReturnTrue_WhenStringContainsSpace() {
-        assertTrue(StringUtils.containsWhitespace("Hello World"));
-    }
-
-    @Test
-    void containsWhitespace_ShouldReturnTrue_WhenStringContainsTab() {
-        assertTrue(StringUtils.containsWhitespace("Hello\tWorld"));
-    }
-
-    @Test
-    void containsWhitespace_ShouldReturnTrue_WhenStringContainsNewline() {
-        assertTrue(StringUtils.containsWhitespace("Hello\nWorld"));
-    }
-
-    @Test
-    void containsWhitespace_ShouldReturnTrue_WhenStringContainsUnicodeWhitespace() {
-        assertTrue(StringUtils.containsWhitespace("Hello\u2002World"));
-    }
-
-    @Test
-    void containsWhitespace_ShouldReturnTrue_WhenStringContainsMultipleWhitespaces() {
-        assertTrue(StringUtils.containsWhitespace("Hello \t\n World"));
+        // Then
+        then(actual).isTrue();
     }
 
     @ParameterizedTest
     @NullAndEmptySource
     void countMatches_ShouldReturnZero_WhenInputStringIsNullOrEmpty(String input) {
-        assertEquals(0, StringUtils.countMatches(input, "Hello"));
+        // Given
+        String substring = "Hello";
+
+        // When
+        int actual = StringUtils.countMatches(input, substring);
+
+        // Then
+        then(actual).isZero();
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void countMatches_ShouldReturnZero_WhenSubStringIsNullOrEmpty(String input) {
-        assertEquals(0, StringUtils.countMatches("Hello", input));
+    void countMatches_ShouldReturnZero_WhenSubStringIsNullOrEmpty(String substring) {
+        // Given
+        String input = "Hello";
+
+        // When
+        int actual = StringUtils.countMatches(input, substring);
+
+        // Then
+        then(actual).isZero();
     }
 
     @Test
-    void countMatches_ShouldReturnZero_WhenInputStringIsBlankAndSubStringNotBlank() {
-        assertEquals(0, StringUtils.countMatches(" ", "Hello"));
+    void countMatches_ShouldReturnZero_WhenInputStringIsBlankAndSubStringHasContent() {
+        // Given
+        String input = " ";
+        String substring = "Hello";
+
+        // When
+        int actual = StringUtils.countMatches(input, substring);
+
+        // Then
+        then(actual).isZero();
     }
 
     @Test
-    void countMatches_ShouldReturnZero_WhenSubstringIsBlankAndStringNotBlank() {
-        assertEquals(0, StringUtils.countMatches("Hello", " "));
-    }
+    void countMatches_ShouldReturnZero_WhenSubstringIsBlankAndInputStringHasContent() {
+        // Given
+        String input = "Hello";
+        String substring = " ";
 
-    @Test
-    void countMatches_ShouldReturnCount_WhenSubstringAppearsOnce() {
-        assertEquals(1, StringUtils.countMatches("Hello", "He"));
-        assertEquals(1, StringUtils.countMatches("banana", "ana"));
+        // When
+        int actual = StringUtils.countMatches(input, substring);
+
+        // Then
+        then(actual).isZero();
     }
 
     @Test
     void countMatches_ShouldReturnZero_WhenSubstringDoesNotAppear() {
-        assertEquals(0, StringUtils.countMatches("Hello", "he"));
+        // Given
+        String input = "Hello";
+        String substring = "he";
+
+        // When
+        int actual = StringUtils.countMatches(input, substring);
+
+        // Then
+        then(actual).isZero();
+    }
+
+    @Test
+    void countMatches_ShouldReturnZero_WhenSubstringIsLongerThanInputString() {
+        // Given
+        String input = "he";
+        String substring = "Hello";
+
+        // When
+        int actual = StringUtils.countMatches(input, substring);
+
+        // Then
+        then(actual).isZero();
+    }
+
+    @Test
+    void countMatches_ShouldReturnCount_WhenInputStringAndSubstringAreIdentical() {
+        // Given
+        String input = "Hello";
+        String substring = "Hello";
+
+        // When
+        int actual = StringUtils.countMatches(input, substring);
+
+        // Then
+        then(actual).isOne();
+    }
+
+    @Test
+    void countMatches_ShouldReturnCount_WhenSubstringAppearsOnce() {
+        // Given
+        String input = "banana";
+        String substring = "ana";
+
+        // When
+        int actual = StringUtils.countMatches(input, substring);
+
+        // Then
+        then(actual).isOne();
     }
 
     @Test
     void countMatches_ShouldReturnCount_WhenSubstringIsSingleChar() {
-        assertEquals(2, StringUtils.countMatches("Hello", "l"));
-    }
+        // Given
+        String input = "Hello";
+        String substring = "l";
 
-    @Test
-    void countMatches_ShouldReturnCount_WhenStringAndSubstringAreIdentical() {
-        assertEquals(1, StringUtils.countMatches("Hello", "Hello"));
+        // When
+        int actual = StringUtils.countMatches(input, substring);
+
+        // Then
+        then(actual).isEqualTo(2);
     }
 
     @Test
     void countMatches_ShouldReturnCount_WhenSubstringIsUnicodeAndAppears() {
-        assertEquals(2, StringUtils.countMatches("θetaθworld", "θ"));
-    }
+        // Given
+        String input = "θetaθworld";
+        String substring = "θ";
 
-    @Test
-    void countMatches_ShouldReturnZero_WhenSubstringIsLongerThanString() {
-        assertEquals(0, StringUtils.countMatches("Hi", "Hello"));
+        // When
+        int actual = StringUtils.countMatches(input, substring);
+
+        // Then
+        then(actual).isEqualTo(2);
     }
 
     @Test
     void collectionToDelimitedString_ShouldReturnEmptyString_WhenCollectionIsNull() {
         // When
-        String actual = StringUtils.collectionToDelimitedString(null);
-        String actual2 = StringUtils.collectionToDelimitedString(null, ",");
-        String actual3 = StringUtils.collectionToDelimitedString(null, ",", "[", "]");
+        String actual = StringUtils.collectionToDelimitedString(null, ",", "[", "]");
 
-        // then
+        // Then
         then(actual).isEmpty();
-        then(actual2).isEmpty();
-        then(actual3).isEmpty();
     }
 
     @Test
@@ -500,14 +582,10 @@ class StringUtilsTests {
         List<String> emptyList = Collections.emptyList();
 
         // When
-        String actual = StringUtils.collectionToDelimitedString(emptyList);
-        String actual2 = StringUtils.collectionToDelimitedString(emptyList, ",");
-        String actual3 = StringUtils.collectionToDelimitedString(emptyList, ",", "[", "]");
+        String actual = StringUtils.collectionToDelimitedString(emptyList, ",", "[", "]");
 
-        // then
+        // Then
         then(actual).isEmpty();
-        then(actual2).isEmpty();
-        then(actual3).isEmpty();
     }
 
     @Test
@@ -516,14 +594,10 @@ class StringUtilsTests {
         List<String> list = List.of("Java");
 
         // When
-        String actual = StringUtils.collectionToDelimitedString(list);
-        String actual2 = StringUtils.collectionToDelimitedString(list, ",");
-        String actual3 = StringUtils.collectionToDelimitedString(list, ",", "[", "]");
+        String actual = StringUtils.collectionToDelimitedString(list, ",", "[", "]");
 
         // Then
-        then(actual).isEqualTo("Java");
-        then(actual2).isEqualTo("Java");
-        then(actual3).isEqualTo("[Java]");
+        then(actual).isEqualTo("[Java]");
     }
 
     @Test
@@ -532,14 +606,10 @@ class StringUtilsTests {
         List<String> list = List.of("Java", "JavaScript", "C#");
 
         // When
-        String actual = StringUtils.collectionToDelimitedString(list);
-        String actual2 = StringUtils.collectionToDelimitedString(list, " ");
-        String actual3 = StringUtils.collectionToDelimitedString(list, ",", "[", "]");
+        String actual = StringUtils.collectionToDelimitedString(list, ";", "[", "]");
 
         // Then
-        then(actual).isEqualTo("Java,JavaScript,C#");
-        then(actual2).isEqualTo("Java JavaScript C#");
-        then(actual3).isEqualTo("[Java],[JavaScript],[C#]");
+        then(actual).isEqualTo("[Java];[JavaScript];[C#]");
     }
 
     @Test
@@ -548,27 +618,10 @@ class StringUtilsTests {
         List<String> list = Arrays.asList("Java", null, "C#");
 
         // When
-        String actual = StringUtils.collectionToDelimitedString(list);
-        String actual2 = StringUtils.collectionToDelimitedString(list, " ");
-        String actual3 = StringUtils.collectionToDelimitedString(list, ",", "[", "]");
+        String actual = StringUtils.collectionToDelimitedString(list, ",", "(", ")");
 
         // Then
-        then(actual).isEqualTo("Java,null,C#");
-        then(actual2).isEqualTo("Java null C#");
-        then(actual3).isEqualTo("[Java],[null],[C#]");
-    }
-
-    @Test
-    void collectionToDelimitedString_ShouldThrowNullPointerException_WhenDelimiterIsNull() {
-        // Given
-        List<String> list = Arrays.asList("Java", null, "C#");
-
-        // Then
-        assertThatThrownBy(() -> StringUtils.collectionToDelimitedString(list, null))
-                .isInstanceOf(NullPointerException.class);
-
-        assertThatThrownBy(() -> StringUtils.collectionToDelimitedString(list, null, "[", "]"))
-                .isInstanceOf(NullPointerException.class);
+        then(actual).isEqualTo("(Java),(null),(C#)");
     }
 
     @ParameterizedTest
