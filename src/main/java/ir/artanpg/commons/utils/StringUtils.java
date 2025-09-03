@@ -493,7 +493,7 @@ public abstract class StringUtils {
                                                      String delimiter,
                                                      String prefix,
                                                      String suffix) {
-        if (CollectionUtils.isEmpty(collection)) return EMPTY;
+        if (!CollectionUtils.hasLength(collection)) return EMPTY;
 
         if (delimiter == null) delimiter = COMMA;
         if (prefix == null) prefix = EMPTY;
@@ -2282,7 +2282,7 @@ public abstract class StringUtils {
      * @return a string array containing the elements of the collection
      */
     public static String[] toString(Collection<String> collection) {
-        return (CollectionUtils.isEmpty(collection)) ? EMPTY_STRING_ARRAY : collection.toArray(EMPTY_STRING_ARRAY);
+        return (!CollectionUtils.hasLength(collection)) ? EMPTY_STRING_ARRAY : collection.toArray(EMPTY_STRING_ARRAY);
     }
 
     /**

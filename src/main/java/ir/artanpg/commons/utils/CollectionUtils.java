@@ -2,6 +2,7 @@ package ir.artanpg.commons.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -29,38 +30,79 @@ public abstract class CollectionUtils {
     }
 
     /**
-     * Checks whether the specified collection is {@code null} or
+     * Checks whether the specified collection is not {@code null} or not
      * {@code empty}.
      *
      * <p>Examples:
      * <pre>
-     *  CollectionUtils.isEmpty(null);                   = true
-     *  CollectionUtils.isEmpty(Collections.emptySet()); = true
-     *  CollectionUtils.isEmpty(Set.of("a", "b", "c"));  = false
+     *  CollectionUtils.isNotEmpty(null);                       = false
+     *  CollectionUtils.isNotEmpty(Collections.emptySet());     = false
+     *  CollectionUtils.isNotEmpty(Collections.singleton("a")); = true
      * </pre>
      *
      * @param collection the collection to check
-     * @return {@code true}, if the collection is {@code null} or {@code empty}, {@code false} otherwise
+     * @return {@code true}, if the collection is not {@code null} or not {@code empty}, {@code false} otherwise
      */
-    public static boolean isEmpty(Collection<?> collection) {
-        return collection == null || collection.isEmpty();
+    public static boolean hasLength(Collection<?> collection) {
+        return collection != null && !collection.isEmpty();
     }
 
     /**
-     * Checks whether the specified map is {@code null} or {@code empty}.
+     * Checks whether the specified map is not {@code null} or not
+     * {@code empty}.
      *
      * <p>Examples:
      * <pre>
-     *  CollectionUtils.isEmpty(null);                                = true
-     *  CollectionUtils.isEmpty(Collections.emptyMap());              = true
-     *  CollectionUtils.isEmpty(Collections.singletonMap("a", "b"));  = false
+     *  CollectionUtils.isNotEmpty(null);                               = false
+     *  CollectionUtils.isNotEmpty(Collections.emptyMap());             = false
+     *  CollectionUtils.isNotEmpty(Collections.singletonMap("a", "b")); = true
      * </pre>
      *
      * @param map the map to check
-     * @return {@code true}, if the map is {@code null} or {@code empty}, {@code false} otherwise
+     * @return {@code true}, if the map is not {@code null} or not {@code empty}, {@code false} otherwise
      */
-    public static boolean isEmpty(Map<?, ?> map) {
-        return map == null || map.isEmpty();
+    public static boolean hasLength(Map<?, ?> map) {
+        return map != null && !map.isEmpty();
+    }
+
+    /**
+     * Merges a list and a variable number of elements into a single list, with
+     * elements from the dominant list appearing first, followed by unique
+     * elements from the recessive elements that are not already present in the
+     * dominant list.
+     *
+     * <p>If the {@code dominantList} and {@code recessive} is {@code null} or
+     * {@code empty}, an {@code empty} list is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  List dominant = List.of("a", "b", "c");
+     *  String[] recessive = {"b", "d", "e"};
+     *  CollectionUtils.merge(dominant, recessive); = ["a", "b", "c", "d", "e"]
+     * </pre>
+     *
+     * @param <E>          the type of elements in the list and varargs
+     * @param dominantList the list whose elements take precedence and appear first in the result
+     * @param recessive    the variable number of elements to be merged
+     * @return a new {@link ArrayList} containing all elements from the dominant list followed by unique elements
+     * from the recessive elements
+     */
+    @SafeVarargs
+    public static <E> List<E> merge(List<E> dominantList, E... recessive) {
+        if (!hasLength(dominantList) && !ArrayUtils.hasLength(recessive)) return new ArrayList<>();
+
+        List<E> result = new ArrayList<>();
+
+        if (hasLength(dominantList)) result.addAll(dominantList);
+        if (ArrayUtils.hasLength(recessive)) {
+            for (E element : recessive) {
+                if (!result.contains(element)) {
+                    result.add(element);
+                }
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -68,14 +110,14 @@ public abstract class CollectionUtils {
      * list appearing first, followed by elements from the recessive list that
      * are not already present in the dominant list.
      *
-     * <p>If the dominantList and recessiveList is {@code null}, an {@code empty}
-     * list is returned.
+     * <p>If the {@code dominantList} and {@code recessiveList} is {@code null}
+     * or {@code empty}, an {@code empty} list is returned.
      *
      * <p>Examples:
      * <pre>
-     *  List<String> dominant = Arrays.asList("a", "b", "c");
-     *  List<String> recessive = Arrays.asList("b", "d", "e");
-     *  List<String> result = CollectionUtils.merge(dominant, recessive); = ["a", "b", "c", "d", "e"]
+     *  List dominant = List.of("a", "b", "c");
+     *  List recessive = List.of("b", "d", "e");
+     *  CollectionUtils.merge(dominant, recessive); = ["a", "b", "c", "d", "e"]
      * </pre>
      *
      * @param <E>           the type of elements in the lists
@@ -85,12 +127,12 @@ public abstract class CollectionUtils {
      * from the recessive list
      */
     public static <E> List<E> merge(List<E> dominantList, List<E> recessiveList) {
-        if (isEmpty(dominantList) && isEmpty(recessiveList)) return new ArrayList<>();
+        if (!hasLength(dominantList) && !hasLength(recessiveList)) return new ArrayList<>();
 
         List<E> result = new ArrayList<>();
 
-        if (!isEmpty(dominantList)) result.addAll(dominantList);
-        if (!isEmpty(recessiveList)) {
+        if (hasLength(dominantList)) result.addAll(dominantList);
+        if (hasLength(recessiveList)) {
             for (E element : recessiveList) {
                 if (!result.contains(element)) {
                     result.add(element);
@@ -102,17 +144,48 @@ public abstract class CollectionUtils {
     }
 
     /**
+     * Merges a set and a variable number of elements into a single set,
+     * including all unique elements from both inputs.
+     *
+     * <p>If the {@code dominantSet} and {@code recessive} is {@code null} or
+     * {@code empty}, an {@code empty} set is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  Set dominant = Set.of("a", "b", "c");
+     *  String[] recessive = {"b", "d", "e"};
+     *  CollectionUtils.merge(dominant, recessive); = ["a", "b", "c", "d", "e"]
+     * </pre>
+     *
+     * @param <E>         the type of elements in the set and varargs
+     * @param dominantSet the set whose elements are included in the result
+     * @param recessive   the variable number of elements to be merged into the result
+     * @return a new {@link HashSet} containing all unique elements from both sets
+     */
+    @SafeVarargs
+    public static <E> Set<E> merge(Set<E> dominantSet, E... recessive) {
+        if (!hasLength(dominantSet) && !ArrayUtils.hasLength(recessive)) return new HashSet<>();
+
+        Set<E> result = new HashSet<>();
+
+        if (hasLength(dominantSet)) result.addAll(dominantSet);
+        if (ArrayUtils.hasLength(recessive)) Collections.addAll(result, recessive);
+
+        return result;
+    }
+
+    /**
      * Merges two sets into a single set, including all elements from both sets
      * with duplicates removed.
      *
-     * <p>If the dominantSet and recessiveSet is {@code null}, an {@code empty}
-     * set is returned.
+     * <p>If the {@code dominantSet} and {@code recessiveSet} is {@code null}
+     * or {@code empty}, an {@code empty} set is returned.
      *
-     * <p><b>Examples:
+     * <p>Examples:
      * <pre>
-     *  Set<String> dominant = new HashSet<>(Arrays.asList("a", "b", "c"));
-     *  Set<String> recessive = new HashSet<>(Arrays.asList("b", "d", "e"));
-     *  Set<String> result = CollectionUtils.merge(dominant, recessive); = ["a", "b", "c", "d", "e"]
+     *  Set dominant = Set.of("a", "b", "c");
+     *  Set recessive = Set.of("b", "d", "e");
+     *  CollectionUtils.merge(dominant, recessive); = ["a", "b", "c", "d", "e"]
      * </pre>
      *
      * @param <E>          the type of elements in the sets
@@ -121,12 +194,12 @@ public abstract class CollectionUtils {
      * @return a new {@link HashSet} containing all unique elements from both sets
      */
     public static <E> Set<E> merge(Set<E> dominantSet, Set<E> recessiveSet) {
-        if (isEmpty(dominantSet) && isEmpty(recessiveSet)) return new HashSet<>();
+        if (!hasLength(dominantSet) && !hasLength(recessiveSet)) return new HashSet<>();
 
         Set<E> result = new HashSet<>();
 
-        if (!isEmpty(dominantSet)) result.addAll(dominantSet);
-        if (!isEmpty(recessiveSet)) result.addAll(recessiveSet);
+        if (hasLength(dominantSet)) result.addAll(dominantSet);
+        if (hasLength(recessiveSet)) result.addAll(recessiveSet);
 
         return result;
     }
@@ -140,10 +213,10 @@ public abstract class CollectionUtils {
      *
      * <p>Examples:
      * <pre>
-     *  Map<String, Integer> dominant = new HashMap<>();
+     *  Map dominant = new HashMap<>();
      *  dominant.put("a", 1);
      *  dominant.put("b", 2);
-     *  Map<String, Integer> recessive = new HashMap<>();
+     *  Map recessive = new HashMap<>();
      *  recessive.put("b", 3);
      *  recessive.put("c", 4);
      *  CollectionUtils.merge(dominant, recessive); = {a=1, b=2, c=4}
@@ -156,12 +229,83 @@ public abstract class CollectionUtils {
      * @return a new {@link HashMap} containing all entries from both maps
      */
     public static <K, V> Map<K, V> merge(Map<K, V> dominantMap, Map<K, V> recessiveMap) {
-        if (isEmpty(dominantMap) && isEmpty(recessiveMap)) return new HashMap<>();
+        if (!hasLength(dominantMap) && !hasLength(recessiveMap)) return new HashMap<>();
 
         Map<K, V> result = new HashMap<>();
 
-        if (!isEmpty(recessiveMap)) result.putAll(recessiveMap);
-        if (!isEmpty(dominantMap)) result.putAll(dominantMap);
+        if (hasLength(recessiveMap)) result.putAll(recessiveMap);
+        if (hasLength(dominantMap)) result.putAll(dominantMap);
+
+        return result;
+    }
+
+    /**
+     * Returns a new collection containing all elements from the {@code source}
+     * collection that are not present in the {@code elementsToRemove}
+     * collection.
+     *
+     * <p>If the {@code source} collection is {@code null} or {@code empty}, an
+     * {@code empty} collection is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  Collection<String> source = Arrays.asList("x", "y", "z", "y");
+     *  Collection<String> elementsToRemove = Arrays.asList("y", "w");
+     *  CollectionUtils.subtract(source, elementsToRemove); = ["x", "z"]
+     * </pre>
+     *
+     * @param <T>              the type of elements in the collections
+     * @param source           the collection from which elements are taken
+     * @param elementsToRemove the collection whose elements are to be subtracted from the source
+     * @return a new {@link ArrayList} containing elements from the {@code source} that are not in {@code elementsToRemove}
+     * @see Collection#removeAll(Collection)
+     */
+    public static <T> Collection<T> subtract(Collection<T> source, Collection<T> elementsToRemove) {
+        if (!hasLength(source)) return new ArrayList<>();
+
+        List<T> subtract = new ArrayList<>(source);
+
+        if (hasLength(elementsToRemove)) subtract.removeAll(elementsToRemove);
+
+        return subtract;
+    }
+
+    /**
+     * Returns a new map containing all entries from the {@code source} map
+     * that are not present in the {@code elementsToRemove} map.
+     *
+     * <p>If the {@code source} map is {@code null} or {@code empty}, an
+     * {@code empty} map is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  Map source = new HashMap<>();
+     *  source.put("a", 1);
+     *  source.put("b", 2);
+     *  source.put("c", 3);
+     *  Map elementsToRemove = new HashMap<>();
+     *  elementsToRemove.put("b", 20);
+     *  elementsToRemove.put("d", 40);
+     *  CollectionUtils.subtract(source, elementsToRemove); = {a=1, c=3}
+     * </pre>
+     *
+     * @param <K>              the type of keys in the maps
+     * @param <V>              the type of values in the maps
+     * @param source           the map from which entries are taken
+     * @param elementsToRemove the map whose keys are to be subtracted from the source
+     * @return a new {@link HashMap} containing entries from the {@code source} that are not in {@code elementsToRemove}
+     * @see Map#remove(Object)
+     */
+    public static <K, V> Map<K, V> subtract(Map<K, V> source, Map<K, V> elementsToRemove) {
+        if (!hasLength(source)) return new HashMap<>();
+
+        Map<K, V> result = new HashMap<>(source);
+
+        if (hasLength(elementsToRemove)) {
+            for (K key : elementsToRemove.keySet()) {
+                result.remove(key);
+            }
+        }
 
         return result;
     }
@@ -184,7 +328,7 @@ public abstract class CollectionUtils {
      * @return a new {@link ArrayList} containing all elements from the input collection
      */
     public static <E> ArrayList<E> toArrayList(Collection<E> collection) {
-        if (isEmpty(collection)) return new ArrayList<>();
+        if (!hasLength(collection)) return new ArrayList<>();
         return new ArrayList<>(collection);
     }
 
@@ -206,7 +350,7 @@ public abstract class CollectionUtils {
      * @return a new {@link CopyOnWriteArrayList} containing all elements from the input collection
      */
     public static <E> CopyOnWriteArrayList<E> toCopyOnWriteArrayList(Collection<E> collection) {
-        if (isEmpty(collection)) return new CopyOnWriteArrayList<>();
+        if (!hasLength(collection)) return new CopyOnWriteArrayList<>();
         return new CopyOnWriteArrayList<>(collection);
     }
 
@@ -228,7 +372,7 @@ public abstract class CollectionUtils {
      * @return a new {@link LinkedList} containing all elements from the input collection
      */
     public static <E> LinkedList<E> toLinkedList(Collection<E> collection) {
-        if (isEmpty(collection)) return new LinkedList<>();
+        if (!hasLength(collection)) return new LinkedList<>();
         return new LinkedList<>(collection);
     }
 
@@ -250,7 +394,7 @@ public abstract class CollectionUtils {
      * @return a new {@link Vector} containing all elements from the input collection
      */
     public static <E> Vector<E> toVector(Collection<E> collection) {
-        if (isEmpty(collection)) return new Vector<>();
+        if (!hasLength(collection)) return new Vector<>();
         return new Vector<>(collection);
     }
 
@@ -272,7 +416,7 @@ public abstract class CollectionUtils {
      * @return a new {@link Stack} containing all elements from the input collection
      */
     public static <E> Stack<E> toStack(Collection<E> collection) {
-        if (isEmpty(collection)) return new Stack<>();
+        if (!hasLength(collection)) return new Stack<>();
 
         Stack<E> list = new Stack<>();
         list.addAll(collection);

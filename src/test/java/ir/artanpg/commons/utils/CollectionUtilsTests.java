@@ -27,75 +27,75 @@ import static org.assertj.core.api.BDDAssertions.thenCollection;
 public class CollectionUtilsTests {
 
     @Test
-    void isEmpty_ShouldReturnTrue_WhenInputCollectionIsNull() {
+    void hasLength_ShouldReturnFalse_WhenInputCollectionIsNull() {
         // Given
-        Collection<Object> collection = null;
+        Collection<String> input = null;
 
         // When
-        boolean actual = CollectionUtils.isEmpty(collection);
-
-        // Then
-        then(actual).isTrue();
-    }
-
-    @Test
-    void isEmpty_ShouldReturnTrue_WhenInputCollectionIsEmpty() {
-        // Given
-        Collection<Object> collection = Collections.emptyList();
-
-        // When
-        boolean actual = CollectionUtils.isEmpty(collection);
-
-        // Then
-        then(actual).isTrue();
-    }
-
-    @Test
-    void isEmpty_ShouldReturnFalse_WhenInputCollectionHasElements() {
-        // Given
-        Collection<String> collection = Collections.singletonList("hello");
-
-        // When
-        boolean actual = CollectionUtils.isEmpty(collection);
+        boolean actual = CollectionUtils.hasLength(input);
 
         // Then
         then(actual).isFalse();
     }
 
     @Test
-    void isEmpty_ShouldReturnTrue_WhenInputMapIsNull() {
+    void hasLength_ShouldReturnFalse_WhenInputCollectionIsEmpty() {
+        // Given
+        Collection<String> input = Collections.emptyList();
+
+        // When
+        boolean actual = CollectionUtils.hasLength(input);
+
+        // Then
+        then(actual).isFalse();
+    }
+
+    @Test
+    void hasLength_ShouldReturnTrue_WhenInputCollectionHasElements() {
+        // Given
+        Collection<String> input = Collections.singletonList("hello");
+
+        // When
+        boolean actual = CollectionUtils.hasLength(input);
+
+        // Then
+        then(actual).isTrue();
+    }
+
+    @Test
+    void hasLength_ShouldReturnFalse_WhenInputMapIsNull() {
         // Given
         Map<Object, Object> map = null;
 
         // When
-        boolean actual = CollectionUtils.isEmpty(map);
+        boolean actual = CollectionUtils.hasLength(map);
 
         // Then
-        then(actual).isTrue();
+        then(actual).isFalse();
     }
 
     @Test
-    void isEmpty_ShouldReturnTrue_WhenInputMapIsEmpty() {
+    void hasLength_ShouldReturnFalse_WhenInputMapIsEmpty() {
         // Given
         Map<Object, Object> map = Collections.emptyMap();
 
         // When
-        boolean actual = CollectionUtils.isEmpty(map);
+        boolean actual = CollectionUtils.hasLength(map);
 
         // Then
-        then(actual).isTrue();
+        then(actual).isFalse();
     }
 
     @Test
-    void isEmpty_ShouldReturnFalse_WhenInputMapHasElements() {
+    void hasLength_ShouldReturnTrue_WhenInputMapHasElements() {
         // Given
         Map<String, String> map = Collections.singletonMap("hello", "world");
 
         // When
-        boolean actual = CollectionUtils.isEmpty(map);
+        boolean actual = CollectionUtils.hasLength(map);
 
         // Then
-        then(actual).isFalse();
+        then(actual).isTrue();
     }
 
     @Test
@@ -103,9 +103,16 @@ public class CollectionUtilsTests {
         // Given
         List<String> inputDominant = null;
         List<String> inputRecessive = null;
+        String[] inputRecessiveArray = null;
 
         // When
         List<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual).isInstanceOf(ArrayList.class).isNotNull().isEmpty();
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual).isInstanceOf(ArrayList.class).isNotNull().isEmpty();
@@ -116,9 +123,16 @@ public class CollectionUtilsTests {
         // Given
         List<String> inputDominant = Collections.emptyList();
         List<String> inputRecessive = Collections.emptyList();
+        String[] inputRecessiveArray = new String[]{};
 
         // When
         List<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual).isInstanceOf(ArrayList.class).isNotNull().isEmpty();
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual).isInstanceOf(ArrayList.class).isNotNull().isEmpty();
@@ -129,9 +143,19 @@ public class CollectionUtilsTests {
         // Given
         List<String> inputDominant = List.of("a", "b", "c");
         List<String> inputRecessive = null;
+        String[] inputRecessiveArray = null;
 
         // When
         List<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(ArrayList.class)
+                .isNotNull()
+                .containsExactly("a", "b", "c");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual)
@@ -145,9 +169,19 @@ public class CollectionUtilsTests {
         // Given
         List<String> inputDominant = List.of("a", "b", "c");
         List<String> inputRecessive = Collections.emptyList();
+        String[] inputRecessiveArray = new String[]{};
 
         // When
         List<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(ArrayList.class)
+                .isNotNull()
+                .containsExactly("a", "b", "c");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual)
@@ -161,9 +195,19 @@ public class CollectionUtilsTests {
         // Given
         List<String> inputDominant = null;
         List<String> inputRecessive = List.of("x", "y", "z");
+        String[] inputRecessiveArray = new String[]{"x", "y", "z"};
 
         // When
         List<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(ArrayList.class)
+                .isNotNull()
+                .containsExactly("x", "y", "z");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual)
@@ -177,9 +221,19 @@ public class CollectionUtilsTests {
         // Given
         List<String> inputDominant = Collections.emptyList();
         List<String> inputRecessive = List.of("x", "y", "z");
+        String[] inputRecessiveArray = new String[]{"x", "y", "z"};
 
         // When
         List<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(ArrayList.class)
+                .isNotNull()
+                .containsExactly("x", "y", "z");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual)
@@ -193,9 +247,19 @@ public class CollectionUtilsTests {
         // Given
         List<String> inputDominant = List.of("a", "b", "c");
         List<String> inputRecessive = List.of("b", "d", "e");
+        String[] inputRecessiveArray = new String[]{"b", "d", "e"};
 
         // When
         List<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(ArrayList.class)
+                .isNotNull()
+                .containsExactly("a", "b", "c", "d", "e");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual)
@@ -209,9 +273,16 @@ public class CollectionUtilsTests {
         // Given
         Set<String> inputDominant = null;
         Set<String> inputRecessive = null;
+        String[] inputRecessiveArray = null;
 
         // When
         Set<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual).isInstanceOf(HashSet.class).isNotNull().isEmpty();
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual).isInstanceOf(HashSet.class).isNotNull().isEmpty();
@@ -222,9 +293,16 @@ public class CollectionUtilsTests {
         // Given
         Set<String> inputDominant = Collections.emptySet();
         Set<String> inputRecessive = Collections.emptySet();
+        String[] inputRecessiveArray = new String[]{};
 
         // When
         Set<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual).isInstanceOf(HashSet.class).isNotNull().isEmpty();
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual).isInstanceOf(HashSet.class).isNotNull().isEmpty();
@@ -235,9 +313,19 @@ public class CollectionUtilsTests {
         // Given
         Set<String> inputDominant = Set.of("a", "b", "c");
         Set<String> inputRecessive = null;
+        String[] inputRecessiveArray = null;
 
         // When
         Set<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(HashSet.class)
+                .isNotNull()
+                .containsExactlyInAnyOrder("a", "b", "c");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual)
@@ -251,9 +339,19 @@ public class CollectionUtilsTests {
         // Given
         Set<String> inputDominant = Set.of("a", "b", "c");
         Set<String> inputRecessive = Collections.emptySet();
+        String[] inputRecessiveArray = new String[]{};
 
         // When
         Set<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(HashSet.class)
+                .isNotNull()
+                .containsExactlyInAnyOrder("a", "b", "c");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual)
@@ -267,9 +365,19 @@ public class CollectionUtilsTests {
         // Given
         Set<String> inputDominant = null;
         Set<String> inputRecessive = Set.of("x", "y", "z");
+        String[] inputRecessiveArray = new String[]{"x", "y", "z"};
 
         // When
         Set<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(HashSet.class)
+                .isNotNull()
+                .containsExactlyInAnyOrder("x", "y", "z");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual)
@@ -283,9 +391,19 @@ public class CollectionUtilsTests {
         // Given
         Set<String> inputDominant = Collections.emptySet();
         Set<String> inputRecessive = Set.of("x", "y", "z");
+        String[] inputRecessiveArray = new String[]{"x", "y", "z"};
 
         // When
         Set<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(HashSet.class)
+                .isNotNull()
+                .containsExactlyInAnyOrder("x", "y", "z");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual)
@@ -299,9 +417,19 @@ public class CollectionUtilsTests {
         // Given
         Set<String> inputDominant = new HashSet<>(Set.of("a", "b", "c"));
         Set<String> inputRecessive = new HashSet<>(Set.of("b", "d", "e"));
+        String[] inputRecessiveArray = new String[]{"b", "d", "e"};
 
         // When
         Set<String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(HashSet.class)
+                .isNotNull()
+                .containsExactlyInAnyOrder("a", "b", "c", "d", "e");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveArray);
 
         // Then
         thenCollection(actual)
@@ -430,6 +558,214 @@ public class CollectionUtilsTests {
                 .containsEntry("a", 1)
                 .containsEntry("b", 2)
                 .containsEntry("c", 4);
+    }
+
+    @Test
+    void subtract_ShouldReturnEmptyCollection_WhenSourceIsNull() {
+        // Given
+        Collection<String> inputSource = null;
+        Collection<String> inputElementsToRemove = List.of("x", "y");
+
+        // When
+        Collection<String> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(ArrayList.class)
+                .isNotNull()
+                .isEmpty();
+    }
+
+    @Test
+    void subtract_ShouldReturnEmptyCollection_WhenSourceIsEmpty() {
+        // Given
+        Collection<String> inputSource = Collections.emptyList();
+        Collection<String> inputElementsToRemove = List.of("x", "y");
+
+        // When
+        Collection<String> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(ArrayList.class)
+                .isNotNull()
+                .isEmpty();
+    }
+
+    @Test
+    void subtract_ShouldReturnFirstCollection_WhenElementsToRemoveIsNull() {
+        // Given
+        Collection<String> inputSource = List.of("a", "b", "c");
+        Collection<String> inputElementsToRemove = null;
+
+        // When
+        Collection<String> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(ArrayList.class)
+                .isNotNull()
+                .hasSize(3)
+                .containsExactly("a", "b", "c");
+    }
+
+    @Test
+    void subtract_ShouldReturnFirstCollection_WhenElementsToRemoveIsEmpty() {
+        // Given
+        Collection<String> inputSource = List.of("a", "b", "c");
+        Collection<String> inputElementsToRemove = Collections.emptyList();
+
+        // When
+        Collection<String> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(ArrayList.class)
+                .isNotNull()
+                .hasSize(3)
+                .containsExactly("a", "b", "c");
+    }
+
+    @Test
+    void subtract_ShouldReturnCollectionWithRemainingElements_WhenBothCollectionsHaveElements() {
+        // Given
+        Collection<String> inputSource = List.of("a", "b", "c", "b");
+        Collection<String> inputElementsToRemove = List.of("b", "d");
+
+        // When
+        Collection<String> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(ArrayList.class)
+                .isNotNull()
+                .hasSize(2)
+                .containsExactly("a", "c");
+    }
+
+    @Test
+    void subtract_ShouldReturnEmptyCollection_WhenAllElementsAreInElementsToRemoveCollection() {
+        // Given
+        Collection<String> inputSource = List.of("a", "b");
+        Collection<String> inputElementsToRemove = List.of("a", "b", "c");
+
+        // When
+        Collection<String> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        thenCollection(actual)
+                .isInstanceOf(ArrayList.class)
+                .isEmpty();
+    }
+
+    @Test
+    void subtract_ShouldReturnEmptyMap_WhenSourceIsNull() {
+        // Given
+        Map<String, Integer> inputSource = null;
+        Map<String, Integer> inputElementsToRemove = Collections.singletonMap("x", 10);
+
+        // When
+        Map<String, Integer> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        then(actual)
+                .isInstanceOf(HashMap.class)
+                .isNotNull()
+                .isEmpty();
+    }
+
+    @Test
+    void subtract_ShouldReturnEmptyMap_WhenSourceIsEmpty() {
+        // Given
+        Map<String, Integer> inputSource = Collections.emptyMap();
+        Map<String, Integer> inputElementsToRemove = Collections.singletonMap("x", 10);
+
+        // When
+        Map<String, Integer> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        then(actual)
+                .isInstanceOf(HashMap.class)
+                .isNotNull()
+                .isEmpty();
+    }
+
+    @Test
+    void subtract_ShouldReturnSourceMap_WhenElementsToRemoveIsNull() {
+        // Given
+        Map<String, Integer> inputSource = Collections.singletonMap("x", 10);
+        Map<String, Integer> inputElementsToRemove = null;
+
+        // When
+        Map<String, Integer> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        then(actual)
+                .isInstanceOf(HashMap.class)
+                .isNotNull()
+                .containsExactlyInAnyOrderEntriesOf(inputSource);
+    }
+
+    @Test
+    void subtract_ShouldReturnSourceMap_WhenElementsToRemoveIsEmpty() {
+        // Given
+        Map<String, Integer> inputSource = Collections.singletonMap("x", 10);
+        Map<String, Integer> inputElementsToRemove = Collections.emptyMap();
+
+        // When
+        Map<String, Integer> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        then(actual)
+                .isInstanceOf(HashMap.class)
+                .isNotNull()
+                .containsExactlyInAnyOrderEntriesOf(inputSource);
+    }
+
+    @Test
+    void subtract_ShouldReturnMapWithRemainingEntries_WhenBothMapsHaveElements() {
+        // Given
+        Map<String, Integer> inputSource = new HashMap<>();
+        inputSource.put("a", 1);
+        inputSource.put("b", 2);
+        inputSource.put("c", 3);
+
+        Map<String, Integer> inputElementsToRemove = new HashMap<>();
+        inputElementsToRemove.put("b", 20);
+        inputElementsToRemove.put("d", 40);
+
+        // When
+        Map<String, Integer> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        then(actual)
+                .isInstanceOf(HashMap.class)
+                .isNotNull()
+                .hasSize(2)
+                .containsEntry("a", 1)
+                .containsEntry("c", 3);
+    }
+
+    @Test
+    void subtract_ShouldReturnEmptyMap_WhenAllKeysAreInElementsToRemove() {
+        // Given
+        Map<String, Integer> inputSource = new HashMap<>();
+        inputSource.put("a", 1);
+        inputSource.put("b", 2);
+
+        Map<String, Integer> inputElementsToRemove = new HashMap<>();
+        inputElementsToRemove.put("a", 10);
+        inputElementsToRemove.put("b", 20);
+        inputElementsToRemove.put("c", 30);
+
+        // When
+        Map<String, Integer> actual = CollectionUtils.subtract(inputSource, inputElementsToRemove);
+
+        // Then
+        then(actual)
+                .isInstanceOf(HashMap.class)
+                .isNotNull()
+                .isEmpty();
     }
 
     @Test
