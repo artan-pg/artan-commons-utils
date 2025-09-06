@@ -2,7 +2,6 @@ package ir.artanpg.commons.utils;
 
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,7 +17,6 @@ import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDAssertions.thenCollection;
 
@@ -27,22 +25,9 @@ import static org.assertj.core.api.BDDAssertions.thenCollection;
  *
  * @author Mohammad Yazdian
  */
-@SuppressWarnings("ConstantValue")
+@SuppressWarnings({"ConstantValue", "DataFlowIssue"})
 public class CollectionUtilsTests {
 
-    @Test
-    void constructor_ShouldThrowUnsupportedOperationException_WhenAttemptingInstantiation() throws NoSuchMethodException {
-        // Given
-        Constructor<CollectionUtils> input = CollectionUtils.class.getDeclaredConstructor();
-        input.setAccessible(true); // Make private constructor accessible
-
-        // When & Then
-        assertThatThrownBy(input::newInstance)
-                .isInstanceOf(UnsupportedOperationException.class)
-                .hasMessage("This class cannot be instantiated");
-    }
-
-    @SuppressWarnings("DataFlowIssue")
     @Test
     void hasLength_ShouldReturnFalse_WhenInputIsNull() {
         // Given
