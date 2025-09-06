@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Provides utility methods for {@link Collection} instances.
@@ -21,23 +23,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public abstract class CollectionUtils {
 
     /**
-     * Private constructor to prevent instantiation of this utility class.
-     *
-     * @throws UnsupportedOperationException if an attempt is made to instantiate this class
-     */
-    private CollectionUtils() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
-    }
-
-    /**
      * Checks whether the specified collection is not {@code null} or not
      * {@code empty}.
      *
      * <p>Examples:
      * <pre>
-     *  CollectionUtils.isNotEmpty(null);                       = false
-     *  CollectionUtils.isNotEmpty(Collections.emptySet());     = false
-     *  CollectionUtils.isNotEmpty(Collections.singleton("a")); = true
+     *  CollectionUtils.hasLength(null);                       = false
+     *  CollectionUtils.hasLength(Collections.emptySet());     = false
+     *  CollectionUtils.hasLength(Collections.singleton("a")); = true
      * </pre>
      *
      * @param collection the collection to check
@@ -53,9 +46,9 @@ public abstract class CollectionUtils {
      *
      * <p>Examples:
      * <pre>
-     *  CollectionUtils.isNotEmpty(null);                               = false
-     *  CollectionUtils.isNotEmpty(Collections.emptyMap());             = false
-     *  CollectionUtils.isNotEmpty(Collections.singletonMap("a", "b")); = true
+     *  CollectionUtils.hasLength(null);                               = false
+     *  CollectionUtils.hasLength(Collections.emptyMap());             = false
+     *  CollectionUtils.hasLength(Collections.singletonMap("a", "b")); = true
      * </pre>
      *
      * @param map the map to check
@@ -78,7 +71,17 @@ public abstract class CollectionUtils {
      * <pre>
      *  List dominant = List.of("a", "b", "c");
      *  String[] recessive = {"b", "d", "e"};
-     *  CollectionUtils.merge(dominant, recessive); = ["a", "b", "c", "d", "e"]
+     *
+     *  List dominantEmpty = Collections.emptyList();
+     *  String[] recessiveEmpty = new String[]{};
+     *
+     *  CollectionUtils.merge(null, null);                    = []
+     *  CollectionUtils.merge(dominantEmpty, recessiveEmpty); = []
+     *  CollectionUtils.merge(dominant, null);                = ["a", "b", "c"]
+     *  CollectionUtils.merge(dominant, recessiveEmpty);      = ["a", "b", "c"]
+     *  CollectionUtils.merge(null, recessive);               = ["b", "d", "e"]
+     *  CollectionUtils.merge(dominantEmpty, recessive);      = ["b", "d", "e"]
+     *  CollectionUtils.merge(dominant, recessive);           = ["a", "b", "c", "d", "e"]
      * </pre>
      *
      * @param <E>          the type of elements in the list and varargs
@@ -117,7 +120,17 @@ public abstract class CollectionUtils {
      * <pre>
      *  List dominant = List.of("a", "b", "c");
      *  List recessive = List.of("b", "d", "e");
-     *  CollectionUtils.merge(dominant, recessive); = ["a", "b", "c", "d", "e"]
+     *
+     *  List dominantEmpty = Collections.emptyList();
+     *  List recessiveEmpty = Collections.emptyList();
+     *
+     *  CollectionUtils.merge(null, null);                    = []
+     *  CollectionUtils.merge(dominantEmpty, recessiveEmpty); = []
+     *  CollectionUtils.merge(dominant, null);                = ["a", "b", "c"]
+     *  CollectionUtils.merge(dominant, recessiveEmpty);      = ["a", "b", "c"]
+     *  CollectionUtils.merge(null, recessive);               = ["b", "d", "e"]
+     *  CollectionUtils.merge(dominantEmpty, recessive);      = ["b", "d", "e"]
+     *  CollectionUtils.merge(dominant, recessive);           = ["a", "b", "c", "d", "e"]
      * </pre>
      *
      * @param <E>           the type of elements in the lists
@@ -154,7 +167,17 @@ public abstract class CollectionUtils {
      * <pre>
      *  Set dominant = Set.of("a", "b", "c");
      *  String[] recessive = {"b", "d", "e"};
-     *  CollectionUtils.merge(dominant, recessive); = ["a", "b", "c", "d", "e"]
+     *
+     *  Set dominantEmpty = Collections.emptySet();
+     *  String[] recessiveEmpty = new String[]{};
+     *
+     *  CollectionUtils.merge(null, null);                    = []
+     *  CollectionUtils.merge(dominantEmpty, recessiveEmpty); = []
+     *  CollectionUtils.merge(dominant, null);                = ["a", "b", "c"]
+     *  CollectionUtils.merge(dominant, recessiveEmpty);      = ["a", "b", "c"]
+     *  CollectionUtils.merge(null, recessive);               = ["b", "d", "e"]
+     *  CollectionUtils.merge(dominantEmpty, recessive);      = ["b", "d", "e"]
+     *  CollectionUtils.merge(dominant, recessive);           = ["a", "b", "c", "d", "e"]
      * </pre>
      *
      * @param <E>         the type of elements in the set and varargs
@@ -185,7 +208,17 @@ public abstract class CollectionUtils {
      * <pre>
      *  Set dominant = Set.of("a", "b", "c");
      *  Set recessive = Set.of("b", "d", "e");
-     *  CollectionUtils.merge(dominant, recessive); = ["a", "b", "c", "d", "e"]
+     *
+     *  Set dominantEmpty = Collections.emptySet();
+     *  Set recessiveEmpty = Collections.emptySet();
+     *
+     *  CollectionUtils.merge(null, null);                    = []
+     *  CollectionUtils.merge(dominantEmpty, recessiveEmpty); = []
+     *  CollectionUtils.merge(dominant, null);                = ["a", "b", "c"]
+     *  CollectionUtils.merge(dominant, recessiveEmpty);      = ["a", "b", "c"]
+     *  CollectionUtils.merge(null, recessive);               = ["b", "d", "e"]
+     *  CollectionUtils.merge(dominantEmpty, recessive);      = ["b", "d", "e"]
+     *  CollectionUtils.merge(dominant, recessive);           = ["a", "b", "c", "d", "e"]
      * </pre>
      *
      * @param <E>          the type of elements in the sets
@@ -216,10 +249,21 @@ public abstract class CollectionUtils {
      *  Map dominant = new HashMap<>();
      *  dominant.put("a", 1);
      *  dominant.put("b", 2);
+     *
      *  Map recessive = new HashMap<>();
      *  recessive.put("b", 3);
      *  recessive.put("c", 4);
-     *  CollectionUtils.merge(dominant, recessive); = {a=1, b=2, c=4}
+     *
+     *  Map dominantEmpty = Collections.emptyMap();
+     *  Map recessiveEmpty = Collections.emptyMap();
+     *
+     *  CollectionUtils.merge(null, null);                    = {}
+     *  CollectionUtils.merge(dominantEmpty, recessiveEmpty); = {}
+     *  CollectionUtils.merge(dominant, null);                = {a=1, b=2}
+     *  CollectionUtils.merge(dominant, recessiveEmpty);      = {a=1, b=2}
+     *  CollectionUtils.merge(null, recessive);               = {b=3, c=4}
+     *  CollectionUtils.merge(dominantEmpty, recessive);      = {b=3, c=4}
+     *  CollectionUtils.merge(dominant, recessive);           = {a=1, b=2, c=4}
      * </pre>
      *
      * @param <K>          the type of keys in the maps
@@ -249,9 +293,19 @@ public abstract class CollectionUtils {
      *
      * <p>Examples:
      * <pre>
-     *  Collection<String> source = Arrays.asList("x", "y", "z", "y");
-     *  Collection<String> elementsToRemove = Arrays.asList("y", "w");
-     *  CollectionUtils.subtract(source, elementsToRemove); = ["x", "z"]
+     *  Collection<String> source = List.of("x", "y", "z", "y");
+     *  Collection<String> elementsToRemove = List.of("y", "w");
+     *
+     *  Collection<String> sourceEmpty = Collections.emptyList();
+     *  Collection<String> elementsToRemoveEmpty = Collections.emptyList();
+     *
+     *  CollectionUtils.subtract(null, null);                         = []
+     *  CollectionUtils.subtract(sourceEmpty, elementsToRemoveEmpty); = []
+     *  CollectionUtils.subtract(null, elementsToRemove);             = []
+     *  CollectionUtils.subtract(sourceEmpty, elementsToRemove);      = []
+     *  CollectionUtils.subtract(source, null);                       = ["x", "y", "z", "y"]
+     *  CollectionUtils.subtract(source, elementsToRemoveEmpty);      = ["x", "y", "z", "y"]
+     *  CollectionUtils.subtract(source, elementsToRemove);           = ["x", "z"]
      * </pre>
      *
      * @param <T>              the type of elements in the collections
@@ -283,10 +337,21 @@ public abstract class CollectionUtils {
      *  source.put("a", 1);
      *  source.put("b", 2);
      *  source.put("c", 3);
+     *
      *  Map elementsToRemove = new HashMap<>();
      *  elementsToRemove.put("b", 20);
      *  elementsToRemove.put("d", 40);
-     *  CollectionUtils.subtract(source, elementsToRemove); = {a=1, c=3}
+     *
+     *  Map sourceEmpty = Collections.emptyMap();
+     *  Map elementsToRemoveEmpty = Collections.emptyMap();
+     *
+     *  CollectionUtils.subtract(null, null);                         = {}
+     *  CollectionUtils.subtract(sourceEmpty, elementsToRemoveEmpty); = {}
+     *  CollectionUtils.subtract(null, elementsToRemove);             = {}
+     *  CollectionUtils.subtract(sourceEmpty, elementsToRemove);      = {}
+     *  CollectionUtils.subtract(source, null);                       = {a=1, b=2, c=3}
+     *  CollectionUtils.subtract(source, elementsToRemoveEmpty);      = {a=1, b=2, c=3}
+     *  CollectionUtils.subtract(source, elementsToRemove);           = {a=1, c=3}
      * </pre>
      *
      * @param <K>              the type of keys in the maps
@@ -422,5 +487,71 @@ public abstract class CollectionUtils {
         list.addAll(collection);
 
         return list;
+    }
+
+    /**
+     * Converts a given {@code Collection} to an {@code HashSet}.
+     *
+     * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
+     * set is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  CollectionUtils.toHashSet(null);                    = []
+     *  CollectionUtils.toHashSet(Collections.emptyList()); = []
+     *  CollectionUtils.toHashSet(List.of("a", "b", "c"));  = ["a", "b", "c"]
+     * </pre>
+     *
+     * @param <E>        the type of elements in the collection
+     * @param collection the collection to convert
+     * @return a new {@link HashSet} containing all elements from the input collection
+     */
+    public static <E> HashSet<E> toHashSet(Collection<E> collection) {
+        if (!hasLength(collection)) return new HashSet<>();
+        return new HashSet<>(collection);
+    }
+
+    /**
+     * Converts a given {@code Collection} to an {@code LinkedHashSet}.
+     *
+     * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
+     * set is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  CollectionUtils.toLinkedHashSet(null);                    = []
+     *  CollectionUtils.toLinkedHashSet(Collections.emptyList()); = []
+     *  CollectionUtils.toLinkedHashSet(List.of("a", "b", "c"));  = ["a", "b", "c"]
+     * </pre>
+     *
+     * @param <E>        the type of elements in the collection
+     * @param collection the collection to convert
+     * @return a new {@link LinkedHashSet} containing all elements from the input collection
+     */
+    public static <E> LinkedHashSet<E> toLinkedHashSet(Collection<E> collection) {
+        if (!hasLength(collection)) return new LinkedHashSet<>();
+        return new LinkedHashSet<>(collection);
+    }
+
+    /**
+     * Converts a given {@code Collection} to an {@code CopyOnWriteArraySet}.
+     *
+     * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
+     * set is returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  CollectionUtils.toCopyOnWriteArraySet(null);                    = []
+     *  CollectionUtils.toCopyOnWriteArraySet(Collections.emptyList()); = []
+     *  CollectionUtils.toCopyOnWriteArraySet(List.of("a", "b", "c"));  = ["a", "b", "c"]
+     * </pre>
+     *
+     * @param <E>        the type of elements in the collection
+     * @param collection the collection to convert
+     * @return a new {@link CopyOnWriteArraySet} containing all elements from the input collection
+     */
+    public static <E> CopyOnWriteArraySet<E> toCopyOnWriteArraySet(Collection<E> collection) {
+        if (!hasLength(collection)) return new CopyOnWriteArraySet<>();
+        return new CopyOnWriteArraySet<>(collection);
     }
 }
