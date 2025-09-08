@@ -5,10 +5,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
@@ -21,6 +23,35 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author Mohammad Yazdian
  */
 public abstract class CollectionUtils {
+
+    /**
+     * Check whether the given Iterator contains the given element.
+     *
+     * <p>If the iterator or the element is {@code null}, a {@code false} is
+     * returned.
+     *
+     * <p>Examples:
+     * <pre>
+     *  Iterator<String> iterator = List.of("x", "y", "z").iterator();
+     *
+     *  CollectionUtils.contains(null, null);     = null
+     *  CollectionUtils.contains(null, "y");      = null
+     *  CollectionUtils.contains(iterator, null); = null
+     *  CollectionUtils.contains(iterator, "y");  = "y"
+     * </pre>
+     *
+     * @param iterator the iterator to search for the element
+     * @param element  the element to find in the iterator
+     * @return {@code true}, if the element it is found in the iterator, {@code false} otherwise
+     */
+    public static boolean contains(Iterator<?> iterator, Object element) {
+        if (iterator != null && element != null) {
+            while (iterator.hasNext()) {
+                if (Objects.equals(iterator.next(), element)) return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Checks whether the specified collection is not {@code null} or not

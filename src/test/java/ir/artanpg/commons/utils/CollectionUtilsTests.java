@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +28,84 @@ import static org.assertj.core.api.BDDAssertions.thenCollection;
  */
 @SuppressWarnings({"ConstantValue", "DataFlowIssue"})
 public class CollectionUtilsTests {
+
+    @Test
+    void contains_ShouldReturnFalse_WhenIteratorIsNull() {
+        // Given
+        Iterator<String> inputIterator = null;
+        String inputElement = "x";
+
+        // When
+        boolean actual = CollectionUtils.contains(inputIterator, inputElement);
+
+        // Then
+        then(actual).isFalse();
+    }
+
+    @Test
+    void contains_ShouldReturnFalse_WhenElementIsNull() {
+        // Given
+        Iterator<String> inputIterator = List.of("x", "y", "z").iterator();
+        String inputElement = null;
+
+        // When
+        boolean actual = CollectionUtils.contains(inputIterator, inputElement);
+
+        // Then
+        then(actual).isFalse();
+    }
+
+    @Test
+    void contains_ShouldReturnFalse_WhenBothInputsAreNull() {
+        // Given
+        Iterator<String> inputIterator = null;
+        String inputElement = null;
+
+        // When
+        boolean actual = CollectionUtils.contains(inputIterator, inputElement);
+
+        // Then
+        then(actual).isFalse();
+    }
+
+    @Test
+    void contains_ShouldReturnFalse_WhenIteratorIsEmpty() {
+        // Given
+        Iterator<String> inputIterator = Collections.emptyIterator();
+        String inputElement = "x";
+
+        // When
+        boolean actual = CollectionUtils.contains(inputIterator, inputElement);
+
+        // Then
+        then(actual).isFalse();
+    }
+
+    @Test
+    void contains_ShouldReturnFalse_WhenElementDoesNotExistInIterator() {
+        // Given
+        Iterator<String> inputIterator = List.of("x", "y", "z").iterator();
+        String inputElement = "w";
+
+        // When
+        boolean actual = CollectionUtils.contains(inputIterator, inputElement);
+
+        // Then
+        then(actual).isFalse();
+    }
+
+    @Test
+    void contains_ShouldReturnTrue_WhenElementExistsInIterator() {
+        // Given
+        Iterator<String> inputIterator = List.of("x", "y", "z").iterator();
+        String inputElement = "y";
+
+        // When
+        boolean actual = CollectionUtils.contains(inputIterator, inputElement);
+
+        // Then
+        then(actual).isTrue();
+    }
 
     @Test
     void hasLength_ShouldReturnFalse_WhenInputIsNull() {
