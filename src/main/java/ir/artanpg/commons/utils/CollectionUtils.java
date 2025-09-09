@@ -327,6 +327,28 @@ public abstract class CollectionUtils {
      * unchanged and supplements them with non-conflicting entries from the
      * recessive Properties.
      *
+     * <p>Examples:
+     * <pre>
+     *  Map dominant = new HashMap<>();
+     *  dominant.put("a", "1");
+     *  dominant.put("b", "2");
+     *
+     *  Properties recessive = new Properties();
+     *  recessive.setProperty("b", "3");
+     *  recessive.setProperty("c", "4");
+     *
+     *  Map dominantEmpty = Collections.emptyMap();
+     *  Properties recessiveEmpty = new Properties();
+     *
+     *  CollectionUtils.merge(null, null);                    = {}
+     *  CollectionUtils.merge(dominantEmpty, recessiveEmpty); = {}
+     *  CollectionUtils.merge(dominant, null);                = {a="1", b="2"}
+     *  CollectionUtils.merge(dominant, recessiveEmpty);      = {a="1", b="2"}
+     *  CollectionUtils.merge(null, recessive);               = {b="3", c="4"}
+     *  CollectionUtils.merge(dominantEmpty, recessive);      = {b="3", c="4"}
+     *  CollectionUtils.merge(dominant, recessive);           = {a="1", b="2", c="4"}
+     * </pre>
+     *
      * @param <K>         the type of keys maintained by the dominant Map
      * @param <V>         the type of mapped values
      * @param dominantMap the Map whose entries take precedence
