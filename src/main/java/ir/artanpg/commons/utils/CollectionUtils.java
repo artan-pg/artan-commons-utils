@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
@@ -310,6 +311,45 @@ public abstract class CollectionUtils {
 
         if (hasLength(recessiveMap)) result.putAll(recessiveMap);
         if (hasLength(dominantMap)) result.putAll(dominantMap);
+
+        return result;
+    }
+
+    /**
+     * Merges a dominant Map with recessive Properties, prioritizing entries
+     * from the dominant Map.
+     *
+     * <p>This method creates a new Map containing all entries from the
+     * {@code dominantMap}.
+     * It then adds entries from the {@code recessive} Properties, but only for
+     * keys that do not already exist in the {@code dominantMap}.
+     * The resulting Map retains the {@code dominantMap's} key-value pairs
+     * unchanged and supplements them with non-conflicting entries from the
+     * recessive Properties.
+     *
+     * @param <K>         the type of keys maintained by the dominant Map
+     * @param <V>         the type of mapped values
+     * @param dominantMap the Map whose entries take precedence
+     * @param recessive   the Properties whose entries are added only if the key is not present in dominantMap
+     * @return a new {@link HashMap} containing all entries from dominantMap and non-conflicting entries from recessive
+     * @throws ClassCastException if the keys or values in recessive cannot be cast to types K or V
+     */
+    @SuppressWarnings("unchecked")
+    public static <K, V> Map<K, V> merge(Map<K, V> dominantMap, Properties recessive) {
+        if (!hasLength(dominantMap) && recessive == null) return new HashMap<>();
+
+        Map<K, V> result = new HashMap<>();
+
+        if (hasLength(dominantMap)) result.putAll(dominantMap);
+        if (recessive != null) {
+            for (String key : recessive.stringPropertyNames()) {
+                K mapKey = (K) key;
+                if (!result.containsKey(mapKey)) {
+                    V mapValue = (V) recessive.getProperty(key);
+                    result.put(mapKey, mapValue);
+                }
+            }
+        }
 
         return result;
     }

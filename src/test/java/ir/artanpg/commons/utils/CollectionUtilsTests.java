@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
@@ -533,9 +534,19 @@ public class CollectionUtilsTests {
         // Given
         Map<String, Integer> inputDominant = null;
         Map<String, Integer> inputRecessive = null;
+        Properties inputRecessiveProperties = null;
 
         // When
         Map<String, Integer> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        then(actual)
+                .isNotNull()
+                .isInstanceOf(HashMap.class)
+                .isEmpty();
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveProperties);
 
         // Then
         then(actual)
@@ -549,9 +560,19 @@ public class CollectionUtilsTests {
         // Given
         Map<String, Integer> inputDominant = Collections.emptyMap();
         Map<String, Integer> inputRecessive = Collections.emptyMap();
+        Properties inputRecessiveProperties = new Properties();
 
         // When
         Map<String, Integer> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        then(actual)
+                .isNotNull()
+                .isInstanceOf(HashMap.class)
+                .isEmpty();
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveProperties);
 
         // Then
         then(actual)
@@ -566,10 +587,22 @@ public class CollectionUtilsTests {
         Map<String, Integer> inputDominant = new HashMap<>();
         inputDominant.put("a", 1);
         inputDominant.put("b", 2);
+
         Map<String, Integer> inputRecessive = null;
+        Properties inputRecessiveProperties = null;
 
         // When
         Map<String, Integer> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        then(actual)
+                .isNotEmpty()
+                .isInstanceOf(HashMap.class)
+                .containsEntry("a", 1)
+                .containsEntry("b", 2);
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveProperties);
 
         // Then
         then(actual)
@@ -586,9 +619,20 @@ public class CollectionUtilsTests {
         inputDominant.put("a", 1);
         inputDominant.put("b", 2);
         Map<String, Integer> inputRecessive = Collections.emptyMap();
+        Properties inputRecessiveProperties = new Properties();
 
         // When
         Map<String, Integer> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+
+        // Then
+        then(actual)
+                .isNotNull()
+                .isInstanceOf(HashMap.class)
+                .containsEntry("a", 1)
+                .containsEntry("b", 2);
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveProperties);
 
         // Then
         then(actual)
@@ -601,65 +645,113 @@ public class CollectionUtilsTests {
     @Test
     void merge_ShouldReturnRecessiveMap_WhenDominantIsNull() {
         // Given
-        Map<String, Integer> inputDominant = null;
-        Map<String, Integer> inputRecessive = new HashMap<>();
-        inputRecessive.put("x", 10);
-        inputRecessive.put("y", 20);
+        Map<String, String> inputDominant = null;
+
+        Map<String, String> inputRecessive = new HashMap<>();
+        inputRecessive.put("x", "10");
+        inputRecessive.put("y", "20");
+
+        Properties inputRecessiveProperties = new Properties();
+        inputRecessiveProperties.setProperty("x", "10");
+        inputRecessiveProperties.setProperty("y", "20");
 
         // When
-        Map<String, Integer> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+        Map<String, String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
 
         // Then
         then(actual)
                 .isNotNull()
                 .isInstanceOf(HashMap.class)
                 .hasSize(2)
-                .containsEntry("x", 10)
-                .containsEntry("y", 20);
+                .containsEntry("x", "10")
+                .containsEntry("y", "20");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveProperties);
+
+        // Then
+        then(actual)
+                .isNotNull()
+                .isInstanceOf(HashMap.class)
+                .hasSize(2)
+                .containsEntry("x", "10")
+                .containsEntry("y", "20");
     }
 
     @Test
     void merge_ShouldReturnRecessiveMap_WhenDominantIsEmpty() {
         // Given
-        Map<String, Integer> inputDominant = Collections.emptyMap();
-        Map<String, Integer> inputRecessive = new HashMap<>();
-        inputRecessive.put("x", 10);
-        inputRecessive.put("y", 20);
+        Map<String, String> inputDominant = Collections.emptyMap();
+
+        Map<String, String> inputRecessive = new HashMap<>();
+        inputRecessive.put("x", "10");
+        inputRecessive.put("y", "20");
+
+        Properties inputRecessiveProperties = new Properties();
+        inputRecessiveProperties.setProperty("x", "10");
+        inputRecessiveProperties.setProperty("y", "20");
 
         // When
-        Map<String, Integer> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+        Map<String, String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
 
         // Then
         then(actual)
                 .isNotNull()
                 .isInstanceOf(HashMap.class)
                 .hasSize(2)
-                .containsEntry("x", 10)
-                .containsEntry("y", 20);
+                .containsEntry("x", "10")
+                .containsEntry("y", "20");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveProperties);
+
+        // Then
+        then(actual)
+                .isNotNull()
+                .isInstanceOf(HashMap.class)
+                .hasSize(2)
+                .containsEntry("x", "10")
+                .containsEntry("y", "20");
     }
 
     @Test
     void merge_ShouldReturnMergedMapWithDominantPrecedence_WhenBothInputsHaveElements() {
         // Given
-        Map<String, Integer> inputDominant = new HashMap<>();
-        inputDominant.put("a", 1);
-        inputDominant.put("b", 2);
+        Map<String, String> inputDominant = new HashMap<>();
+        inputDominant.put("a", "1");
+        inputDominant.put("b", "2");
 
-        Map<String, Integer> inputRecessive = new HashMap<>();
-        inputRecessive.put("b", 3);
-        inputRecessive.put("c", 4);
+        Map<String, String> inputRecessive = new HashMap<>();
+        inputRecessive.put("b", "3");
+        inputRecessive.put("c", "4");
+
+        Properties inputRecessiveProperties = new Properties();
+        inputRecessiveProperties.setProperty("b", "3");
+        inputRecessiveProperties.setProperty("c", "4");
 
         // When
-        Map<String, Integer> actual = CollectionUtils.merge(inputDominant, inputRecessive);
+        Map<String, String> actual = CollectionUtils.merge(inputDominant, inputRecessive);
 
         // Then
         then(actual)
                 .isNotNull()
                 .isInstanceOf(HashMap.class)
                 .hasSize(3)
-                .containsEntry("a", 1)
-                .containsEntry("b", 2)
-                .containsEntry("c", 4);
+                .containsEntry("a", "1")
+                .containsEntry("b", "2")
+                .containsEntry("c", "4");
+
+        // When
+        actual = CollectionUtils.merge(inputDominant, inputRecessiveProperties);
+
+        // Then
+        then(actual)
+                .isNotNull()
+                .isInstanceOf(HashMap.class)
+                .hasSize(3)
+                .containsEntry("a", "1")
+                .containsEntry("b", "2")
+                .containsEntry("c", "4");
     }
 
     @Test
