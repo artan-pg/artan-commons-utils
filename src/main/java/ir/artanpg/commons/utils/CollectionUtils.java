@@ -1,5 +1,7 @@
 package ir.artanpg.commons.utils;
 
+import lombok.Generated;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,6 +26,16 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author Mohammad Yazdian
  */
 public abstract class CollectionUtils {
+
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     *
+     * @throws UnsupportedOperationException if an attempt is made to instantiate this class
+     */
+    @Generated
+    private CollectionUtils() {
+        throw new UnsupportedOperationException("This class cannot be instantiated");
+    }
 
     /**
      * Check whether the given Iterator contains the given element.

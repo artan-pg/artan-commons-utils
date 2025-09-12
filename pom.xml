@@ -53,6 +53,17 @@
         <system>GitHub</system>
     </issueManagement>
 
+    <properties>
+        <jacoco.haltOnFailure>false</jacoco.haltOnFailure>
+        <jacoco.includes>ir/artanpg/commons/utils/**</jacoco.includes>
+        <jacoco.excludes>
+            ir/artanpg/commons/utils/StringUtils.class,
+            ir/artanpg/commons/utils/FileUtils.class,
+            ir/artanpg/commons/utils/AhoCorasick.class,
+            ir/artanpg/commons/utils/AhoCorasick.TrieNode.class
+        </jacoco.excludes>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
@@ -63,6 +74,13 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
             <version>6.2.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.40</version>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
