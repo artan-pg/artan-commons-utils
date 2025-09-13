@@ -59,6 +59,50 @@ public abstract class ArrayUtils {
     }
 
     /**
+     * Ensures that the given array has enough capacity to accommodate the
+     * specified maximum index.
+     *
+     * <p>If the array's length is sufficient, it is returned as-is, Otherwise, a
+     * new array with a larger capacity is created, and the contents of the
+     * original array are copied to it.
+     *
+     * <p>Examples:
+     * <pre>
+     *  String[] array = {"a", "b", "c"};
+     *  String[] result = ArrayUtils.ensureCapacity(array, 4); = ["a", "b", "c", null, null, null, ...]
+     * </pre>
+     *
+     * @param <T>      the type of elements in the array
+     * @param array    the input array to check and possibly resize
+     * @param maxIndex the maximum index that the array needs to accommodate
+     * @return the original array if its length is sufficient, or a new array with increased capacity containing all
+     * elements from the original array
+     * @throws NegativeArraySizeException if maxIndex is negative
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T[] ensureCapacity(T[] array, int maxIndex) {
+        if (!hasLength(array)) return array;
+        if (maxIndex < 0) throw new NegativeArraySizeException("maxIndex cannot be negative");
+
+        if (maxIndex < array.length) {
+            return array;
+        } else {
+            int newLength = calculateNewLength(array.length, maxIndex);
+            T[] result = (T[]) (Array.newInstance(array.getClass().getComponentType(), newLength));
+            System.arraycopy(array, 0, result, 0, array.length);
+            return result;
+        }
+    }
+
+    private static int calculateNewLength(int currentLength, int maxIndex) {
+        while (currentLength < maxIndex + 1) {
+            currentLength *= 2;
+        }
+
+        return currentLength;
+    }
+
+    /**
      * Checks if the specified {@code boolean} array is not {@code null} and
      * has a length greater than zero.
      *
