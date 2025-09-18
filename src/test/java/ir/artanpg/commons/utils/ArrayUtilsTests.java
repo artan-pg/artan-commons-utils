@@ -3,118 +3,332 @@ package ir.artanpg.commons.utils;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.then;
-import static org.assertj.core.api.BDDAssertions.thenThrownBy;
+import static org.assertj.core.api.BDDAssertions.thenException;
 
 /**
  * Unit tests for the {@link ArrayUtilsTests} class.
  *
  * @author Mohammad Yazdian
  */
-@SuppressWarnings("ConstantValue")
+@SuppressWarnings({"ConstantValue", "DataFlowIssue"})
 class ArrayUtilsTests {
 
     @Test
-    void ensureCapacity_ShouldReturnOriginalArray_WhenArrayIsNull() {
+    void add_Boolean_ShouldThrowIllegalArgumentException_WhenSourceArrayIsNull() {
         // Given
-        String[] inputArray = null;
-        int inputMaxIndex = 5;
-
-        // When
-        String[] actual = ArrayUtils.ensureCapacity(inputArray, inputMaxIndex);
-
-        // Then
-        then(actual).isNull();
-    }
-
-    @Test
-    void ensureCapacity_ShouldReturnOriginalArray_WhenArrayIsEmpty() {
-        // Given
-        String[] inputArray = new String[0];
-        int inputMaxIndex = 5;
-
-        // When
-        String[] actual = ArrayUtils.ensureCapacity(inputArray, inputMaxIndex);
-
-        // Then
-        then(actual)
-                .isSameAs(inputArray)
-                .isEmpty();
-    }
-
-    @Test
-    void ensureCapacity_ShouldThrowNegativeArraySizeException_WhenMaxIndexIsNegative() {
-        // Given
-        String[] inputArray = new String[]{"a", "b"};
-        int inputMaxIndex = -1;
+        boolean[] inputSource = null;
+        boolean inputElement = true;
+        int inputIndex = 0;
 
         // When & Then
-        thenThrownBy(() -> ArrayUtils.ensureCapacity(inputArray, inputMaxIndex))
-                .isInstanceOf(NegativeArraySizeException.class)
-                .hasMessage("maxIndex cannot be negative");
+        thenException()
+                .isThrownBy(() -> ArrayUtils.add(inputSource, inputElement, inputIndex))
+                .isInstanceOf(IllegalArgumentException.class)
+                .withMessage("The input array cannot be null");
     }
 
     @Test
-    void ensureCapacity_ShouldReturnOriginalArray_WhenMaxIndexIsLessThanArrayLength() {
+    void add_Boolean_ShouldThrowArrayIndexOutOfBoundsException_WhenIndexIsNegative() {
         // Given
-        String[] inputArray = new String[]{"a", "b", "c"};
-        int inputMaxIndex = 2;
+        boolean[] inputSource = new boolean[]{true, false};
+        boolean inputElement = true;
+        int inputIndex = -1;
+
+        // When & Then
+        thenException()
+                .isThrownBy(() -> ArrayUtils.add(inputSource, inputElement, inputIndex))
+                .isInstanceOf(ArrayIndexOutOfBoundsException.class)
+                .withMessage("last destination index -1 out of bounds for boolean[2]");
+    }
+
+    @Test
+    void add_Boolean_ShouldThrowArrayIndexOutOfBoundsException_WhenIndexExceedsArrayLength() {
+        // Given
+        boolean[] inputSource = new boolean[]{true, false};
+        boolean inputElement = true;
+        int inputIndex = 3;
+
+        // When & Then
+        thenException()
+                .isThrownBy(() -> ArrayUtils.add(inputSource, inputElement, inputIndex))
+                .isInstanceOf(ArrayIndexOutOfBoundsException.class)
+                .withMessage("last destination index 3 out of bounds for boolean[2]");
+    }
+
+    @Test
+    void add_Boolean_ShouldAddElementAtStart_WhenIndexIsZero() {
+        // Given
+        boolean[] inputSource = new boolean[]{true, false};
+        boolean inputElement = false;
+        int inputIndex = 0;
 
         // When
-        String[] actual = ArrayUtils.ensureCapacity(inputArray, inputMaxIndex);
+        boolean[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
 
         // Then
         then(actual)
-                .isSameAs(inputArray)
                 .hasSize(3)
-                .containsExactly("a", "b", "c");
+                .containsExactly(false, true, false);
     }
 
     @Test
-    void ensureCapacity_ShouldReturnNewArrayWithIncreasedCapacity_WhenMaxIndexIsGreaterThanOrEqualToArrayLength() {
+    void add_Boolean_ShouldAddElementAtEnd_WhenIndexEqualsArrayLength() {
         // Given
-        String[] inputArray = new String[]{"a", "b", "c"};
-        int inputMaxIndex = 5; // Requires length >= 6, calculateNewLength will return 6 (2^3)
+        boolean[] inputSource = new boolean[]{true, false};
+        boolean inputElement = true;
+        int inputIndex = 2;
 
         // When
-        String[] actual = ArrayUtils.ensureCapacity(inputArray, inputMaxIndex);
+        boolean[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
 
         // Then
         then(actual)
-                .isNotSameAs(inputArray)
-                .hasSize(6) // Since calculateNewLength doubles length (3 -> 6)
-                .startsWith("a", "b", "c");
+                .hasSize(3)
+                .containsExactly(true, false, true);
     }
 
     @Test
-    void ensureCapacity_ShouldReturnNewArrayWithCopiedElements_WhenArrayHasOneElement() {
+    void add_Boolean_ShouldAddElementInMiddle_WhenIndexIsBetweenZeroAndLength() {
         // Given
-        String[] inputArray = new String[]{"a"};
-        int inputMaxIndex = 3; // Requires length >= 4, calculateNewLength will return 4 (2^2)
+        boolean[] inputSource = new boolean[]{true, false, true};
+        boolean inputElement = false;
+        int inputIndex = 1;
 
         // When
-        String[] actual = ArrayUtils.ensureCapacity(inputArray, inputMaxIndex);
+        boolean[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
 
         // Then
         then(actual)
-                .isNotSameAs(inputArray)
-                .hasSize(4) // Since calculateNewLength doubles length (1 -> 2 -> 4)
-                .startsWith("a");
+                .hasSize(4)
+                .containsExactly(true, false, false, true);
     }
 
     @Test
-    void ensureCapacity_ShouldReturnNewArrayWithExactCapacity_WhenMaxIndexRequiresMinimalIncrease() {
+    void add_Boolean_ShouldAddElementToEmptyArray_WhenArrayIsEmpty() {
         // Given
-        String[] inputArray = new String[]{"a", "b"};
-        int inputMaxIndex = 3; // Requires length >= 4, calculateNewLength will return 4 (2^2)
+        boolean[] inputSource = new boolean[0];
+        boolean inputElement = true;
+        int inputIndex = 0;
 
         // When
-        String[] actual = ArrayUtils.ensureCapacity(inputArray, inputMaxIndex);
+        boolean[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
 
         // Then
         then(actual)
-                .isNotSameAs(inputArray)
-                .hasSize(4) // Since calculateNewLength doubles length (2 -> 4)
-                .startsWith("a", "b");
+                .hasSize(1)
+                .containsExactly(true);
+    }
+
+    @Test
+    void add_Byte_ShouldThrowIllegalArgumentException_WhenByteSourceArrayIsNull() {
+        // Given
+        byte[] inputSource = null;
+        byte inputElement = -127;
+        int inputIndex = 0;
+
+        // When & Then
+        thenException()
+                .isThrownBy(() -> ArrayUtils.add(inputSource, inputElement, inputIndex))
+                .isInstanceOf(IllegalArgumentException.class)
+                .withMessage("The input array cannot be null");
+    }
+
+    @Test
+    void add_Byte_ShouldThrowArrayIndexOutOfBoundsException_WhenByteIndexIsNegative() {
+        // Given
+        byte[] inputSource = new byte[]{-127, -126};
+        byte inputElement = -125;
+        int inputIndex = -1;
+
+        // When & Then
+        thenException()
+                .isThrownBy(() -> ArrayUtils.add(inputSource, inputElement, inputIndex))
+                .isInstanceOf(ArrayIndexOutOfBoundsException.class)
+                .withMessage("last destination index -1 out of bounds for byte[2]");
+    }
+
+    @Test
+    void add_Byte_ShouldThrowArrayIndexOutOfBoundsException_WhenIndexExceedsArrayLength() {
+        // Given
+        byte[] inputSource = new byte[]{-127, -126};
+        byte inputElement = -125;
+        int inputIndex = 3;
+
+        // When & Then
+        thenException()
+                .isThrownBy(() -> ArrayUtils.add(inputSource, inputElement, inputIndex))
+                .isInstanceOf(ArrayIndexOutOfBoundsException.class)
+                .withMessage("last destination index 3 out of bounds for byte[2]");
+    }
+
+    @Test
+    void add_Byte_ShouldAddElementAtStart_WhenIndexIsZero() {
+        // Given
+        byte[] inputSource = new byte[]{-127, -126};
+        byte inputElement = -125;
+        int inputIndex = 0;
+
+        // When
+        byte[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
+
+        // Then
+        then(actual)
+                .hasSize(3)
+                .containsExactly(-125, -127, -126);
+    }
+
+    @Test
+    void add_Byte_ShouldAddElementAtEnd_WhenIndexEqualsArrayLength() {
+        // Given
+        byte[] inputSource = new byte[]{-127, -126};
+        byte inputElement = -125;
+        int inputIndex = 2;
+
+        // When
+        byte[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
+
+        // Then
+        then(actual)
+                .hasSize(3)
+                .containsExactly(-127, -126, -125);
+    }
+
+    @Test
+    void add_Byte_ShouldAddElementInMiddle_WhenIndexIsBetweenZeroAndLength() {
+        // Given
+        byte[] inputSource = new byte[]{-127, -126, -125};
+        byte inputElement = -124;
+        int inputIndex = 1;
+
+        // When
+        byte[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
+
+        // Then
+        then(actual)
+                .hasSize(4)
+                .containsExactly(-127, -124, -126, -125);
+    }
+
+    @Test
+    void add_Byte_ShouldAddElementToEmptyArray_WhenArrayIsEmpty() {
+        // Given
+        byte[] inputSource = new byte[0];
+        byte inputElement = -127;
+        int inputIndex = 0;
+
+        // When
+        byte[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
+
+        // Then
+        then(actual)
+                .hasSize(1)
+                .containsExactly(-127);
+    }
+
+    @Test
+    void add_Character_ShouldThrowIllegalArgumentException_WhenSourceArrayIsNull() {
+        // Given
+        char[] inputSource = null;
+        char inputElement = 'a';
+        int inputIndex = 0;
+
+        // When & Then
+        thenException()
+                .isThrownBy(() -> ArrayUtils.add(inputSource, inputElement, inputIndex))
+                .isInstanceOf(IllegalArgumentException.class)
+                .withMessage("The input array cannot be null");
+    }
+
+    @Test
+    void add_Character_ShouldThrowArrayIndexOutOfBoundsException_WhenIndexIsNegative() {
+        // Given
+        char[] inputSource = new char[]{'a', 'b'};
+        char inputElement = 'c';
+        int inputIndex = -1;
+
+        // When & Then
+        thenException()
+                .isThrownBy(() -> ArrayUtils.add(inputSource, inputElement, inputIndex))
+                .isInstanceOf(ArrayIndexOutOfBoundsException.class)
+                .withMessage("last destination index -1 out of bounds for char[2]");
+    }
+
+    @Test
+    void add_Character_ShouldThrowArrayIndexOutOfBoundsException_WhenIndexExceedsArrayLength() {
+        // Given
+        char[] inputSource = new char[]{'a', 'b'};
+        char inputElement = 'c';
+        int inputIndex = 3;
+
+        // When & Then
+        thenException()
+                .isThrownBy(() -> ArrayUtils.add(inputSource, inputElement, inputIndex))
+                .isInstanceOf(ArrayIndexOutOfBoundsException.class)
+                .withMessage("last destination index 3 out of bounds for char[2]");
+    }
+
+    @Test
+    void add_Character_ShouldAddElementAtStart_WhenIndexIsZero() {
+        // Given
+        char[] inputSource = new char[]{'a', 'b'};
+        char inputElement = 'c';
+        int inputIndex = 0;
+
+        // When
+        char[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
+
+        // Then
+        then(actual)
+                .hasSize(3)
+                .containsExactly('c', 'a', 'b');
+    }
+
+    @Test
+    void add_Character_ShouldAddElementAtEnd_WhenIndexEqualsArrayLength() {
+        // Given
+        char[] inputSource = new char[]{'a', 'b'};
+        char inputElement = 'c';
+        int inputIndex = 2;
+
+        // When
+        char[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
+
+        // Then
+        then(actual)
+                .hasSize(3)
+                .containsExactly('a', 'b', 'c');
+    }
+
+    @Test
+    void add_Character_ShouldAddElementInMiddle_WhenIndexIsBetweenZeroAndLength() {
+        // Given
+        char[] inputSource = new char[]{'a', 'b', 'c'};
+        char inputElement = 'd';
+        int inputIndex = 1;
+
+        // When
+        char[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
+
+        // Then
+        then(actual)
+                .hasSize(4)
+                .containsExactly('a', 'd', 'b', 'c');
+    }
+
+    @Test
+    void add_Character_ShouldAddElementToEmptyArray_WhenArrayIsEmpty() {
+        // Given
+        char[] inputSource = new char[0];
+        char inputElement = 'a';
+        int inputIndex = 0;
+
+        // When
+        char[] actual = ArrayUtils.add(inputSource, inputElement, inputIndex);
+
+        // Then
+        then(actual)
+                .hasSize(1)
+                .containsExactly('a');
     }
 
     @Test

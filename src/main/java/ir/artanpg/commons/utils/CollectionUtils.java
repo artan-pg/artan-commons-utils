@@ -1,6 +1,6 @@
 package ir.artanpg.commons.utils;
 
-import lombok.Generated;
+import ir.artanpg.commons.core.tools.jacoco.Generated;
 
 import java.util.ArrayList;
 import java.util.Collection;
