@@ -1,5 +1,7 @@
 package ir.artanpg.commons.utils;
 
+import ir.artanpg.commons.core.tools.jacoco.Generated;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,6 +72,7 @@ public abstract class StringUtils {
      *
      * @throws UnsupportedOperationException if an attempt is made to instantiate this class
      */
+    @Generated
     private StringUtils() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
@@ -80,18 +83,6 @@ public abstract class StringUtils {
      *
      * <p>If the string is {@code null}, {@code empty} or {@code blank}, an
      * {@code empty} string is returned.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.abbreviate(null, 4);           = ""
-     *  StringUtils.abbreviate("", 4);             = ""
-     *  StringUtils.abbreviate(" ", 4);            = ""
-     *  StringUtils.abbreviate("Hello World", 4);  = "H..."
-     *  StringUtils.abbreviate("Hello World", 8);  = "Hello..."
-     *  StringUtils.abbreviate("Hello World", 11); = "Hello World"
-     *  StringUtils.abbreviate("Hello World", 12); = "Hello World"
-     *  StringUtils.abbreviate("Hello World", 3);  = IllegalArgumentException
-     * </pre>
      *
      * @param string   the string to abbreviate
      * @param maxWidth the maximum length of the resulting string
@@ -116,18 +107,6 @@ public abstract class StringUtils {
      * <p>If the string is {@code longer}, it is truncated and the abbreviation
      * marker is appended to fit within the {@code maximum} width.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.abbreviate(null, "...", 4);           = ""
-     *  StringUtils.abbreviate("", "...", 4);             = ""
-     *  StringUtils.abbreviate(" ", "...", 4);            = ""
-     *  StringUtils.abbreviate("Hello World", "...", 4);  = "H..."
-     *  StringUtils.abbreviate("Hello World", "...", 8);  = "Hello..."
-     *  StringUtils.abbreviate("Hello World", "...", 11); = "Hello World"
-     *  StringUtils.abbreviate("Hello World", "...", 12); = "Hello World"
-     *  StringUtils.abbreviate("Hello World", "...", 3);  = IllegalArgumentException
-     * </pre>
-     *
      * @param string       the string to abbreviate
      * @param abbrevMarker the marker to append when abbreviating
      * @param maxWidth     the maximum length of the result, including the abbreviation marker
@@ -144,9 +123,8 @@ public abstract class StringUtils {
             throw new IllegalArgumentException("Minimum abbreviation width is " + minAbbrevWidth);
 
         int strLen = string.length();
-        if (strLen <= maxWidth) return string;
 
-        return string.substring(0, maxWidth - abbrevMarkerLength) + abbrevMarker;
+        return (strLen <= maxWidth) ? string : string.substring(0, maxWidth - abbrevMarkerLength) + abbrevMarker;
     }
 
     /**
@@ -155,16 +133,6 @@ public abstract class StringUtils {
      *
      * <p>If the input string is {@code null}, {@code empty} or {@code blank},
      * the input string is returned unchanged.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.capitalize(null);      = null
-     *  StringUtils.capitalize("");        = ""
-     *  StringUtils.capitalize(" ");       = " "
-     *  StringUtils.capitalize("hello");   = "Hello"
-     *  StringUtils.capitalize("hEllo");   = "HEllo"
-     *  StringUtils.capitalize("'Hello'"); = "'Hello'"
-     * </pre>
      *
      * @param string the string to capitalize
      * @return the capitalized string
@@ -186,26 +154,11 @@ public abstract class StringUtils {
 
     /**
      * Removes one newline from end of a string if it's there, otherwise leave
-     * it alone.
-     * A newline is &quot;{@code \n}&quot;, &quot;{@code \r}&quot;, or
-     * &quot;{@code \r\n}&quot;.
+     * it alone. A newline is &quot;{@code \n}&quot;, &quot;{@code \r}&quot;,
+     * or &quot;{@code \r\n}&quot;.
      *
      * <p>If the input string is {@code null}, {@code empty} or {@code blank},
      * the input string is returned unchanged.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.chomp(null);            = null
-     *  StringUtils.chomp("");              = ""
-     *  StringUtils.chomp(" ");             = " "
-     *  StringUtils.chomp("\r");            = ""
-     *  StringUtils.chomp("\n");            = ""
-     *  StringUtils.chomp("\r\n");          = ""
-     *  StringUtils.chomp("Hello\r");       = "Hello"
-     *  StringUtils.chomp("Hello\n");       = "Hello"
-     *  StringUtils.chomp("Hello\r\n");     = "Hello"
-     *  StringUtils.chomp("Hello\r\n\r\n"); = "Hello\r\n"
-     * </pre>
      *
      * @param string the String to chomp a newline from
      * @return string without newline
@@ -213,16 +166,19 @@ public abstract class StringUtils {
     public static String chomp(String string) {
         if (!hasLength(string)) return string;
 
-        int length = string.length();
-        if (length == 1) {
+        if (string.length() == 1) {
             char ch = string.charAt(0);
             return (ch == CR || ch == LF) ? EMPTY : string;
         }
 
-        char last = string.charAt(length - 1);
-        length -= last == LF ? (string.charAt(length - 2) == CR ? 2 : 1) : last == CR ? 1 : 0;
-
-        return length == string.length() ? string : string.substring(0, length);
+        int lastIdx = string.length() - 1;
+        char last = string.charAt(lastIdx);
+        if (last == LF && string.charAt(lastIdx - 1) == CR) {
+            lastIdx--;
+        } else if (last != CR) {
+            lastIdx++;
+        }
+        return string.substring(0, lastIdx);
     }
 
     /**
@@ -231,22 +187,6 @@ public abstract class StringUtils {
      *
      * <p>If the input string is {@code null}, {@code empty} or {@code blank},
      * an {@code empty} string is returned.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.chop(null);         = ""
-     *  StringUtils.chop("");           = ""
-     *  StringUtils.chop(" ");          = ""
-     *  StringUtils.chop("a");          = ""
-     *  StringUtils.chop("\r");         = ""
-     *  StringUtils.chop("\n");         = ""
-     *  StringUtils.chop("\r\n");       = ""
-     *  StringUtils.chop("Hello");      = "Hell"
-     *  StringUtils.chop("Hello\r");    = "Hell"
-     *  StringUtils.chop("Hello\n");    = "Hell"
-     *  StringUtils.chop("Hello\r\n");  = "Hello"
-     *  StringUtils.chop("Hello\nWorld"); = "Hello\nWorl"
-     * </pre>
      *
      * @param string the string to chop last character from
      * @return string without last character
@@ -272,18 +212,6 @@ public abstract class StringUtils {
      * <p>if the search string is {@code null} or {@code empty}, {@code false}
      * is returned.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.contains(null, "Hello");          = false
-     *  StringUtils.contains("", "Hello");            = false
-     *  StringUtils.contains(" ", "Hello");           = false
-     *  StringUtils.contains("Hello", null);          = false
-     *  StringUtils.contains("Hello", "");            = false
-     *  StringUtils.contains("Hello World", "hello"); = false
-     *  StringUtils.contains("Hello ", " ");          = true
-     *  StringUtils.contains("Hello World", "Hello"); = true
-     * </pre>
-     *
      * @param string the string to check
      * @param search the string to find
      * @return {@code true}, if the string contains the search string, {@code false} otherwise
@@ -305,17 +233,6 @@ public abstract class StringUtils {
      *
      * <p>if the search string is {@code null} or {@code empty}, {@code false}
      * is returned.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.containsAny(null, "Hello");                   = false
-     *  StringUtils.containsAny("", "Hello");                     = false
-     *  StringUtils.containsAny(" ", "Hello");                    = false
-     *  StringUtils.containsAny("Hello", null);                   = false
-     *  StringUtils.containsAny("Hello", "");                     = false
-     *  StringUtils.containsAny("Hello World", "hello", "world"); = false
-     *  StringUtils.containsAny("Hello World", "Hello", "World"); = true
-     * </pre>
      *
      * @param string the string to check
      * @param search the strings to search for
@@ -345,16 +262,6 @@ public abstract class StringUtils {
      * <p>If the input string is {@code null} or {@code empty}, {@code false}
      * is returned.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.containsWhitespace(null);          = false
-     *  StringUtils.containsWhitespace("");            = false
-     *  StringUtils.containsWhitespace("Hello");       = false
-     *  StringUtils.containsWhitespace(" Hello");      = true
-     *  StringUtils.containsWhitespace("Hello ");      = true
-     *  StringUtils.containsWhitespace("Hello World"); = true
-     * </pre>
-     *
      * @param string the string to check
      * @return {@code true}, if the string contains at least 1 whitespace character, {@code false} otherwise
      */
@@ -370,20 +277,8 @@ public abstract class StringUtils {
     }
 
     /**
-     * Counts how many times the substring appears in the larger string.
-     * Note that the code only counts non-overlapping matches.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.countMatches(null, "*");        = 0
-     *  StringUtils.countMatches("", "*");          = 0
-     *  StringUtils.countMatches("Hello", null);    = 0
-     *  StringUtils.countMatches("Hello", "");      = 0
-     *  StringUtils.countMatches("Hello", "l");     = 2
-     *  StringUtils.countMatches("Hello", "ll");    = 1
-     *  StringUtils.countMatches("Hello", "Hello"); = 1
-     *  StringUtils.countMatches("Hello", "hello"); = 0
-     * </pre>
+     * Counts how many times the substring appears in the larger string. Note
+     * that the code only counts non-overlapping matches.
      *
      * @param string    the string to check
      * @param substring the substring to count
@@ -414,14 +309,6 @@ public abstract class StringUtils {
      * {@link String#valueOf(Object)} and {@code null} elements are represented
      * as {@code "null"}.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.collectionToDelimitedString(null);              = ""
-     *  StringUtils.collectionToDelimitedString(List.of());         = ""
-     *  StringUtils.collectionToDelimitedString(List.of("a"));      = "a"
-     *  StringUtils.collectionToDelimitedString(List.of("a", "b")); = "a,b"
-     * </pre>
-     *
      * @param collection the collection to convert
      * @return a string containing the elements of the collection separated by commas
      * @see #collectionToDelimitedString(Collection, String, String, String)
@@ -440,14 +327,6 @@ public abstract class StringUtils {
      * <p>Each element is converted to its string representation using
      * {@link String#valueOf(Object)} and {@code null} elements are represented
      * as {@code "null"}.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.collectionToDelimitedString(null, ",");              = ""
-     *  StringUtils.collectionToDelimitedString(List.of(), ";");         = ""
-     *  StringUtils.collectionToDelimitedString(List.of(1,2,), ",");     = "1,2"
-     *  StringUtils.collectionToDelimitedString(List.of("a","b"), " ");  = "a b"
-     * </pre>
      *
      * @param collection the collection to convert
      * @param delimiter  the delimiter to separate elements
@@ -473,15 +352,6 @@ public abstract class StringUtils {
      * <p>Each element is converted to its string representation using
      * {@link String#valueOf(Object)} and {@code null} elements are represented
      * as {@code "null"}.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.collectionToDelimitedString(null, ",", "[", "]");              = ""
-     *  StringUtils.collectionToDelimitedString(List.of(), ",", "", "");           = ""
-     *  StringUtils.collectionToDelimitedString(List.of(1,2), ";", null, null);    = "1;2"
-     *  StringUtils.collectionToDelimitedString(List.of(1,2), ";", "", "");        = "1;2"
-     *  StringUtils.collectionToDelimitedString(List.of("a","b"), ",", "[", "]");  = "[a],[b]"
-     * </pre>
      *
      * @param collection the collection to convert
      * @param delimiter  the delimiter to separate elements
@@ -515,16 +385,8 @@ public abstract class StringUtils {
     }
 
     /**
-     * Returns either the passed in String, or if the String is
-     * {@code null} or {@code empty}, the value of {@code defaultString}.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.defaultIfNotHasLength(null, "NULL");    = "NULL"
-     *  StringUtils.defaultIfNotHasLength("", "NULL");      = "NULL"
-     *  StringUtils.defaultIfNotHasLength(" ", "NULL");     = " "
-     *  StringUtils.defaultIfNotHasLength("Hello", "NULL"); = "Hello"
-     * </pre>
+     * Returns either the passed in String, or if the String is {@code null} or
+     * {@code empty}, the value of {@code defaultString}.
      *
      * @param string        the string to check
      * @param defaultString the default string to return
@@ -536,16 +398,8 @@ public abstract class StringUtils {
     }
 
     /**
-     * Returns either the passed in String, or if the String is
-     * {@code null} or {@code blank}, the value of {@code defaultString}.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.defaultIfNotHasText(null, "NULL");    = "NULL"
-     *  StringUtils.defaultIfNotHasText("", "NULL");      = "NULL"
-     *  StringUtils.defaultIfNotHasText(" ", "NULL");     = "NULL"
-     *  StringUtils.defaultIfNotHasText("Hello", "NULL"); = "Hello"
-     * </pre>
+     * Returns either the passed in String, or if the String is {@code null} or
+     * {@code blank}, the value of {@code defaultString}.
      *
      * @param string        the string to check
      * @param defaultString the default string to return
@@ -557,19 +411,45 @@ public abstract class StringUtils {
     }
 
     /**
+     * Removes all occurrences of any character contained in the supplied
+     * {@code charsToDelete} string from the given input string.
+     *
+     * <p>Each character in {@code inString} is examined individually and
+     * removed if it exists in {@code charsToDelete}. This method operates at
+     * the character level and does not perform substring or pattern-based
+     * removal.
+     *
+     * <p>If {@code inString} is {@code null} or empty, or if
+     * {@code charsToDelete} is {@code null} or empty, this method returns the
+     * original {@code inString} unchanged.
+     *
+     * <p>For performance reasons, if no characters are removed, the original
+     * {@code inString} instance is returned without creating a new
+     * {@link String}.
+     *
+     * @param inString      the input string to process
+     * @param charsToDelete a string containing characters to remove from {@code inString}
+     * @return a string with all specified characters removed
+     */
+    public static String deleteAny(String inString, String charsToDelete) {
+        if (!hasLength(inString) || !hasLength(charsToDelete)) return inString;
+
+        int lastCharIndex = 0;
+        char[] result = new char[inString.length()];
+
+        for (int i = 0; i < inString.length(); i++) {
+            char ch = inString.charAt(i);
+            if (charsToDelete.indexOf(ch) == -1) result[lastCharIndex++] = ch;
+        }
+
+        return (lastCharIndex == inString.length()) ? inString : new String(result, 0, lastCharIndex);
+    }
+
+    /**
      * Deletes all whitespaces from a String as defined by
      * {@link Character#isWhitespace(char)}.
      *
-     * <p>Examples:
-     * <pre>
-     * StringUtils.deleteWhitespace(null);            = null
-     * StringUtils.deleteWhitespace("");              = ""
-     * StringUtils.deleteWhitespace(" ");             = ""
-     * StringUtils.deleteWhitespace("Hello");         = "Hello"
-     * StringUtils.deleteWhitespace(" Hello World "); = "HelloWorld"
-     * </pre>
-     *
-     * @param string the String to delete whitespace from, may be null
+     * @param string the String to delete whitespace from
      * @return the String without whitespaces, {@code null} if null String input
      */
     public static String deleteWhitespace(String string) {
@@ -583,7 +463,8 @@ public abstract class StringUtils {
             if (!Character.isWhitespace(string.charAt(i))) chs[count++] = string.charAt(i);
         }
 
-        return (count == stringLength) ? string : (count == 0) ? EMPTY : new String(chs, 0, count);
+        if (count == stringLength) return string;
+        return (count == 0) ? EMPTY : new String(chs, 0, count);
     }
 
     /**
@@ -592,22 +473,9 @@ public abstract class StringUtils {
      * <p>More precisely, return the remainder of the second String, starting
      * from where it's different from the first.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.difference(null, null);             = null
-     *  StringUtils.difference("", "");                 = ""
-     *  StringUtils.difference(null, "Hello");          = "Hello"
-     *  StringUtils.difference("", "Hello");            = "Hello"
-     *  StringUtils.difference("Hello", null);          = "Hello"
-     *  StringUtils.difference("Hello", "");            = "Hello"
-     *  StringUtils.difference("Hello", "Hello");       = ""
-     *  StringUtils.difference("Hello World", "Hello"); = ""
-     *  StringUtils.difference("Hello", "Hello World"); = " World"
-     * </pre>
-     *
      * @param string1 the first string
      * @param string2 the second string
-     * @return the portion of string2 where it differs from string1; returns the empty String if they are equal
+     * @return the portion of string2 where it differs from string1
      */
     public static String difference(String string1, String string2) {
         if (!hasLength(string1)) return string2;
@@ -630,6 +498,65 @@ public abstract class StringUtils {
     }
 
     /**
+     * Splits the given string into an array of strings based on the specified
+     * delimiter.
+     *
+     * @param string    the input string to split
+     * @param delimiter the delimiter string to split on
+     * @return an array of strings split from the input string
+     * @see #delimitedListToStringArray(String, String, String)
+     */
+    public static String[] delimitedListToStringArray(String string, String delimiter) {
+        return delimitedListToStringArray(string, delimiter, null);
+    }
+
+    /**
+     * Splits the given string into an array of strings based on the specified
+     * delimiter, optionally removing specified characters from each resulting
+     * element.
+     *
+     * <p>The delimiter may consist of multiple characters. If the delimiter is
+     * {@code null}, the entire input string is returned as a single-element
+     * array. If the delimiter is an empty string, the input string is split
+     * into individual characters.
+     *
+     * <p>If {@code charsToDelete} is provided, any character contained in this
+     * string will be removed from each extracted token.
+     *
+     * <p>If the input {@code string} is {@code null}, this method returns an
+     * {@code empty} string array.
+     *
+     * @param string        the input string to split
+     * @param delimiter     the delimiter string to split on
+     * @param charsToDelete a string containing characters to remove from each resulting token
+     * @return an array of strings extracted from the input string
+     */
+    public static String[] delimitedListToStringArray(String string, String delimiter, String charsToDelete) {
+        if (string == null) return EMPTY_STRING_ARRAY;
+        if (delimiter == null) return new String[]{string};
+
+        List<String> result = new ArrayList<>();
+        if (delimiter.isEmpty()) {
+            for (int i = 0; i < string.length(); i++) {
+                result.add(deleteAny(string.substring(i, i + 1), charsToDelete));
+            }
+        } else {
+            int position = 0;
+            int delimiterPosition;
+            while ((delimiterPosition = string.indexOf(delimiter, position)) != -1) {
+                result.add(deleteAny(string.substring(position, delimiterPosition), charsToDelete));
+                position = delimiterPosition + delimiter.length();
+            }
+            if (!string.isEmpty() && position <= string.length()) {
+                // Add rest of String, but not in case of empty input.
+                result.add(deleteAny(string.substring(position), charsToDelete));
+            }
+        }
+
+        return (CollectionUtils.hasLength(result)) ? result.toArray(EMPTY_STRING_ARRAY) : EMPTY_STRING_ARRAY;
+    }
+
+    /**
      * Test if the given {@code String} ends with the specified suffix,
      * ignoring upper/lower case.
      *
@@ -641,21 +568,9 @@ public abstract class StringUtils {
      *
      * <p>If nothing is found, the {@code false} is returned.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.endsWithIgnoreCase(null, "pre");              = false
-     *  StringUtils.endsWithIgnoreCase("Hello", null);            = false
-     *  StringUtils.endsWithIgnoreCase("", "pre");                = false
-     *  StringUtils.endsWithIgnoreCase("Hello", "");              = false
-     *  StringUtils.endsWithIgnoreCase(" ", "pre");               = false
-     *  StringUtils.endsWithIgnoreCase("Hello", " ");             = false
-     *  StringUtils.endsWithIgnoreCase("Hello prefix", "prefix"); = true
-     *  StringUtils.endsWithIgnoreCase("Hello PREFIX", "prefix"); = true
-     * </pre>
-     *
      * @param string the string to check
      * @param suffix the suffix to look for
-     * @return {@code true}, if the string ends with the given suffix
+     * @return {@code true}, if the string ends with the given suffix, {@code false} otherwise
      * @see String#endsWith(String)
      */
     public static boolean endsWithIgnoreCase(String string, String suffix) {
@@ -669,15 +584,6 @@ public abstract class StringUtils {
      *
      * <p>If all strings are blank or the array is {@code null} or
      * {@code empty} then {@code null} is returned.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.firstHasText();                       = null
-     *  StringUtils.firstHasText(null, null, null);       = null
-     *  StringUtils.firstHasText(null, "", " ");          = null
-     *  StringUtils.firstHasText(null, "Hello");          = "Hello"
-     *  StringUtils.firstHasText(null, "", " ", "Hello"); = "Hello"
-     * </pre>
      *
      * @param strings the strings to test
      * @return the first value from strings which is not blank
@@ -696,16 +602,6 @@ public abstract class StringUtils {
      *
      * <p>If the input string is null, empty, or contains no digits, an empty
      * string will be returned.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.getDigits(null);       = ""
-     *  StringUtils.getDigits("");         = ""
-     *  StringUtils.getDigits(" ");        = ""
-     *  StringUtils.getDigits("123");      = "123"
-     *  StringUtils.getDigits("Hello");    = ""
-     *  StringUtils.getDigits("Hello123"); = "123"
-     * </pre>
      *
      * @param string the input string from which to extract digits
      * @return a string containing only the digit characters from the input string
@@ -730,16 +626,8 @@ public abstract class StringUtils {
      * Check that the given {@code String} is neither {@code null} nor of
      * length 0.
      *
-     * <p>Examples:
-     * <pre>
-     * 	StringUtils.hasLength(null);    = false
-     * 	StringUtils.hasLength("");      = false
-     * 	StringUtils.hasLength(" ");     = true
-     * 	StringUtils.hasLength("Hello"); = true
-     * </pre>
-     *
      * @param string the string to check
-     * @return {@code true}, if the string is not {@code null} and has length
+     * @return {@code true}, if the string is not {@code null} and has length, {@code false} otherwise
      * @see #hasText(String)
      */
     public static boolean hasLength(String string) {
@@ -749,19 +637,11 @@ public abstract class StringUtils {
     /**
      * Checks if at least one of the provided strings has a non-zero length.
      *
-     * <p>A string is considered to have length if it is not null and not empty
-     * after trimming.
-     *
-     * <p>Examples:
-     * <pre>
-     * 	StringUtils.hasLength(null);        = false
-     * 	StringUtils.hasLength("", "");      = false
-     * 	StringUtils.hasLength(" ", "");     = true
-     * 	StringUtils.hasLength("Hello", ""); = true
-     * </pre>
+     * <p>A string is considered to have length if it is not null and not
+     * {@code empty} after trimming.
      *
      * @param strings the string to check
-     * @return {@code true}, if at least one string has a non-zero length
+     * @return {@code true}, if at least one string has a non-zero length, {@code false} otherwise
      * @see #hasText(String)
      */
     public static boolean hasLength(String... strings) {
@@ -778,17 +658,8 @@ public abstract class StringUtils {
      * Checks if all provided strings have length, meaning they are neither
      * {@code null} nor {@code empty}.
      *
-     * <p>Examples:
-     * <pre>
-     * 	StringUtils.hasLengthAll(null);         = false
-     * 	StringUtils.hasLengthAll("", "");       = false
-     * 	StringUtils.hasLengthAll(" ", "");      = false
-     * 	StringUtils.hasLengthAll("Hello", "");  = false
-     * 	StringUtils.hasLengthAll("Hello", " "); = true
-     * </pre>
-     *
      * @param strings the array of strings to check
-     * @return {@code true}, if all strings have length
+     * @return {@code true}, if all strings have length, {@code false} otherwise
      */
     public static boolean hasLengthAll(String... strings) {
         if (strings == null || strings.length == 0) return false;
@@ -807,17 +678,9 @@ public abstract class StringUtils {
      * {@code true} if the string is not {@code null}, its length is greater
      * than 0, and it contains at least one non-whitespace character.
      *
-     * <p>Examples:
-     * <pre>
-     * 	StringUtils.hasText(null);    = false
-     * 	StringUtils.hasText("");      = false
-     * 	StringUtils.hasText(" ");     = false
-     * 	StringUtils.hasText("Hello"); = true
-     * </pre>
-     *
      * @param string the string to check
      * @return {@code true}, if the string is not {@code null}, its length is greater than 0, and it does not
-     * contain whitespace only
+     * contain whitespace only, {@code false} otherwise
      * @see String#isBlank()
      */
     public static boolean hasText(String string) {
@@ -831,16 +694,8 @@ public abstract class StringUtils {
      * <p>A strings are considered to have text if it is not {@code null},
      * not {@code empty}, and contains at least one non-whitespace character.
      *
-     * <p>Examples:
-     * <pre>
-     * 	StringUtils.hasText(null);        = false
-     * 	StringUtils.hasText("", "");      = false
-     * 	StringUtils.hasText(" ", "");     = false
-     * 	StringUtils.hasText("Hello", ""); = true
-     * </pre>
-     *
      * @param strings the strings to check
-     * @return {@code true} if at least one strings contains non-whitespace text
+     * @return {@code true} if at least one strings contains non-whitespace text, {@code false} otherwise
      */
     public static boolean hasText(String... strings) {
         if (strings == null) return false;
@@ -856,18 +711,8 @@ public abstract class StringUtils {
      * Checks if all provided strings have text, meaning they are neither
      * {@code null}, {@code empty}, nor consist only of whitespace.
      *
-     * <p>Examples:
-     * <pre>
-     * 	StringUtils.hasTextAll(null);              = false
-     * 	StringUtils.hasTextAll("", "");            = false
-     * 	StringUtils.hasTextAll(" ", "");           = false
-     * 	StringUtils.hasTextAll("Hello", "");       = false
-     * 	StringUtils.hasTextAll("Hello", " ");      = false
-     * 	StringUtils.hasTextAll("Hello", " World"); = true
-     * </pre>
-     *
      * @param strings the array of strings to check
-     * @return {@code true} if all strings have text
+     * @return {@code true} if all strings have text, {@code false} otherwise
      */
     public static boolean hasTextAll(String... strings) {
         if (strings == null || strings.length == 0) return false;
@@ -890,16 +735,6 @@ public abstract class StringUtils {
      * <p>If no match is found, or if the input string is {@code empty},
      * {@code null}, or contains only {@code whitespace}, or if the search
      * array is {@code null} or {@code empty}, it returns {@code -1}.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.indexOfAny(null, new String[]{"*"});                       = -1
-     *  StringUtils.indexOfAny("", new String[]{"*"});                         = -1
-     *  StringUtils.indexOfAny(" ", new String[]{"*"});                        = -1
-     *  StringUtils.indexOfAny("Hello", null);                                 = -1
-     *  StringUtils.indexOfAny("Hello", new String[]{});                       = -1
-     *  StringUtils.indexOfAny("Hello World", new String[]{"lo", "or", "ld"}); = 3
-     * </pre>
      *
      * @param string the input string to search in
      * @param search the array of strings to search for
@@ -931,16 +766,6 @@ public abstract class StringUtils {
      * {@code empty}, or the search array is {@code null} or {@code empty},
      * it returns {@code -1}.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.lastIndexOfAny(null, new String[]{"*"});                       = -1
-     *  StringUtils.lastIndexOfAny("", new String[]{"*"});                         = -1
-     *  StringUtils.lastIndexOfAny(" ", new String[]{"*"});                        = -1
-     *  StringUtils.lastIndexOfAny("Hello", null);                                 = -1
-     *  StringUtils.lastIndexOfAny("Hello", new String[]{});                       = -1
-     *  StringUtils.lastIndexOfAny("Hello World", new String[]{"lo", "or", "ld"}); = 9
-     * </pre>
-     *
      * @param string the string to search in
      * @param search an array of substrings to search for
      * @return the highest index in the string where any substring from the search array is found
@@ -962,20 +787,8 @@ public abstract class StringUtils {
     /**
      * Tests if the String contains only lowercase characters.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.isAllLowerCase(null);      = false
-     *  StringUtils.isAllLowerCase("");        = false
-     *  StringUtils.isAllLowerCase(" ");       = false
-     *  StringUtils.isAllLowerCase("Hello");   = false
-     *  StringUtils.isAllLowerCase("Hello ");  = false
-     *  StringUtils.isAllLowerCase("Hello 1"); = false
-     *  StringUtils.isAllLowerCase("Hello,");  = false
-     *  StringUtils.isAllLowerCase("hello");   = true
-     * </pre>
-     *
      * @param string the string to check
-     * @return {@code true}, if only contains lowercase characters
+     * @return {@code true}, if only contains lowercase characters, {@code false} otherwise
      */
     public static boolean isAllLowerCase(String string) {
         if (!hasText(string)) return false;
@@ -991,20 +804,8 @@ public abstract class StringUtils {
     /**
      * Tests if the String contains only uppercase characters.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.isAllUpperCase(null);      = false
-     *  StringUtils.isAllUpperCase("");        = false
-     *  StringUtils.isAllUpperCase(" ");       = false
-     *  StringUtils.isAllUpperCase("Hello");   = false
-     *  StringUtils.isAllUpperCase("Hello ");  = false
-     *  StringUtils.isAllUpperCase("Hello 1"); = false
-     *  StringUtils.isAllUpperCase("Hello,");  = false
-     *  StringUtils.isAllUpperCase("HELLO");   = true
-     * </pre>
-     *
      * @param string the string to check
-     * @return {@code true}, if only contains uppercase characters
+     * @return {@code true}, if only contains uppercase characters, {@code false} otherwise
      */
     public static boolean isAllUpperCase(String string) {
         if (!hasText(string)) return false;
@@ -1020,18 +821,8 @@ public abstract class StringUtils {
     /**
      * Tests if the String contains only Unicode letters.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.isAlpha(null);     = false
-     *  StringUtils.isAlpha("");       = false
-     *  StringUtils.isAlpha(" ");      = false
-     *  StringUtils.isAlpha("Hello1"); = false
-     *  StringUtils.isAlpha("Hello,"); = false
-     *  StringUtils.isAlpha("Hello");  = true
-     * </pre>
-     *
      * @param string the string to check
-     * @return {@code true}, if only contains letters
+     * @return {@code true}, if only contains letters, {@code false} otherwise
      */
     public static boolean isAlpha(String string) {
         if (!hasText(string)) return false;
@@ -1047,19 +838,8 @@ public abstract class StringUtils {
     /**
      * Tests if the String contains only Unicode letters or digits.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.isAlphanumeric(null);     = false
-     *  StringUtils.isAlphanumeric("");       = false
-     *  StringUtils.isAlphanumeric(" ");      = false
-     *  StringUtils.isAlphanumeric("Hello "); = false
-     *  StringUtils.isAlphanumeric("Hello,"); = false
-     *  StringUtils.isAlphanumeric("Hello");  = true
-     *  StringUtils.isAlphanumeric("Hello1"); = true
-     * </pre>
-     *
      * @param string the string to check
-     * @return {@code true}, if only contains letters or digits
+     * @return {@code true}, if only contains letters or digits, {@code false} otherwise
      */
     public static boolean isAlphanumeric(String string) {
         if (!hasText(string)) return false;
@@ -1076,19 +856,8 @@ public abstract class StringUtils {
     /**
      * Tests if the String contains only Unicode letters, digits or space.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.isAlphanumericSpace(null);      = false
-     *  StringUtils.isAlphanumericSpace("");        = false
-     *  StringUtils.isAlphanumericSpace("Hello,");  = false
-     *  StringUtils.isAlphanumericSpace(" ");       = true
-     *  StringUtils.isAlphanumericSpace("Hello");   = true
-     *  StringUtils.isAlphanumericSpace("Hello ");  = true
-     *  StringUtils.isAlphanumericSpace("Hello 1"); = true
-     * </pre>
-     *
      * @param string the string to check
-     * @return {@code true}, if only contains letters, digits or space
+     * @return {@code true}, if only contains letters, digits or space, {@code false} otherwise
      */
     public static boolean isAlphanumericSpace(String string) {
         if (!hasLength(string)) return false;
@@ -1106,19 +875,8 @@ public abstract class StringUtils {
     /**
      * Tests if the String contains only Unicode letters and space.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.isAlphaSpace(null);     = false
-     *  StringUtils.isAlphaSpace("");       = false
-     *  StringUtils.isAlphaSpace("Hello1"); = false
-     *  StringUtils.isAlphaSpace("Hello,"); = false
-     *  StringUtils.isAlphaSpace(" ");      = true
-     *  StringUtils.isAlphaSpace("Hello");  = true
-     *  StringUtils.isAlphaSpace("Hello "); = true
-     * </pre>
-     *
      * @param string the string to check
-     * @return {@code true}, if only contains letters and space
+     * @return {@code true}, if only contains letters and space, {@code false} otherwise
      */
     public static boolean isAlphaSpace(String string) {
         if (!hasLength(string)) return false;
@@ -1137,21 +895,8 @@ public abstract class StringUtils {
      * Tests if the given string represents a valid numeric value, including
      * positive numbers, negative numbers, and decimal numbers.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.isNumeric(null);   = false
-     *  StringUtils.isNumeric("");     = false
-     *  StringUtils.isNumeric(" ");    = false
-     *  StringUtils.isNumeric("12 3"); = false
-     *  StringUtils.isNumeric("12-3"); = false
-     *  StringUtils.isNumeric("123");  = true
-     *  StringUtils.isNumeric("12.3"); = true
-     *  StringUtils.isNumeric("-123"); = true
-     *  StringUtils.isNumeric("+123"); = true
-     * </pre>
-     *
      * @param string the string to check
-     * @return {@code true}, if the string represents a valid numeric value
+     * @return {@code true}, if the string represents a valid numeric value, {@code false} otherwise
      */
     public static boolean isNumeric(String string) {
         if (!hasText(string)) return false;
@@ -1159,37 +904,39 @@ public abstract class StringUtils {
         int length = string.length();
         boolean hasDecimalPoint = false;
 
-        char ch;
         for (int i = 0; i < length; i++) {
-            ch = string.charAt(i);
-            if (i == 0 && (ch == '+' || ch == '-') && length > 1) continue;
-            if (ch == '.' && !hasDecimalPoint && i < length - 1) {
-                hasDecimalPoint = true;
+            char ch = string.charAt(i);
+
+            if (shouldSkip(ch, i, length, hasDecimalPoint)) {
+                if (ch == '.') hasDecimalPoint = true;
                 continue;
             }
+
             if (!Character.isDigit(ch)) return false;
         }
 
-        return length > (hasDecimalPoint ? 2 : 1) || (length == 1 && Character.isDigit(string.charAt(0)));
+        return isValidLength(string, length, hasDecimalPoint);
     }
 
+    private static boolean shouldSkip(char ch, int index, int length, boolean hasDecimalPoint) {
+        return (index == 0 && (ch == '+' || ch == '-') && length > 1)
+                || (ch == '.' && !hasDecimalPoint && index < length - 1);
+    }
+
+    private static boolean isValidLength(String string, int length, boolean hasDecimalPoint) {
+        if (length == 1) {
+            return Character.isDigit(string.charAt(0));
+        }
+        return length > (hasDecimalPoint ? 2 : 1);
+    }
+
+
     /**
-     * Tests if the String contains only Unicode digits and space.
-     * A decimal point is not a Unicode digit and returns false.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.isNumericSpace(null);   = false
-     *  StringUtils.isNumericSpace("");     = false
-     *  StringUtils.isNumericSpace("  ");   = false
-     *  StringUtils.isNumericSpace("12-3"); = false
-     *  StringUtils.isNumericSpace("12.3"); = false
-     *  StringUtils.isNumericSpace("123");  = true
-     *  StringUtils.isNumericSpace("12 3"); = true
-     * </pre>
+     * Tests if the String contains only Unicode digits and space. A decimal
+     * point is not a Unicode digit and returns false.
      *
      * @param string the string to check
-     * @return {@code true}, if only contains digits and space
+     * @return {@code true}, if only contains digits and space, {@code false} otherwise
      */
     public static boolean isNumericSpace(String string) {
         if (!hasText(string)) return false;
@@ -1207,16 +954,8 @@ public abstract class StringUtils {
     /**
      * Tests if the String contains only whitespace.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.isWhitespace(null);    = false
-     *  StringUtils.isWhitespace("");      = false
-     *  StringUtils.isWhitespace("Hello"); = false
-     *  StringUtils.isWhitespace(" ");     = true
-     * </pre>
-     *
      * @param string the string to check
-     * @return {@code true}, if only contains whitespace
+     * @return {@code true}, if only contains whitespace, {@code false} otherwise
      */
     public static boolean isWhitespace(String string) {
         if (!hasLength(string)) return false;
@@ -1236,18 +975,6 @@ public abstract class StringUtils {
      * <p>If the string is null, empty, or shorter than or equal to the
      * specified length, the original string is returned unchanged.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.left(null, 0);     = null
-     *  StringUtils.left("", 0);       = ""
-     *  StringUtils.left("Hello", 0);  = ""
-     *  StringUtils.left("Hello", 2);  = "He"
-     *  StringUtils.left("Hello", 4);  = "Hell"
-     *  StringUtils.left("Hello", 5);  = "Hello"
-     *  StringUtils.left("Hello", 6);  = "Hello"
-     *  StringUtils.left("Hello", -1); = IllegalArgumentException
-     * </pre>
-     *
      * @param string the string to process
      * @param length the number of characters to return from the start of the string
      * @return the leftmost substring of the specified length
@@ -1260,14 +987,6 @@ public abstract class StringUtils {
 
     /**
      * Gets a String length or {@code 0} if the String is {@code null}.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.length(null);    = 0
-     *  StringUtils.length("");      = 0
-     *  StringUtils.length(" ");     = 1
-     *  StringUtils.length("Hello"); = 5
-     * </pre>
      *
      * @param string the string to process
      * @return string length or {@code 0} if the string is {@code null}
@@ -1291,19 +1010,6 @@ public abstract class StringUtils {
      * <p>If the requested substring extends beyond the string's length, the
      * substring from the position to the end of the string is returned.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.mid(null, 0, 0);     = null
-     *  StringUtils.mid("", 0, 0);       = ""
-     *  StringUtils.mid("Hello", 0, 2);  = "He"
-     *  StringUtils.mid("Hello", 0, 4);  = "Hell"
-     *  StringUtils.mid("Hello", 2, 4);  = "llo"
-     *  StringUtils.mid("Hello", 4, 2);  = "o"
-     *  StringUtils.mid("Hello", 6, 0);  = ""
-     *  StringUtils.mid("Hello", -1, 0); = IllegalArgumentException
-     *  StringUtils.mid("Hello", 0, -1); = IllegalArgumentException
-     * </pre>
-     *
      * @param string   the input string to process
      * @param position the starting index (0-based) from which to extract the substring
      * @param length   the number of characters to extract
@@ -1317,9 +1023,10 @@ public abstract class StringUtils {
         if (length < 0) throw new IllegalArgumentException("Length must be positive");
         if (position < 0) throw new IllegalArgumentException("Position must be positive");
 
-        return (position > string.length()) ? EMPTY :
-                (string.length() <= position + length) ?
-                        string.substring(position) : string.substring(position, position + length);
+        if (position > string.length()) return EMPTY;
+
+        return (string.length() <= position + length) ?
+                string.substring(position) : string.substring(position, position + length);
     }
 
     /**
@@ -1331,15 +1038,6 @@ public abstract class StringUtils {
      * <p>Non-breaking spaces (U+00A0) are converted to regular spaces
      * (U+0020), and if the string consists only of whitespace, an empty string
      * is returned.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.normalizeSpace(null);               = null
-     *  StringUtils.normalizeSpace("");                 = ""
-     *  StringUtils.normalizeSpace("Hello World");      = "Hello World"
-     *  StringUtils.normalizeSpace(" Hello World ");    = "Hello World"
-     *  StringUtils.normalizeSpace(" Hello   World ");  = "Hello World"
-     * </pre>
      *
      * @param string the string to normalize
      * @return the normalized string with single spaces between words and no leading/trailing whitespace
@@ -1383,24 +1081,12 @@ public abstract class StringUtils {
      * <p>If the {@code position} is greater than the {#code length}, they are
      * swapped to ensure valid substring boundaries.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.overlay(null, "", 0, 0);          = null
-     *  StringUtils.overlay("", "Hello", 0, 0);       = "Hello"
-     *  StringUtils.overlay("Hello", null, 2, 4);     = "Heo"
-     *  StringUtils.overlay("Hello", "", 2, 4);       = "Heo"
-     *  StringUtils.overlay("Hello", "", 4, 2);       = "Heo"
-     *  StringUtils.overlay("Hello", " ", 2, 4);      = "He o"
-     *  StringUtils.overlay("Hello", "Hello", -2, 3); = IllegalArgumentException
-     *  StringUtils.overlay("Hello", "Hello", 2, -3); = IllegalArgumentException
-     * </pre>
-     *
      * @param string   the input string to process
      * @param overlay  the string to overlay onto the input string
-     * @param position the starting index (0-based) where the overlay begins; must be non-negative
-     * @param length   the number of characters to replace in the input string; must be non-negative
-     * @return the resulting string with the specified segment replaced by the overlay string,
-     * or {@code null} if the input string is {@code null}
+     * @param position the starting index (0-based) where the overlay begins
+     * @param length   the number of characters to replace in the input string
+     * @return the resulting string with the specified segment replaced by the overlay string, or {@code null}
+     * if the input string is {@code null}
      * @throws IllegalArgumentException if position or length is negative
      */
     public static String overlay(String string, String overlay, int position, int length) {
@@ -1426,10 +1112,39 @@ public abstract class StringUtils {
     }
 
     /**
+     * Counts the number of non-overlapping occurrences of a given substring
+     * within the specified string.
+     *
+     * <p>The search is performed from left to right, and each found occurrence
+     * advances the search position by the length of the substring, meaning
+     * overlapping matches are not counted.
+     *
+     * <p>If either {@code string} or {@code subString} is {@code null} or
+     * {@code empty}, this method returns {@code 0}.
+     *
+     * @param string    the string to search in
+     * @param subString the substring to search for
+     * @return the number of non-overlapping occurrences of {@code subString} in {@code string}
+     */
+    public static int countOccurrencesOf(String string, String subString) {
+        if (!hasLength(string) || !hasLength(subString)) return 0;
+
+        int idx;
+        int count = 0;
+        int position = 0;
+
+        while ((idx = string.indexOf(subString, position)) != -1) {
+            ++count;
+            position = idx + subString.length();
+        }
+
+        return count;
+    }
+
+    /**
      * Replaces all occurrences of a specified pattern in the input string with
-     * a replacement string.
-     * This method is case-sensitive and uses a {@link StringBuilder} for
-     * efficient string construction.
+     * a replacement string. This method is case-sensitive and uses a
+     * {@link StringBuilder} for efficient string construction.
      *
      * <p>A {@code null}, {@code empty} or a {@code blank} input string return
      * the original string is returned unchanged.
@@ -1441,17 +1156,6 @@ public abstract class StringUtils {
      * unchanged.
      *
      * <p>If the pattern is not found, the original string is returned.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.replace(null, "old", "new");             = null
-     *  StringUtils.replace("", "old", "new");               = ""
-     *  StringUtils.replace(" ", "old", "new");              = " "
-     *  StringUtils.replace("Hello", null, "new");           = "Hello"
-     *  StringUtils.replace("Hello", "", "new");             = "Hello"
-     *  StringUtils.replace("Hello", "old", null);           = "Hello"
-     *  StringUtils.replace("Hello World", "World", "Grok"); = "Hello Grok"
-     * </pre>
      *
      * @param string     the input string to process
      * @param oldPattern the pattern to search for and replace
@@ -1467,9 +1171,8 @@ public abstract class StringUtils {
         if (index == -1) return string;
 
         int capacity = string.length();
-        if (newPattern.length() > oldPattern.length()) {
-            capacity += 16;
-        }
+        if (newPattern.length() > oldPattern.length()) capacity += 16;
+
         StringBuilder stringBuilder = new StringBuilder(capacity);
 
         int position = 0;  // our position in the old string
@@ -1493,14 +1196,6 @@ public abstract class StringUtils {
      * <p>If the string is {@code null} or {@code empty}, or if the character
      * to remove is not found, the original string is returned unchanged.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.remove(null, ' ');    = null
-     *  StringUtils.remove("", ' ');      = ""
-     *  StringUtils.remove("Hello", 'l'); = "Heo"
-     *  StringUtils.remove("Hello", 'z'); = "Hello"
-     * </pre>
-     *
      * @param string the source String to search
      * @param remove the char to search for and remove
      * @return the resulting string with all occurrences of the specified character removed
@@ -1520,13 +1215,6 @@ public abstract class StringUtils {
      * Removes a char only if it is at the beginning of a source string,
      * otherwise returns the original string.
      *
-     * <pre>
-     *  StringUtils.removeStart(null, '/');    = null
-     *  StringUtils.removeStart("", '/');      = ""
-     *  StringUtils.removeStart(" ", '/');     = " "
-     *  StringUtils.removeStart("/path", '/'); = "path"
-     * </pre>
-     *
      * @param string the source String to search
      * @param remove the char to search for and remove
      * @return the substring with the char removed if found
@@ -1540,14 +1228,6 @@ public abstract class StringUtils {
      * Removes a char only if it is at the end of a source string,
      * otherwise returns the original string.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.removeEnd(null, '/');    = null
-     *  StringUtils.removeEnd("", '/');      = ""
-     *  StringUtils.removeEnd(" ", '/');     = " "
-     *  StringUtils.removeEnd("path/", '/'); = "path"
-     * </pre>
-     *
      * @param string the source String to search
      * @param remove the char to search for and remove
      * @return the substring with the char removed if found
@@ -1560,14 +1240,6 @@ public abstract class StringUtils {
 
     /**
      * Reverses a String as per {@link StringBuilder#reverse()}.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.reverse(null);    = null
-     *  StringUtils.reverse("");      = ""
-     *  StringUtils.reverse(" ");     = " "
-     *  StringUtils.reverse("Hello"); = "olleH"
-     * </pre>
      *
      * @param string the string to reverse
      * @return the reversed string
@@ -1586,16 +1258,6 @@ public abstract class StringUtils {
      *
      * <p>If the length is negative, an {@link IllegalArgumentException} is
      * thrown.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.right(null, 0);     = null
-     *  StringUtils.right("", 0);       = ""
-     *  StringUtils.right("Hello", 0);  = ""
-     *  StringUtils.right("Hello", 2);  = "lo"
-     *  StringUtils.right("Hello", 5);  = "Hello"
-     *  StringUtils.right("Hello", -1); = IllegalArgumentException
-     * </pre>
      *
      * @param string the input string to process
      * @param length the number of characters to return from the end of the string
@@ -1618,14 +1280,6 @@ public abstract class StringUtils {
      * <p>A {@code null}, {@code empty} or a {@code blank} input string will
      * return the {@code empty} array.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.split(null);    = []
-     *  StringUtils.split("");      = []
-     *  StringUtils.split(" ");     = []
-     *  StringUtils.split("a,b,c"); = ["a,b,c"]
-     * </pre>
-     *
      * @param string the input string to split
      * @return an array of strings containing the split substrings
      * @see #split(String, String, int)
@@ -1646,14 +1300,6 @@ public abstract class StringUtils {
      * return the {@code empty} array.
      *
      * <p>If the separator is {@code null}, default delimiters are used.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.split(null, ",");    = []
-     *  StringUtils.split("", ",");      = []
-     *  StringUtils.split(" ", ",");     = []
-     *  StringUtils.split("a,b,c", ";"); = ["a;b;c"]
-     * </pre>
      *
      * @param string    the input string to split
      * @param separator the delimiter to split the string
@@ -1679,17 +1325,6 @@ public abstract class StringUtils {
      * the string.
      *
      * <p>If {@code max} is zero or negative, all tokens are returned.
-     *
-     * <p>Examples:
-     * <pre>
-     * StringUtils.split(null, ",", 0);          = []
-     * StringUtils.split("", ",", 0);            = []
-     * StringUtils.split(" ", ",", 0);           = []
-     * StringUtils.split("a,,b,,c", ",", 0);     = ["a", "b", "c"]
-     * StringUtils.split("a,b,c,d", ",", 0);     = ["a", "b", "c", "d"]
-     * StringUtils.split("a,b,c,d", ",", 2);     = ["a", "b,c,d"]
-     * StringUtils.split("a b  c   d", null, 0); = ["a", "b", "c", "d"]
-     * </pre>
      *
      * @param string    the input string to split
      * @param separator the delimiter to split the string
@@ -1742,18 +1377,6 @@ public abstract class StringUtils {
      *
      * <p>If nothing is found, the {@code false} is returned.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.startsWithIgnoreCase(null, "pre");              = false
-     *  StringUtils.startsWithIgnoreCase("Hello", null);            = false
-     *  StringUtils.startsWithIgnoreCase("", "pre");                = false
-     *  StringUtils.startsWithIgnoreCase("Hello", "");              = false
-     *  StringUtils.startsWithIgnoreCase(" ", "pre");               = false
-     *  StringUtils.startsWithIgnoreCase("Hello", " ");             = false
-     *  StringUtils.startsWithIgnoreCase("prefix Hello", "prefix"); = true
-     *  StringUtils.startsWithIgnoreCase("PREFIX Hello", "prefix"); = true
-     * </pre>
-     *
      * @param string the string to check
      * @param prefix the prefix to look for
      * @return {@code true}, if the string starts with the given prefix
@@ -1768,17 +1391,6 @@ public abstract class StringUtils {
      * Strips whitespace from the {@code start} and {@code end} of a String.
      *
      * <p>A {@code null} input String returns {@code null}.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.strip(null);      = null
-     *  StringUtils.strip("");        = ""
-     *  StringUtils.strip("   ");     = ""
-     *  StringUtils.strip("Hello");   = "Hello"
-     *  StringUtils.strip("  Hello"); = "Hello"
-     *  StringUtils.strip("Hello  "); = "Hello"
-     *  StringUtils.strip(" Hello "); = "Hello"
-     * </pre>
      *
      * @param string the string to remove whitespace from
      * @return the stripped string
@@ -1800,21 +1412,6 @@ public abstract class StringUtils {
      * is stripped as defined by {@link Character#isWhitespace(char)}.
      * Alternatively use {@link #strip(String)}.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.strip(null, null);      = null
-     *  StringUtils.strip("", null);        = ""
-     *  StringUtils.strip("Hello", null);   = "Hello"
-     *  StringUtils.strip("Hello", "");     = "Hello"
-     *  StringUtils.strip("  Hello", null); = "Hello"
-     *  StringUtils.strip("  Hello", "");   = "Hello"
-     *  StringUtils.strip("Hello  ", null); = "Hello"
-     *  StringUtils.strip("Hello  ", "");   = "Hello"
-     *  StringUtils.strip(" Hello ", null); = "Hello"
-     *  StringUtils.strip(" Hello ", "");   = "Hello"
-     *  StringUtils.strip("  Hello", "He"); = " "llo"
-     * </pre>
-     *
      * @param string     the string to remove characters from
      * @param stripChars the characters to remove, {@code null} or {@code empty} treated as whitespace
      * @return the stripped string
@@ -1832,17 +1429,6 @@ public abstract class StringUtils {
      *
      * <p>If the stripChars String is {@code null} or {@code empty}, whitespace
      * is stripped as defined by {@link Character#isWhitespace(char)}.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.stripStart(null, null);      = null
-     *  StringUtils.stripStart("", null);        = ""
-     *  StringUtils.stripStart("Hello", null);   = "Hello"
-     *  StringUtils.stripStart("Hello", "");     = "Hello"
-     *  StringUtils.stripStart("  Hello", null); = "Hello"
-     *  StringUtils.stripStart("  Hello", "");   = "Hello"
-     *  StringUtils.stripStart("Hello  ", "He"); = "llo  "
-     * </pre>
      *
      * @param string     the string to remove characters from
      * @param stripChars the characters to remove, {@code null} or {@code empty} treated as whitespace
@@ -1877,17 +1463,6 @@ public abstract class StringUtils {
      * <p>If the stripChars String is {@code null} or {@code empty}, whitespace
      * is stripped as defined by {@link Character#isWhitespace(char)}.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.stripEnd(null, null);      = null
-     *  StringUtils.stripEnd("", null);        = ""
-     *  StringUtils.stripEnd("Hello", null);   = "Hello"
-     *  StringUtils.stripEnd("Hello", "");     = "Hello"
-     *  StringUtils.stripEnd("Hello  ", null); = "Hello"
-     *  StringUtils.stripEnd("Hello  ", "");   = "Hello"
-     *  StringUtils.stripEnd("Hello", "llo");  = "He"
-     * </pre>
-     *
      * @param string     the string to remove characters from
      * @param stripChars the characters to remove, {@code null} or {@code empty} treated as whitespace
      * @return the stripped string
@@ -1915,20 +1490,6 @@ public abstract class StringUtils {
     /**
      * Checks if the specified substring matches the characters in the input
      * string starting at the given index.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.substringMatch(null, 0, "hel");       = false
-     *  StringUtils.substringMatch("", 0, "hel");         = false
-     *  StringUtils.substringMatch(" ", 0, "hel");        = false
-     *  StringUtils.substringMatch("Hello", 0, null);     = false
-     *  StringUtils.substringMatch("Hello", 0, "");       = false
-     *  StringUtils.substringMatch("Hello", 0, "Hel");    = true
-     *  StringUtils.substringMatch("Hello", 2, "llo");    = true
-     *  StringUtils.substringMatch("Hello", 1, "ell");    = true
-     *  StringUtils.substringMatch("Hello", 3, "world");  = false
-     *  StringUtils.substringMatch("Hello", -1, "world"); = IllegalArgumentException
-     * </pre>
      *
      * @param string    the input string to check
      * @param index     the starting index in {@code string}
@@ -1961,17 +1522,6 @@ public abstract class StringUtils {
      * <p>If the start index exceeds the string's length, an {@code empty}
      * string is returned.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.substring(null, 0);      = ""
-     *  StringUtils.substring("", 0);        = ""
-     *  StringUtils.substring(" ", 0);       = ""
-     *  StringUtils.substring("Hello", 0);   = "Hello"
-     *  StringUtils.substring("Hello", 2);   = "llo"
-     *  StringUtils.substring("Hello", -2);  = "lo"
-     *  StringUtils.substring("Hello", -10); = "Hello"
-     * </pre>
-     *
      * @param string the input string to extract the substring from
      * @param start  the starting index
      * @return the substring from the start index to the end of the string
@@ -1999,19 +1549,6 @@ public abstract class StringUtils {
      *
      * <p>If nothing is found, the {@code empty} string is returned.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.substringAfter(null, "");      = ""
-     *  StringUtils.substringAfter("", "");        = ""
-     *  StringUtils.substringAfter(" ", "");       = ""
-     *  StringUtils.substringAfter("Hello", null); = "Hello"
-     *  StringUtils.substringAfter("Hello", "");   = "Hello"
-     *  StringUtils.substringAfter("Hello", " ");  = ""
-     *  StringUtils.substringAfter("Hello ", " "); = " "
-     *  StringUtils.substringAfter("Hello", "h");  = ""
-     *  StringUtils.substringAfter("Hello", "e");  = "llo"
-     * </pre>
-     *
      * @param string    the string to get a substring from
      * @param separator the string to search for
      * @return the substring after the first occurrence of the separator
@@ -2035,17 +1572,6 @@ public abstract class StringUtils {
      * {@code Original} string.
      *
      * <p>If nothing is found, the {@code empty} string is returned.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.substringBefore(null, "");               = ""
-     *  StringUtils.substringBefore("", "");                 = ""
-     *  StringUtils.substringBefore(" ", "");                = ""
-     *  StringUtils.substringBefore("Hello", null);          = "Hello"
-     *  StringUtils.substringBefore("Hello", "");            = "Hello"
-     *  StringUtils.substringBefore("Hello World", " ");     = "Hello"
-     *  StringUtils.substringBefore("Hello World", "World"); = "Hello "
-     * </pre>
      *
      * @param string    the string to get a substring from
      * @param separator the string to search for
@@ -2071,18 +1597,6 @@ public abstract class StringUtils {
      *
      * <p>If nothing is found, the {@code empty} string is returned.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.substringBetween(null, "", "");        = ""
-     *  StringUtils.substringBetween("", null, "");        = ""
-     *  StringUtils.substringBetween("", "", null);        = ""
-     *  StringUtils.substringBetween("", "", "");          = ""
-     *  StringUtils.substringBetween("", "", "]");         = ""
-     *  StringUtils.substringBetween("", "[", "]");        = ""
-     *  StringUtils.substringBetween("(Hello)", "[", "]"); = ""
-     *  StringUtils.substringBetween("(Hello)", "(", ")"); = "Hello"
-     * </pre>
-     *
      * @param string the string containing the substring
      * @param open   the string before the substring
      * @param close  the string after the substring
@@ -2095,9 +1609,7 @@ public abstract class StringUtils {
         int startIndex = string.indexOf(open);
         if (startIndex != INDEX_NOT_FOUND) {
             int endIndex = string.indexOf(close, startIndex + open.length());
-            if (endIndex != INDEX_NOT_FOUND) {
-                return string.substring(startIndex + open.length(), endIndex);
-            }
+            if (endIndex != INDEX_NOT_FOUND) return string.substring(startIndex + open.length(), endIndex);
         }
 
         return EMPTY;
@@ -2105,58 +1617,40 @@ public abstract class StringUtils {
 
     /**
      * Extracts all substrings from the input string that are enclosed between
-     * the specified {@code open} and {@code close} tags.
-     * The substrings are returned as a list.
+     * the specified {@code open} and {@code close} tags. The substrings are
+     * returned as an array.
      *
      * <p>A {@code null}, {@code empty} or a {@code blank} input string will
-     * return the {@code empty} list.
+     * return the {@code empty} array.
      *
      * <p>A {@code null} or an {@code empty} open/close will return the
-     * {@code empty} list.
+     * {@code empty} array.
      *
-     * <p>If nothing is found, the {@code empty} list is returned.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.substringsBetween(null, "", "");               = []
-     *  StringUtils.substringsBetween("", null, "");               = []
-     *  StringUtils.substringsBetween("", "", null);               = []
-     *  StringUtils.substringsBetween("", "", "");                 = []
-     *  StringUtils.substringsBetween("", "", "]");                = []
-     *  StringUtils.substringsBetween("", "[", "]");               = []
-     *  StringUtils.substringsBetween("(Hello) (World)", "[", "]") = [];
-     *  StringUtils.substringsBetween("(Hello) (World)", "(", ")") = ["Hello", "World"];
-     * </pre>
+     * <p>If nothing is found, the {@code empty} array is returned.
      *
      * @param string the input string to process
-     * @param open   the opening tag; must be non-null and non-empty
-     * @param close  the closing tag; must be non-null and non-empty
-     * @return a list of non-empty substrings between matching {@code open} and {@code close} tags,
-     * or an empty list if no valid substrings are found or inputs are invalid
-     * @since 1.0
+     * @param open   the opening tag
+     * @param close  the closing tag
+     * @return an array of non-empty substrings between matching {@code open} and {@code close} tags, or an
+     * {@code empty} array if no valid substrings are found or inputs are invalid
      */
-    public static List<String> substringsBetween(String string, String open, String close) {
-        if (!hasText(string) || !hasLengthAll(open, close)) return Collections.emptyList();
+    public static String[] substringsBetween(String string, String open, String close) {
+        if (!hasText(string) || !hasLengthAll(open, close)) return EMPTY_STRING_ARRAY;
 
-        int startIndex = 0;
-        int openLen = open.length();
-        int closeLen = close.length();
         List<String> results = new ArrayList<>();
 
+        int position = 0;
         while (true) {
-            int openIndex = string.indexOf(open, startIndex);
-            if (openIndex == -1) break;
+            int start = string.indexOf(open, position);
+            int end = string.indexOf(close, start + open.length());
 
-            int closeIndex = string.indexOf(close, openIndex + openLen);
-            if (closeIndex == -1) break;
+            if (start < 0 || end < 0) break;
 
-            String found = string.substring(openIndex + openLen, closeIndex);
-            results.add(found);
-
-            startIndex = closeIndex + closeLen;
+            results.add(string.substring(start + open.length(), end));
+            position = end + close.length();
         }
 
-        return (results.isEmpty() || results.get(0).isEmpty()) ? Collections.emptyList() : results;
+        return (results.isEmpty()) ? EMPTY_STRING_ARRAY : results.toArray(EMPTY_STRING_ARRAY);
     }
 
     /**
@@ -2169,15 +1663,6 @@ public abstract class StringUtils {
      *
      * <p>If the input string is {@code null} or {@code empty}, it is returned
      * unchanged.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.trimLeadingCharacter(null, ' ');       = null
-     *  StringUtils.trimLeadingCharacter("", ' ');         = ""
-     *  StringUtils.trimLeadingCharacter("#####", '#');    = ""
-     *  StringUtils.trimLeadingCharacter("   Hello", ' '); = "Hello"
-     *  StringUtils.trimLeadingCharacter("###Hello", '#'); = "Hello"
-     * </pre>
      *
      * @param string  the string to trim leading characters from
      * @param leading the character to remove from the start of the string
@@ -2203,15 +1688,6 @@ public abstract class StringUtils {
      *
      * <p>If the input string is {@code null} or {@code empty}, it is returned
      * unchanged.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.trimTrailingCharacter(null, ' ');       = null
-     *  StringUtils.trimTrailingCharacter("", ' ');         = ""
-     *  StringUtils.trimTrailingCharacter("#####", '#');    = ""
-     *  StringUtils.trimTrailingCharacter("Hello   ", ' '); = "Hello"
-     *  StringUtils.trimTrailingCharacter("Hello###", '#'); = "Hello"
-     * </pre>
      *
      * @param string   the string to trim leading characters from
      * @param trailing the character to remove from the end of the string
@@ -2240,15 +1716,6 @@ public abstract class StringUtils {
      * The returned strings is a new strings with the same length as the input
      * strings.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.trimArrayElements(null);                             = null
-     *  StringUtils.trimArrayElements(new String[]{});                   = []
-     *  StringUtils.trimArrayElements(new String[]{" ", ""});            = ["", ""]
-     *  StringUtils.trimArrayElements(new String[]{null, " hello "});    = [null, "test"]
-     *  StringUtils.trimArrayElements(new String[]{" hello ", "world"}); = ["hello", "world"]
-     * </pre>
-     *
      * @param strings the input strings to process
      * @return a new string strings with the same length as the input, where each non-null element has
      * been trimmed of leading and trailing whitespace
@@ -2271,13 +1738,6 @@ public abstract class StringUtils {
      * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
      * array is returned.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.toString(null);                    = []
-     *  StringUtils.toString(Collections.emptyList()); = []
-     *  StringUtils.toString(Arrays.asList("Hello"));  = ["Hello"]
-     * </pre>
-     *
      * @param collection the collection of strings to convert
      * @return a string array containing the elements of the collection
      */
@@ -2293,13 +1753,6 @@ public abstract class StringUtils {
      * <p>If the enumeration is {@code null}, an {@code empty} array is
      * returned.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.toString(null);                                      = []
-     *  StringUtils.toString(Collections.emptyEnumeration());            = []
-     *  StringUtils.toString(Collections.enumeration(List.of("Hello"))); = ["Hello"]
-     * </pre>
-     *
      * @param enumeration the enumeration of strings to convert
      * @return a string array containing the elements of the enumeration
      */
@@ -2311,16 +1764,6 @@ public abstract class StringUtils {
     /**
      * Uncapitalizes a String, changing the first character to lower case as
      * per {@link Character#toLowerCase(int)}. No other characters are changed.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.uncapitalize(null);    = null
-     *  StringUtils.uncapitalize("");      = ""
-     *  StringUtils.uncapitalize(" ");     = ""
-     *  StringUtils.uncapitalize("hello"); = "hello"
-     *  StringUtils.uncapitalize("Hello"); = "hello"
-     *  StringUtils.uncapitalize("HELLO"); = "hELLO"
-     * </pre>
      *
      * @param string the String to uncapitalize
      * @return the uncapitalized string
@@ -2343,13 +1786,6 @@ public abstract class StringUtils {
     /**
      * Unwraps a given string from another string.
      *
-     * <pre>
-     *  StringUtils.unwrap(null, null);     = null
-     *  StringUtils.unwrap("", '\0');       = ""
-     *  StringUtils.unwrap(" ", '1');       = " "
-     *  StringUtils.unwrap("#Hello#", '#'); = "Hello"
-     * </pre>
-     *
      * @param string    the string to be unwrapped
      * @param wrapToken the string used to unwrap
      * @return the unwrapped string with {@code wrapToken} removed from both start and end
@@ -2367,15 +1803,6 @@ public abstract class StringUtils {
     /**
      * Wraps a String with another String.
      *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.wrap(null, null);     = null
-     *  StringUtils.wrap("", '\0');       = ""
-     *  StringUtils.wrap(" ", '1');       = " "
-     *  StringUtils.wrap("Hello", "#");   = "#Hello#"
-     *  StringUtils.wrap("#Hello#", "#"); = "##Hello##"
-     * </pre>
-     *
      * @param string   the string to be wrapper
      * @param wrapWith the string that will wrap string
      * @return the wrapped string with {@code wrapWith} added from both start and end
@@ -2388,21 +1815,8 @@ public abstract class StringUtils {
      * Wraps a string with a string if that string is missing from the
      * {@code start} or {@code end} of the given string.
      *
-     * <p>A new {@link String} will not be created if {@code string} is already wrapped.
-     *
-     * <p>Examples:
-     * <pre>
-     *  StringUtils.wrapIfMissing(null, "*");      = null
-     *  StringUtils.wrapIfMissing("", "*");        = ""
-     *  StringUtils.wrapIfMissing(" ", "*");       = " "
-     *  StringUtils.wrapIfMissing("Hello", null);  = ""
-     *  StringUtils.wrapIfMissing("Hello", "");    = ""
-     *  StringUtils.wrapIfMissing("Hello", " ");   = "Hello"
-     *  StringUtils.wrapIfMissing("#Hello#", "#"); = "#Hello#"
-     *  StringUtils.wrapIfMissing("Hello#", "#");  = "#Hello#"
-     *  StringUtils.wrapIfMissing("#Hello", "#");  = "#Hello#"
-     *  StringUtils.wrapIfMissing("Hello", "#");   = "#Hello#"
-     * </pre>
+     * <p>A new {@link String} will not be created if {@code string} is already
+     * wrapped.
      *
      * @param string   the string to be wrapped
      * @param wrapWith the string that will wrap string
