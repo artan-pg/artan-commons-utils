@@ -29,15 +29,12 @@ helpers.
 
 ### Local toolchain setup
 
-The project already includes a toolchain configuration at `.mvn/toolchains.xml` that points to JDK 21 via the
-`JAVA_HOME` environment variable:
+Create or edit `~/.m2/toolchains.xml`:
 
 ```xml
 
-<toolchains xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns="http://maven.apache.org/TOOLCHAINS/1.1.0"
-            xsi:schemaLocation="https://maven.apache.org/TOOLCHAINS/1.1.0 https://maven.apache.org/xsd/toolchains-1.1.0.xsd">
-
+<?xml version="1.0" encoding="UTF-8"?>
+<toolchains>
   <toolchain>
     <type>jdk</type>
     <provides>
@@ -45,17 +42,11 @@ The project already includes a toolchain configuration at `.mvn/toolchains.xml` 
       <vendor>temurin</vendor>
     </provides>
     <configuration>
-      <jdkHome>${JAVA_HOME}</jdkHome>
+      <jdkHome>/path/to/your/jdk-21</jdkHome>
     </configuration>
   </toolchain>
 </toolchains>
 ```
-
-Requirements for local builds:
-
-- Make sure the `JAVA_HOME` environment variable points to a JDK 21 installation.
-- No extra `~/.m2/toolchains.xml` is needed when building from the project root, because Maven automatically picks up
-  `.mvn/toolchains.xml`.
 
 Then build as usual:
 
