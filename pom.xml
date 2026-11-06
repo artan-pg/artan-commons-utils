@@ -204,6 +204,26 @@
           <compilerArgs>
             <arg>--enable-preview</arg>
           </compilerArgs>
+          <fork>true</fork>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-toolchains-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>toolchain</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <toolchains>
+            <jdk>
+              <version>21</version>
+              <vendor>temurin</vendor>
+            </jdk>
+          </toolchains>
         </configuration>
       </plugin>
     </plugins>

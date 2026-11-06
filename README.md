@@ -9,7 +9,8 @@
 [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-blue)](https://semver.org/)
 [![Maintenance](https://img.shields.io/badge/Maintenance-Actively%20Maintained-brightgreen)](https://github.com/artan-pg/artan-commons-utils)
 
-Miscellaneous utility classes for everyday Java development — focused on strings, arrays, collections, files and related helpers.
+Miscellaneous utility classes for everyday Java development — focused on strings, arrays, collections, files and related
+helpers.
 
 ## Features
 
@@ -22,8 +23,51 @@ Miscellaneous utility classes for everyday Java development — focused on strin
 
 ## Requirements
 
-- **JDK 21** or higher (CI also verifies against newer JDK versions)
+- **JDK 21** (required for compilation because of preview features)
 - Maven 3.9+ (or use the included Maven Wrapper)
+- A Maven toolchain pointing to JDK 21 (see below)
+
+### Local toolchain setup
+
+The project already includes a toolchain configuration at `.mvn/toolchains.xml` that points to JDK 21 via the
+`JAVA_HOME` environment variable:
+
+```xml
+
+<toolchains xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://maven.apache.org/TOOLCHAINS/1.1.0"
+            xsi:schemaLocation="https://maven.apache.org/TOOLCHAINS/1.1.0 https://maven.apache.org/xsd/toolchains-1.1.0.xsd">
+
+  <toolchain>
+    <type>jdk</type>
+    <provides>
+      <version>21</version>
+      <vendor>temurin</vendor>
+    </provides>
+    <configuration>
+      <jdkHome>${JAVA_HOME}</jdkHome>
+    </configuration>
+  </toolchain>
+</toolchains>
+```
+
+Requirements for local builds:
+
+- Make sure the `JAVA_HOME` environment variable points to a JDK 21 installation.
+- No extra `~/.m2/toolchains.xml` is needed when building from the project root, because Maven automatically picks up
+  `.mvn/toolchains.xml`.
+
+Then build as usual:
+
+```bash
+./mvnw clean install
+```
+
+To also run tests and enforce code style:
+
+```bash
+./mvnw clean install -Pexecute-tests,format
+```
 
 ## Installation
 
@@ -32,6 +76,7 @@ The artifacts are published to the public ArtanPG Nexus repository.
 ### Release version
 
 ```xml
+
 <dependency>
   <groupId>ir.artanpg.commons</groupId>
   <artifactId>commons-utils</artifactId>
@@ -42,6 +87,7 @@ The artifacts are published to the public ArtanPG Nexus repository.
 ### Snapshot version
 
 ```xml
+
 <dependency>
   <groupId>ir.artanpg.commons</groupId>
   <artifactId>commons-utils</artifactId>
@@ -52,17 +98,26 @@ The artifacts are published to the public ArtanPG Nexus repository.
 Make sure the following repositories are available in your `pom.xml` or `settings.xml`:
 
 ```xml
+
 <repository>
   <id>maven-releases</id>
   <url>https://repository.artanpg.ir/repository/maven-releases/</url>
-  <releases><enabled>true</enabled></releases>
-  <snapshots><enabled>false</enabled></snapshots>
+  <releases>
+    <enabled>true</enabled>
+  </releases>
+  <snapshots>
+    <enabled>false</enabled>
+  </snapshots>
 </repository>
 <repository>
-  <id>maven-snapshots</id>
-  <url>https://repository.artanpg.ir/repository/maven-snapshots/</url>
-  <releases><enabled>false</enabled></releases>
-  <snapshots><enabled>true</enabled></snapshots>
+<id>maven-snapshots</id>
+<url>https://repository.artanpg.ir/repository/maven-snapshots/</url>
+<releases>
+  <enabled>false</enabled>
+</releases>
+<snapshots>
+  <enabled>true</enabled>
+</snapshots>
 </repository>
 ```
 
@@ -109,9 +164,10 @@ To also run tests and enforce code style:
 ```
 
 The project uses:
- - Coding standards
- - Test conventions
- - Pull request process
+
+- Coding standards
+- Test conventions
+- Pull request process
 
 ## License
 
