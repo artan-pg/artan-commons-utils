@@ -877,7 +877,7 @@ public final class ArrayUtils {
      * @param <T>    the type of array elements
      * @param source the array whose component type is to be retrieved
      * @return the {@code Class} object representing the component type of the array, or {@code null}
-     * if the input array is {@code null}
+     *         if the input array is {@code null}
      */
     @SuppressWarnings("unchecked")
     public static <T> Class<T> getComponentType(T[] source) {
@@ -2589,8 +2589,9 @@ public final class ArrayUtils {
      */
     public static boolean[] remove(boolean[] source, int index) {
         if (source == null) throw new IllegalArgumentException(INPUT_ARRAY_IS_NULL_MESSAGE);
-        if (index < 0 || index >= source.length)
+        if (index < 0 || index >= source.length) {
             throw new IndexOutOfBoundsException(invalidIndex(index, source.length));
+        }
 
         boolean[] newArray = new boolean[source.length - 1];
         System.arraycopy(source, 0, newArray, 0, index);
@@ -2609,8 +2610,9 @@ public final class ArrayUtils {
      */
     public static byte[] remove(byte[] source, int index) {
         if (source == null) throw new IllegalArgumentException(INPUT_ARRAY_IS_NULL_MESSAGE);
-        if (index < 0 || index >= source.length)
+        if (index < 0 || index >= source.length) {
             throw new IndexOutOfBoundsException(invalidIndex(index, source.length));
+        }
 
         byte[] newArray = new byte[source.length - 1];
         System.arraycopy(source, 0, newArray, 0, index);
@@ -2629,8 +2631,9 @@ public final class ArrayUtils {
      */
     public static char[] remove(char[] source, int index) {
         if (source == null) throw new IllegalArgumentException(INPUT_ARRAY_IS_NULL_MESSAGE);
-        if (index < 0 || index >= source.length)
+        if (index < 0 || index >= source.length) {
             throw new IndexOutOfBoundsException(invalidIndex(index, source.length));
+        }
 
         char[] newArray = new char[source.length - 1];
         System.arraycopy(source, 0, newArray, 0, index);
@@ -2649,8 +2652,9 @@ public final class ArrayUtils {
      */
     public static short[] remove(short[] source, int index) {
         if (source == null) throw new IllegalArgumentException(INPUT_ARRAY_IS_NULL_MESSAGE);
-        if (index < 0 || index >= source.length)
+        if (index < 0 || index >= source.length) {
             throw new IndexOutOfBoundsException(invalidIndex(index, source.length));
+        }
 
         short[] newArray = new short[source.length - 1];
         System.arraycopy(source, 0, newArray, 0, index);
@@ -2669,8 +2673,9 @@ public final class ArrayUtils {
      */
     public static int[] remove(int[] source, int index) {
         if (source == null) throw new IllegalArgumentException(INPUT_ARRAY_IS_NULL_MESSAGE);
-        if (index < 0 || index >= source.length)
+        if (index < 0 || index >= source.length) {
             throw new IndexOutOfBoundsException(invalidIndex(index, source.length));
+        }
 
         int[] newArray = new int[source.length - 1];
         System.arraycopy(source, 0, newArray, 0, index);
@@ -2689,8 +2694,9 @@ public final class ArrayUtils {
      */
     public static long[] remove(long[] source, int index) {
         if (source == null) throw new IllegalArgumentException(INPUT_ARRAY_IS_NULL_MESSAGE);
-        if (index < 0 || index >= source.length)
+        if (index < 0 || index >= source.length) {
             throw new IndexOutOfBoundsException(invalidIndex(index, source.length));
+        }
 
         long[] newArray = new long[source.length - 1];
         System.arraycopy(source, 0, newArray, 0, index);
@@ -2709,8 +2715,9 @@ public final class ArrayUtils {
      */
     public static float[] remove(float[] source, int index) {
         if (source == null) throw new IllegalArgumentException(INPUT_ARRAY_IS_NULL_MESSAGE);
-        if (index < 0 || index >= source.length)
+        if (index < 0 || index >= source.length) {
             throw new IndexOutOfBoundsException(invalidIndex(index, source.length));
+        }
 
         float[] newArray = new float[source.length - 1];
         System.arraycopy(source, 0, newArray, 0, index);
@@ -2730,8 +2737,9 @@ public final class ArrayUtils {
      */
     public static double[] remove(double[] source, int index) {
         if (source == null) throw new IllegalArgumentException(INPUT_ARRAY_IS_NULL_MESSAGE);
-        if (index < 0 || index >= source.length)
+        if (index < 0 || index >= source.length) {
             throw new IndexOutOfBoundsException(invalidIndex(index, source.length));
+        }
 
         double[] newArray = new double[source.length - 1];
         System.arraycopy(source, 0, newArray, 0, index);
@@ -2753,8 +2761,9 @@ public final class ArrayUtils {
     @SuppressWarnings("unchecked")
     public static <T> T[] remove(T[] source, int index) {
         if (source == null) throw new IllegalArgumentException(INPUT_ARRAY_IS_NULL_MESSAGE);
-        if (index < 0 || index >= source.length)
+        if (index < 0 || index >= source.length) {
             throw new IndexOutOfBoundsException(invalidIndex(index, source.length));
+        }
 
         T[] newArray = (T[]) Array.newInstance(source.getClass().getComponentType(), source.length - 1);
         System.arraycopy(source, 0, newArray, 0, index);
@@ -3518,8 +3527,8 @@ public final class ArrayUtils {
      *
      * @param <T>    the type of array elements
      * @param source the input Object array to extract the subarray from
-     * @param start the starting index (inclusive) of the subarray, negative values are treated as 0
-     * @param end   the ending index (exclusive) of the subarray, capped at the array length
+     * @param start  the starting index (inclusive) of the subarray, negative values are treated as 0
+     * @param end    the ending index (exclusive) of the subarray, capped at the array length
      * @return a new array containing the elements between the start and end indices.
      * @see Arrays#copyOfRange(Object[], int, int)
      */
