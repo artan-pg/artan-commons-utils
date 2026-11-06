@@ -128,11 +128,21 @@ To also run tests and enforce code style:
 
 ## Maven Profiles
 
-| Profile         | Purpose                                                   | When to use                                |
-|-----------------|-----------------------------------------------------------|--------------------------------------------|
-| `execute-tests` | Enables unit/integration tests and JaCoCo coverage checks | Local development, CI, before opening a PR |
-| `format`        | Runs Checkstyle and fails the build on style violations   | Local development, CI, before opening a PR |
-| `documentation` | Attaches source and Javadoc jars                          | When publishing a release or snapshot      |
+All profiles are inherited from the parent POM (`artan-parent`). For the full description of each profile (activation
+rules, coverage thresholds, release automation, etc.) see the parent project’s
+README: https://github.com/artan-pg/artan-parent
+
+| Profile         | Purpose                                                                                    | Example command                             |
+|-----------------|--------------------------------------------------------------------------------------------|---------------------------------------------|
+| `documentation` | Build the sources jar and the javadoc jar                                                  | `./mvnw -Pdocumentation package`            |
+| `format`        | Check code style with Checkstyle                                                           | `./mvnw -Pformat validate`                  |
+| `execute-tests` | Run tests and compute JaCoCo coverage                                                      | `./mvnw -Pexecute-tests verify`             |
+| `major`         | Cut the next **major** release with an automatically computed version                      | `./mvnw -Dmajor initialize release:prepare` |
+| `minor`         | Cut the next **minor** release with an automatically computed version                      | `./mvnw -Dminor initialize release:prepare` |
+| `patch`         | Cut the next **patch** release with an automatically computed version                      | `./mvnw -Dpatch initialize release:prepare` |
+| `sign`          | Sign artifacts with GPG and deploy the `.asc` signatures alongside                         | `./mvnw -Psign deploy`                      |
+| `snapshot-repo` | Guard and prepare a **SNAPSHOT** deploy to the group Nexus (enforcer + publishing plugins) | `./mvnw -Psnapshot-repo deploy`             |
+| `release-repo`  | Guard and prepare a **release** deploy to Maven Central (enforcer + publishing plugins)    | `./mvnw -Prelease-repo deploy`              |
 
 ### Recommended combinations
 
@@ -140,9 +150,16 @@ To also run tests and enforce code style:
 # Development / verification
 ./mvnw clean verify -Pexecute-tests,format
 
-# Publishing (used by release & snapshot workflows)
+# Publishing a snapshot (used by the Deploy Snapshot workflow)
+./mvnw clean deploy -Pdocumentation
+
+# Publishing a release (used by the Deploy Release workflow)
 ./mvnw clean deploy -Pdocumentation
 ```
+
+> **Note**: Tests are disabled by default `(maven.test.skip=true)`.
+>
+> Always activate the `execute-tests` profile when you want to run tests and coverage checks.
 
 ## Running Tests & Quality Checks
 
