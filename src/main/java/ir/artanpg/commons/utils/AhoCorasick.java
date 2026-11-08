@@ -56,7 +56,7 @@ class AhoCorasick {
         int i = 0;
         while (i < pattern.length()) {
             int codePoint = Character.codePointAt(pattern, i);
-            current = current.getChildren().computeIfAbsent(codePoint, k -> new TrieNode());
+            current = current.getChildren().computeIfAbsent(codePoint, _ -> new TrieNode());
             i += Character.charCount(codePoint);
         }
         current.setEndOfWord(true);

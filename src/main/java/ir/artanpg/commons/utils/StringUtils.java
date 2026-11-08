@@ -17,6 +17,7 @@
 package ir.artanpg.commons.utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -81,6 +82,18 @@ public class StringUtils {
      */
     public static final int INDEX_NOT_FOUND = -1;
 
+    private static final String LENGTH_MUST_BE_POSITIVE = "Length must be positive";
+    private static final String SIZE_MUST_BE_NON_NEGATIVE = "Size must be non-negative";
+    private static final String POSITION_MUST_BE_POSITIVE = "Position must be positive";
+
+    private static final int MIN_NUMERIC_LENGTH_WITH_DECIMAL = 2;
+    private static final int MIN_NUMERIC_LENGTH_WITHOUT_DECIMAL = 1;
+    private static final int MIN_LENGTH_FOR_UNWRAP = 2;
+    private static final int ASCII_PRINTABLE_MIN = 32;
+    private static final int ASCII_PRINTABLE_MAX = 127;
+    private static final int INITIAL_CAPACITY_INCREMENT = 16;
+    private static final int MAX_CAPACITY_INCREMENT = 64;
+
     /**
      * Private constructor to prevent instantiation of this utility class.
      *
@@ -96,6 +109,9 @@ public class StringUtils {
      *
      * <p>If the string is {@code null}, {@code empty} or {@code blank}, an
      * {@code empty} string is returned.
+     *
+     * <p>This method delegates to {@link #abbreviate(String, String, int)} with
+     * {@link #ELLIPSIS3} as the abbreviation marker.
      *
      * @param string   the string to abbreviate
      * @param maxWidth the maximum length of the resulting string
@@ -132,8 +148,9 @@ public class StringUtils {
         int abbrevMarkerLength = abbrevMarker.length();
         int minAbbrevWidth = abbrevMarkerLength + 1;
 
-        if (maxWidth < minAbbrevWidth)
+        if (maxWidth < minAbbrevWidth) {
             throw new IllegalArgumentException("Minimum abbreviation width is " + minAbbrevWidth);
+        }
 
         int strLen = string.length();
 
@@ -235,12 +252,19 @@ public class StringUtils {
      * @return the centered string
      */
     public static String center(String string, int size, char padChar) {
-        if (string == null || size <= 0) return string;
+        if (shouldSkipCenter(string, size)) return string;
+
         int strLen = string.length();
         int pads = size - strLen;
         if (pads <= 0) return string;
-        string = leftPad(string, strLen + pads / 2, padChar);
-        return rightPad(string, size, padChar);
+
+        String paddedLeft = leftPad(string, strLen + pads / MIN_NUMERIC_LENGTH_WITH_DECIMAL, padChar);
+
+        return rightPad(paddedLeft, size, padChar);
+    }
+
+    private static boolean shouldSkipCenter(String string, int size) {
+        return string == null || size <= 0;
     }
 
     /**
@@ -341,13 +365,16 @@ public class StringUtils {
      * <p>If the collection is {@code null} or {@code empty}, an {@code empty}
      * string is returned.
      *
-     * <p>If the delimiter is {@code null}, an {@code comma} string is used.
+     * <p>If the delimiter is {@code null}, a comma string is used.
      *
      * <p>If the prefix or suffix is {@code null}, an {@code empty} string is used.
      *
      * <p>Each element is converted to its string representation using
      * {@link String#valueOf(Object)} and {@code null} elements are represented
      * as {@code "null"}.
+     *
+     * <p>This is the most general form of the method; other overloads delegate
+     * to this one with appropriate defaults.
      *
      * @param collection the collection to convert
      * @param delimiter  the delimiter to separate elements
@@ -360,22 +387,20 @@ public class StringUtils {
                                                      String prefix,
                                                      String suffix) {
         if (CollectionUtils.isEmpty(collection)) return EMPTY;
-
-        if (delimiter == null) delimiter = COMMA;
-        if (prefix == null) prefix = EMPTY;
-        if (suffix == null) suffix = EMPTY;
-
+        String effectiveDelimiter = (delimiter != null) ? delimiter : COMMA;
+        String effectivePrefix = (prefix != null) ? prefix : EMPTY;
+        String effectiveSuffix = (suffix != null) ? suffix : EMPTY;
         int length =
-                collection.size() * (prefix.length() + suffix.length()) + (collection.size() - 1) * delimiter.length();
+                collection.size() * (effectivePrefix.length() + effectiveSuffix.length())
+                        + (collection.size() - 1) * effectiveDelimiter.length();
         for (String element : collection) {
             length += String.valueOf(element).length();
         }
-
         StringBuilder stringBuilder = new StringBuilder(length);
         Iterator<String> iterator = collection.iterator();
         while (iterator.hasNext()) {
-            stringBuilder.append(prefix).append(iterator.next()).append(suffix);
-            if (iterator.hasNext()) stringBuilder.append(delimiter);
+            stringBuilder.append(effectivePrefix).append(iterator.next()).append(effectiveSuffix);
+            if (iterator.hasNext()) stringBuilder.append(effectiveDelimiter);
         }
         return stringBuilder.toString();
     }
@@ -782,7 +807,7 @@ public class StringUtils {
     }
 
     /**
-     * Returns the first value in the array which is not {@code empty},
+     * Finds the first value in the array which is not {@code empty},
      * {@code null} or {@code whitespace} only.
      *
      * <p>If all strings are blank or the array is {@code null} or
@@ -991,15 +1016,17 @@ public class StringUtils {
      */
     public static int indexOfIgnoreCase(String string, String search, int startPos) {
         if (!hasLength(string) || !hasLength(search)) return INDEX_NOT_FOUND;
-        if (startPos < 0) startPos = 0;
-        int endLimit = string.length() - search.length() + 1;
-        if (startPos > endLimit) return INDEX_NOT_FOUND;
 
-        for (int i = startPos; i < endLimit; i++) {
+        int effectiveStartPos = Math.max(0, startPos);
+        int endLimit = string.length() - search.length() + 1;
+        if (effectiveStartPos > endLimit) return INDEX_NOT_FOUND;
+
+        for (int i = effectiveStartPos; i < endLimit; i++) {
             if (string.regionMatches(true, i, search, 0, search.length())) {
                 return i;
             }
         }
+
         return INDEX_NOT_FOUND;
     }
 
@@ -1159,7 +1186,7 @@ public class StringUtils {
     }
 
     private static boolean isAsciiPrintable(char ch) {
-        return ch >= 32 && ch < 127;
+        return ch >= ASCII_PRINTABLE_MIN && ch < ASCII_PRINTABLE_MAX;
     }
 
     /**
@@ -1175,8 +1202,11 @@ public class StringUtils {
         boolean hasLower = false;
         for (int i = 0; i < string.length(); i++) {
             char ch = string.charAt(i);
-            if (Character.isUpperCase(ch)) hasUpper = true;
-            else if (Character.isLowerCase(ch)) hasLower = true;
+            if (Character.isUpperCase(ch)) {
+                hasUpper = true;
+            } else if (Character.isLowerCase(ch)) {
+                hasLower = true;
+            }
             if (hasUpper && hasLower) return true;
         }
         return false;
@@ -1219,8 +1249,7 @@ public class StringUtils {
 
         for (int i = 0; i < length; i++) {
             char ch = string.charAt(i);
-
-            if (shouldSkip(ch, i, length, hasDecimalPoint)) {
+            if (isSignOrDecimalPoint(ch, i, length, hasDecimalPoint)) {
                 if (ch == '.') hasDecimalPoint = true;
                 continue;
             }
@@ -1231,14 +1260,27 @@ public class StringUtils {
         return isValidLength(string, length, hasDecimalPoint);
     }
 
-    private static boolean shouldSkip(char ch, int index, int length, boolean hasDecimalPoint) {
-        return (index == 0 && (ch == '+' || ch == '-') && length > 1)
-                || (ch == '.' && !hasDecimalPoint && index < length - 1);
+    private static boolean isSignOrDecimalPoint(char ch, int index, int length, boolean hasDecimalPoint) {
+        return isLeadingSign(ch, index, length) || isDecimalPoint(ch, hasDecimalPoint, index, length);
+    }
+
+    private static boolean isLeadingSign(char ch, int index, int length) {
+        if (index != 0 || length <= 1) {
+            return false;
+        }
+        return ch == '+' || ch == '-';
+    }
+
+    private static boolean isDecimalPoint(char ch, boolean hasDecimalPoint, int index, int length) {
+        if (ch != '.' || hasDecimalPoint) {
+            return false;
+        }
+        return index < length - 1;
     }
 
     private static boolean isValidLength(String string, int length, boolean hasDecimalPoint) {
         if (length == 1) return Character.isDigit(string.charAt(0));
-        return length > (hasDecimalPoint ? 2 : 1);
+        return length > (hasDecimalPoint ? MIN_NUMERIC_LENGTH_WITH_DECIMAL : MIN_NUMERIC_LENGTH_WITHOUT_DECIMAL);
     }
 
     /**
@@ -1288,10 +1330,10 @@ public class StringUtils {
      */
     public static String join(String[] array, String separator) {
         if (array == null || array.length == 0) return EMPTY;
-        if (separator == null) separator = EMPTY;
+        String effectiveSeparator = (separator != null) ? separator : EMPTY;
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < array.length; i++) {
-            if (i > 0) builder.append(separator);
+            if (i > 0) builder.append(effectiveSeparator);
             builder.append(array[i] != null ? array[i] : NULL);
         }
         return builder.toString();
@@ -1350,21 +1392,21 @@ public class StringUtils {
      */
     public static int lastIndexOfIgnoreCase(String string, String search, int startPos) {
         if (!hasLength(string) || !hasLength(search)) return INDEX_NOT_FOUND;
-        if (startPos > string.length() - search.length()) {
-            startPos = string.length() - search.length();
-        }
-        if (startPos < 0) return INDEX_NOT_FOUND;
 
-        for (int i = startPos; i >= 0; i--) {
+        int effectiveStartPos = Math.min(startPos, string.length() - search.length());
+        if (effectiveStartPos < 0) return INDEX_NOT_FOUND;
+
+        for (int i = effectiveStartPos; i >= 0; i--) {
             if (string.regionMatches(true, i, search, 0, search.length())) {
                 return i;
             }
         }
+
         return INDEX_NOT_FOUND;
     }
 
     /**
-     * Returns the leftmost substring of the specified string with the
+     * Gets the leftmost substring of the specified string with the
      * given length.
      *
      * <p>If the string is {@code null}, {@code empty}, or shorter than
@@ -1377,7 +1419,7 @@ public class StringUtils {
      * @throws IllegalArgumentException if the length is negative
      */
     public static String left(String string, int length) {
-        if (length < 0) throw new IllegalArgumentException("Length must be positive");
+        if (length < 0) throw new IllegalArgumentException(LENGTH_MUST_BE_POSITIVE);
         return (!hasLength(string) || string.length() <= length) ? string : string.substring(0, length);
     }
 
@@ -1410,13 +1452,15 @@ public class StringUtils {
      * @throws IllegalArgumentException if size is negative
      */
     public static String leftPad(String string, int size, char padChar) {
-        if (size < 0) throw new IllegalArgumentException("Size must be non-negative");
-        if (string == null) string = EMPTY;
-        int pads = size - string.length();
-        if (pads <= 0) return string;
+        if (size < 0) throw new IllegalArgumentException(SIZE_MUST_BE_NON_NEGATIVE);
+
+        String source = (string != null) ? string : EMPTY;
+        int pads = size - source.length();
+        if (pads <= 0) return source;
+
         char[] pad = new char[pads];
-        java.util.Arrays.fill(pad, padChar);
-        return new String(pad) + string;
+        Arrays.fill(pad, padChar);
+        return new String(pad) + source;
     }
 
     /**
@@ -1496,8 +1540,8 @@ public class StringUtils {
     public static String mid(String string, int position, int length) {
         if (!hasLength(string)) return string;
 
-        if (length < 0) throw new IllegalArgumentException("Length must be positive");
-        if (position < 0) throw new IllegalArgumentException("Position must be positive");
+        if (length < 0) throw new IllegalArgumentException(LENGTH_MUST_BE_POSITIVE);
+        if (position < 0) throw new IllegalArgumentException(POSITION_MUST_BE_POSITIVE);
 
         if (position > string.length()) return EMPTY;
 
@@ -1568,23 +1612,22 @@ public class StringUtils {
     public static String overlay(String string, String overlay, int position, int length) {
         if (string == null) return null;
 
-        if (length < 0) throw new IllegalArgumentException("Length must be positive");
-        if (position < 0) throw new IllegalArgumentException("Position must be positive");
+        if (length < 0) throw new IllegalArgumentException(LENGTH_MUST_BE_POSITIVE);
+        if (position < 0) throw new IllegalArgumentException(POSITION_MUST_BE_POSITIVE);
 
-        if (overlay == null) overlay = EMPTY;
+        String effectiveOverlay = (overlay != null) ? overlay : EMPTY;
 
         int len = string.length();
+        int effectivePosition = Math.min(position, len);
+        int effectiveLength = Math.min(length, len);
 
-        if (position > len) position = len;
-        if (length > len) length = len;
-
-        if (position > length) {
-            int temp = position;
-            position = length;
-            length = temp;
+        if (effectivePosition > effectiveLength) {
+            int temp = effectivePosition;
+            effectivePosition = effectiveLength;
+            effectiveLength = temp;
         }
 
-        return string.substring(0, position) + overlay + string.substring(length);
+        return string.substring(0, effectivePosition) + effectiveOverlay + string.substring(effectiveLength);
     }
 
     /**
@@ -1693,7 +1736,8 @@ public class StringUtils {
      *
      * @param string the string to repeat
      * @param repeat the number of times to repeat
-     * @return the repeated string, or {@code empty} if repeat <= {@code 0} or string is {@code null}/{@code empty}
+     * @return the repeated string, or {@code empty} if repeat &lt;= {@code 0} or
+     *         string is {@code null}/{@code empty}
      */
     public static String repeat(String string, int repeat) {
         if (!hasLength(string) || repeat <= 0) return EMPTY;
@@ -1730,7 +1774,7 @@ public class StringUtils {
         if (index == -1) return string;
 
         int capacity = string.length();
-        if (newPattern.length() > oldPattern.length()) capacity += 16;
+        if (newPattern.length() > oldPattern.length()) capacity += INITIAL_CAPACITY_INCREMENT;
 
         StringBuilder stringBuilder = new StringBuilder(capacity);
 
@@ -1749,8 +1793,17 @@ public class StringUtils {
     }
 
     /**
-     * Replaces a String with another String inside a larger String, for the
-     * first {@code max} occurrences.
+     * Replaces a String with another String inside a larger String,
+     * for the first {@code max} occurrences.
+     *
+     * <p>This method provides fine-grained control over the number of
+     * replacements, unlike {@link #replace(String, String, String)}
+     * which replaces all occurrences.
+     *
+     * <p>A {@code null} or empty input string, or a {@code null}
+     * search/replacement string, returns the original string unchanged.
+     *
+     * <p>A {@code max} value of zero also returns the original string.
      *
      * @param text         text to search and replace in
      * @param searchString the String to search for (case-sensitive)
@@ -1759,7 +1812,13 @@ public class StringUtils {
      * @return the text with replacements, or the original if no match or invalid inputs
      */
     public static String replace(String text, String searchString, String replacement, int max) {
-        if (!hasText(text) || !hasLength(searchString) || replacement == null || max == 0) {
+        if (!hasText(text)) {
+            return text;
+        }
+        if (!hasLength(searchString)) {
+            return text;
+        }
+        if (replacement == null || max == 0) {
             return text;
         }
 
@@ -1770,13 +1829,14 @@ public class StringUtils {
         int replLength = searchString.length();
         int increase = replacement.length() - replLength;
         increase = Math.max(increase, 0);
-        increase *= (max < 0) ? 16 : (Math.min(max, 64));
+        increase *= (max < 0) ? INITIAL_CAPACITY_INCREMENT : (Math.min(max, MAX_CAPACITY_INCREMENT));
 
         StringBuilder buf = new StringBuilder(text.length() + increase);
+        int remaining = max;
         while (end != INDEX_NOT_FOUND) {
             buf.append(text, start, end).append(replacement);
             start = end + replLength;
-            if (--max == 0) break;
+            if (--remaining == 0) break;
             end = text.indexOf(searchString, start);
         }
         buf.append(text, start, text.length());
@@ -1833,7 +1893,7 @@ public class StringUtils {
     }
 
     /**
-     * Returns the rightmost substring of the specified string with the given
+     * Gets the rightmost substring of the specified string with the given
      * {@code length}.
      *
      * <p>If the string is {@code null}, {@code empty}, or shorter than or
@@ -1849,7 +1909,7 @@ public class StringUtils {
      * @throws IllegalArgumentException if the length is negative
      */
     public static String right(String string, int length) {
-        if (length < 0) throw new IllegalArgumentException("Length must be positive");
+        if (length < 0) throw new IllegalArgumentException(LENGTH_MUST_BE_POSITIVE);
         return (!hasLength(string) || string.length() <= length) ? string : string.substring(string.length() - length);
     }
 
@@ -1874,13 +1934,15 @@ public class StringUtils {
      * @throws IllegalArgumentException if size is negative
      */
     public static String rightPad(String string, int size, char padChar) {
-        if (size < 0) throw new IllegalArgumentException("Size must be non-negative");
-        if (string == null) string = EMPTY;
-        int pads = size - string.length();
-        if (pads <= 0) return string;
+        if (size < 0) throw new IllegalArgumentException(SIZE_MUST_BE_NON_NEGATIVE);
+
+        String source = (string != null) ? string : EMPTY;
+        int pads = size - source.length();
+        if (pads <= 0) return source;
+
         char[] pad = new char[pads];
-        java.util.Arrays.fill(pad, padChar);
-        return string + new String(pad);
+        Arrays.fill(pad, padChar);
+        return source + new String(pad);
     }
 
     /**
@@ -1916,7 +1978,7 @@ public class StringUtils {
      * @see #split(String, String, int)
      */
     public static String[] split(String string) {
-        return split(string, " ", 0);
+        return split(string, SPACE, 0);
     }
 
     /**
@@ -1969,18 +2031,14 @@ public class StringUtils {
                 (separator == null) ? new StringTokenizer(string) : new StringTokenizer(string, separator);
 
         int listSize = stringTokenizer.countTokens();
-        if ((max > 0) && (listSize > max)) {
-            listSize = max;
-        }
-
+        int effectiveMax = (max > 0 && listSize > max) ? max : listSize;
         int i = 0;
         int lastTokenBegin;
         int lastTokenEnd = 0;
         String endToken;
-        String[] list = new String[listSize];
-
+        String[] list = new String[effectiveMax];
         while (stringTokenizer.hasMoreTokens()) {
-            if ((max > 0) && (i == listSize - 1)) {
+            if ((max > 0) && (i == effectiveMax - 1)) {
                 endToken = stringTokenizer.nextToken();
                 lastTokenBegin = string.indexOf(endToken, lastTokenEnd);
                 list[i] = string.substring(lastTokenBegin);
@@ -2085,8 +2143,8 @@ public class StringUtils {
      * @return the stripped string
      */
     public static String strip(String string, String stripChars) {
-        string = stripStart(string, stripChars);
-        return stripEnd(string, stripChars);
+        String strippedStart = stripStart(string, stripChars);
+        return stripEnd(strippedStart, stripChars);
     }
 
     /**
@@ -2123,7 +2181,8 @@ public class StringUtils {
         int length = string.length();
         if (!hasLength(stripChars)) {
             while (length > 0 &&
-                    (Character.isWhitespace(string.charAt(length - 1)) || string.charAt(length - 1) == NON_BREAKING_SPACE)) {
+                    (Character.isWhitespace(string.charAt(length - 1)) ||
+                            string.charAt(length - 1) == NON_BREAKING_SPACE)) {
                 length--;
             }
         } else {
@@ -2190,12 +2249,12 @@ public class StringUtils {
     public static String substring(String string, int start) {
         if (!hasText(string)) return EMPTY;
 
-        if (start < 0) start = string.length() + start;
+        int effectiveStart = start;
+        if (effectiveStart < 0) effectiveStart = string.length() + effectiveStart;
+        if (effectiveStart < 0) effectiveStart = 0;
+        if (effectiveStart > string.length()) return EMPTY;
 
-        if (start < 0) start = 0;
-        if (start > string.length()) return EMPTY;
-
-        return string.substring(start);
+        return string.substring(effectiveStart);
     }
 
     /**
@@ -2600,7 +2659,7 @@ public class StringUtils {
     public static String unwrap(String string, char wrapToken) {
         if (!hasText(string)) return string;
 
-        if (string.length() < 2) return string;
+        if (string.length() < MIN_LENGTH_FOR_UNWRAP) return string;
         return (string.charAt(0) == wrapToken && string.charAt(string.length() - 1) == wrapToken) ?
                 string.substring(1, string.length() - 1) : string;
     }
