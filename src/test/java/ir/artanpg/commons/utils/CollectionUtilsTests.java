@@ -16,6 +16,7 @@
 
 package ir.artanpg.commons.utils;
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -70,7 +71,8 @@ class CollectionUtilsTests {
 
         @Test
         @DisplayName("Should throw UnsupportedOperationException when instantiated")
-        void constructor_ShouldThrowUnsupportedOperationException_WhenInstantiated() throws Exception {
+        @SneakyThrows
+        void constructor_ShouldThrowUnsupportedOperationException_WhenInstantiated() {
             // given
             Constructor<CollectionUtils> constructor = CollectionUtils.class.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -2518,7 +2520,7 @@ class CollectionUtilsTests {
 
         @Test
         @DisplayName("Should compute equals and hashCode correctly on Partition")
-        void partition_ShouldSupportEqualsAndHashCode_WhenCompared() throws Exception {
+        void partition_ShouldSupportEqualsAndHashCode_WhenCompared() {
             // given
             List<Integer> source = List.of(1, 2, 3, 4);
             Object partition1 = newPartition(source, 2);
@@ -3357,7 +3359,7 @@ class CollectionUtilsTests {
             // given
 
             // when
-            int result = CollectionUtils.countMatches(null, n -> true);
+            int result = CollectionUtils.countMatches(null, _ -> true);
 
             // then
             then(result).as("Null source should yield 0").isEqualTo(0);
@@ -3370,7 +3372,7 @@ class CollectionUtilsTests {
             Collection<Integer> source = List.of();
 
             // when
-            int result = CollectionUtils.countMatches(source, n -> true);
+            int result = CollectionUtils.countMatches(source, _ -> true);
 
             // then
             then(result).as("Empty source should yield 0").isEqualTo(0);
@@ -3421,7 +3423,7 @@ class CollectionUtilsTests {
             Collection<Integer> source = List.of(1, 2, 3, 4);
 
             // when
-            int result = CollectionUtils.countMatches(source, n -> true);
+            int result = CollectionUtils.countMatches(source, _ -> true);
 
             // then
             then(result).as("All matching should yield size").isEqualTo(4);
@@ -3514,7 +3516,7 @@ class CollectionUtilsTests {
             // given
 
             // when
-            List<Integer> result = CollectionUtils.filter(null, n -> true);
+            List<Integer> result = CollectionUtils.filter(null, _ -> true);
 
             // then
             then(result).as("Null source should yield empty").isEmpty();
@@ -3527,7 +3529,7 @@ class CollectionUtilsTests {
             Collection<Integer> source = List.of();
 
             // when
-            List<Integer> result = CollectionUtils.filter(source, n -> true);
+            List<Integer> result = CollectionUtils.filter(source, _ -> true);
 
             // then
             then(result).as("Empty source should yield empty").isEmpty();
@@ -3578,7 +3580,7 @@ class CollectionUtilsTests {
             Collection<Integer> source = List.of(1, 2, 3);
 
             // when
-            List<Integer> result = CollectionUtils.filter(source, n -> true);
+            List<Integer> result = CollectionUtils.filter(source, _ -> true);
 
             // then
             then(result).as("All matching should yield all elements").containsExactly(1, 2, 3);
@@ -3633,7 +3635,7 @@ class CollectionUtilsTests {
             // given
 
             // when
-            List<Integer> result = CollectionUtils.filter(null, n -> true);
+            List<Integer> result = CollectionUtils.filter(null, _ -> true);
 
             // then
             thenThrownBy(() -> result.add(99))
@@ -3679,7 +3681,7 @@ class CollectionUtilsTests {
             // given
 
             // when
-            List<Integer> result = CollectionUtils.reject(null, n -> true);
+            List<Integer> result = CollectionUtils.reject(null, _ -> true);
 
             // then
             then(result).as("Null source should yield empty").isEmpty();
@@ -3692,7 +3694,7 @@ class CollectionUtilsTests {
             Collection<Integer> source = List.of();
 
             // when
-            List<Integer> result = CollectionUtils.reject(source, n -> true);
+            List<Integer> result = CollectionUtils.reject(source, _ -> true);
 
             // then
             then(result).as("Empty source should yield empty").isEmpty();
@@ -3731,7 +3733,7 @@ class CollectionUtilsTests {
             Collection<Integer> source = List.of(1, 2, 3);
 
             // when
-            List<Integer> result = CollectionUtils.reject(source, n -> true);
+            List<Integer> result = CollectionUtils.reject(source, _ -> true);
 
             // then
             then(result).as("All rejected should yield empty").isEmpty();
@@ -3744,7 +3746,7 @@ class CollectionUtilsTests {
             Collection<Integer> source = List.of(1, 2, 3);
 
             // when
-            List<Integer> result = CollectionUtils.reject(source, n -> false);
+            List<Integer> result = CollectionUtils.reject(source, _ -> false);
 
             // then
             then(result).as("No rejection should yield all elements").containsExactly(1, 2, 3);
@@ -4557,7 +4559,6 @@ class CollectionUtilsTests {
         @DisplayName("Should use equals for value comparison, not identity")
         void invertMap_ShouldUseEqualsForValues_WhenCustomObjects() {
             // given
-            record Point(int x, int y) {}
             Map<String, Point> source = new LinkedHashMap<>();
             source.put("first", new Point(1, 2));
             source.put("second", new Point(1, 2)); // equal value
@@ -5049,7 +5050,6 @@ class CollectionUtilsTests {
         @DisplayName("Should use equals for comparison, not identity")
         void cardinality_ShouldUseEquals_WhenCustomEquals() {
             // given
-            record Point(int x, int y) {}
             Collection<Point> collection = List.of(
                     new Point(1, 2),
                     new Point(3, 4),
@@ -5261,7 +5261,6 @@ class CollectionUtilsTests {
         @DisplayName("Should collate custom-typed elements with custom comparator")
         void collate_ShouldHandleCustomComparator_WhenCustomType() {
             // given
-            record Person(String name, int age) {}
             Collection<Person> a = List.of(new Person("A", 20), new Person("C", 40));
             Collection<Person> b = List.of(new Person("B", 30), new Person("D", 50));
             Comparator<Person> comparator = Comparator.comparingInt(Person::age);
@@ -8576,10 +8575,17 @@ class CollectionUtilsTests {
     // Helpers and test doubles
     // -------------------------------------------------------------------------
 
-    private static Object newPartition(List<?> list, int size) throws Exception {
+    @SneakyThrows
+    private static Object newPartition(List<?> list, int size) {
         Class<?> partitionClass = Class.forName("ir.artanpg.commons.utils.CollectionUtils$Partition");
         Constructor<?> constructor = partitionClass.getDeclaredConstructor(List.class, int.class);
         constructor.setAccessible(true);
         return constructor.newInstance(list, size);
+    }
+
+    record Point(int x, int y) {
+    }
+
+    record Person(String name, int age) {
     }
 }

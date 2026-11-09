@@ -61,7 +61,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.resources.sourceEncoding>UTF-8</project.resources.sourceEncoding>
 
-    <checkstyle.include.test.source>false</checkstyle.include.test.source>
+    <checkstyle.include.test.source>true</checkstyle.include.test.source>
     <checkstyle.config.location>${basedir}/src/checkstyle/checkstyle.xml</checkstyle.config.location>
     <checkstyle.suppressions.location>${basedir}/src/checkstyle/suppressions.xml</checkstyle.suppressions.location>
     <checkstyle.properties.location>
@@ -127,6 +127,12 @@
   </pluginRepositories>
 
   <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>

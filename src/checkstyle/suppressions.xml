@@ -12,5 +12,6 @@
   <suppress checks="LambdaBodyLength" files=".*Tests?\.java$"/>
   <suppress checks="MagicNumber" files=".*Tests?\.java$"/>
   <suppress checks="MultipleStringLiterals" files=".*Tests?\.java$"/>
+  <suppress checks="HideUtilityClassConstructor" files=".*Tests?\.java$"/>
   <suppress checks=".*" files=".*[\\/]generated(-sources)?[\\/].*\.java$"/>
 </suppressions>

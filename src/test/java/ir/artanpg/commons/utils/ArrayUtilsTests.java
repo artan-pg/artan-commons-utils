@@ -16,6 +16,7 @@
 
 package ir.artanpg.commons.utils;
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -42,7 +43,8 @@ class ArrayUtilsTests {
 
         @Test
         @DisplayName("Should throw UnsupportedOperationException when trying to instantiate")
-        void constructor_ShouldThrowUnsupportedOperationException_WhenInstantiated() throws Exception {
+        @SneakyThrows
+        void constructor_ShouldThrowUnsupportedOperationException_WhenInstantiated() {
             // given
             Constructor<ArrayUtils> constructor = ArrayUtils.class.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -263,7 +265,9 @@ class ArrayUtilsTests {
             short[] result = ArrayUtils.add(source, (short) 3, 1);
 
             // then
-            then(result).as("New array with element inserted at index 1").containsExactly((short) 1, (short) 3, (short) 2);
+            then(result)
+                    .as("New array with element inserted at index 1")
+                    .containsExactly((short) 1, (short) 3, (short) 2);
         }
 
         @Test
@@ -1079,7 +1083,10 @@ class ArrayUtilsTests {
             boolean[] result = ArrayUtils.clone(source);
 
             // then
-            then(result).as("Cloned array equals source but is different instance").isEqualTo(source).isNotSameAs(source);
+            then(result)
+                    .as("Cloned array equals source but is different instance")
+                    .isEqualTo(source)
+                    .isNotSameAs(source);
         }
 
         @Test
@@ -1108,7 +1115,10 @@ class ArrayUtilsTests {
             byte[] result = ArrayUtils.clone(source);
 
             // then
-            then(result).as("Cloned array equals source but is different instance").isEqualTo(source).isNotSameAs(source);
+            then(result)
+                    .as("Cloned array equals source but is different instance")
+                    .isEqualTo(source)
+                    .isNotSameAs(source);
         }
 
         @Test
@@ -1137,7 +1147,10 @@ class ArrayUtilsTests {
             char[] result = ArrayUtils.clone(source);
 
             // then
-            then(result).as("Cloned array equals source but is different instance").isEqualTo(source).isNotSameAs(source);
+            then(result)
+                    .as("Cloned array equals source but is different instance")
+                    .isEqualTo(source)
+                    .isNotSameAs(source);
         }
 
         @Test
@@ -1166,7 +1179,10 @@ class ArrayUtilsTests {
             short[] result = ArrayUtils.clone(source);
 
             // then
-            then(result).as("Cloned array equals source but is different instance").isEqualTo(source).isNotSameAs(source);
+            then(result)
+                    .as("Cloned array equals source but is different instance")
+                    .isEqualTo(source)
+                    .isNotSameAs(source);
         }
 
         @Test
@@ -1195,7 +1211,10 @@ class ArrayUtilsTests {
             int[] result = ArrayUtils.clone(source);
 
             // then
-            then(result).as("Cloned array equals source but is different instance").isEqualTo(source).isNotSameAs(source);
+            then(result)
+                    .as("Cloned array equals source but is different instance")
+                    .isEqualTo(source)
+                    .isNotSameAs(source);
         }
 
         @Test
@@ -1224,7 +1243,10 @@ class ArrayUtilsTests {
             long[] result = ArrayUtils.clone(source);
 
             // then
-            then(result).as("Cloned array equals source but is different instance").isEqualTo(source).isNotSameAs(source);
+            then(result)
+                    .as("Cloned array equals source but is different instance")
+                    .isEqualTo(source)
+                    .isNotSameAs(source);
         }
 
         @Test
@@ -1253,7 +1275,10 @@ class ArrayUtilsTests {
             float[] result = ArrayUtils.clone(source);
 
             // then
-            then(result).as("Cloned array equals source but is different instance").isEqualTo(source).isNotSameAs(source);
+            then(result)
+                    .as("Cloned array equals source but is different instance")
+                    .isEqualTo(source)
+                    .isNotSameAs(source);
         }
 
         @Test
@@ -1282,7 +1307,10 @@ class ArrayUtilsTests {
             double[] result = ArrayUtils.clone(source);
 
             // then
-            then(result).as("Cloned array equals source but is different instance").isEqualTo(source).isNotSameAs(source);
+            then(result)
+                    .as("Cloned array equals source but is different instance")
+                    .isEqualTo(source)
+                    .isNotSameAs(source);
         }
 
         @Test
@@ -1311,7 +1339,10 @@ class ArrayUtilsTests {
             String[] result = ArrayUtils.clone(source);
 
             // then
-            then(result).as("Cloned array equals source but is different instance").isEqualTo(source).isNotSameAs(source);
+            then(result)
+                    .as("Cloned array equals source but is different instance")
+                    .isEqualTo(source)
+                    .isNotSameAs(source);
         }
 
         @Test
@@ -8021,6 +8052,6 @@ class ArrayUtilsTests {
     // -------------------------------------------------------------------------
 
     static Comparator<String> createStringComparator() {
-        return (_s1, _s2) -> 0;
+        return (_, _) -> 0;
     }
 }
