@@ -80,3 +80,52 @@ jobs:
         # the JaCoCo coverage check.
         # -Pformat: enforces Checkstyle from process-sources (fail on violation).
         run: ./mvnw -B -ntp -Pexecute-tests,format install
+
+  deploy:
+    name: Deploy to Nexus snapshots
+    needs: build
+    if: >
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: deploy-snapshot
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache Maven local repository
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-jdk21-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            maven-${{ runner.os }}-jdk21-
+            maven-${{ runner.os }}-
+
+      - name: Verify version is a SNAPSHOT
+        run: |
+          VERSION=$(./mvnw -B -ntp -q -DforceStdout help:evaluate -Dexpression=project.version)
+          case "$VERSION" in
+            *-SNAPSHOT)
+              echo "OK: deploying $VERSION"
+              ;;
+            *)
+              echo "::error::main must carry a -SNAPSHOT version (found: $VERSION). Releases go through the v* tag flow."
+              exit 1
+              ;;
+          esac
+
+      - name: Deploy to Nexus
+        env:
+          NEXUS_MAVEN_USERNAME: ${{ secrets.NEXUS_MAVEN_USERNAME }}
+          NEXUS_MAVEN_PASSWORD: ${{ secrets.NEXUS_MAVEN_PASSWORD }}
+        run: ./mvnw -B -ntp -Pdocumentation -Dmaven.test.skip=true -Dcheckstyle.skip=true -Djacoco.skip=true deploy
