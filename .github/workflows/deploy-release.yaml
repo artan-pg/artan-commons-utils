@@ -78,6 +78,10 @@ jobs:
   deploy:
     name: Deploy release to Nexus (JDK 21)
     needs: build
+    if: >
+      github.repository == 'artan-pg/artan-commons-utils' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
